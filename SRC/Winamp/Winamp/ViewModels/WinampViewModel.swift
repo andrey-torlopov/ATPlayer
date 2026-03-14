@@ -1,4 +1,5 @@
 import AVFoundation
+import Combine
 import Foundation
 import SwiftData
 import SwiftUI
@@ -146,7 +147,6 @@ final class WinampViewModel: ObservableObject {
         var stale = false
         let url = try URL(
             resolvingBookmarkData: track.bookmark,
-            options: .withSecurityScope,
             bookmarkDataIsStale: &stale
         )
         if stale {
