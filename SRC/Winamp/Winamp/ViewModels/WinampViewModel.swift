@@ -117,13 +117,18 @@ final class WinampViewModel: ObservableObject {
         do {
             stopActiveScopedURLIfNeeded()
             let url = try resolvedURL(for: track)
-            try playbackService.loadAndPlay(url: url)
-            activeScopedURL = url
-            selectedTrackID = track.id
-            nowPlayingTitle = track.displayTitle.uppercased()
+            do {
+                try playbackService.loadAndPlay(url: url)
+                activeScopedURL = url
+                selectedTrackID = track.id
+                nowPlayingTitle = track.displayTitle.uppercased()
+            } catch {
+                markCorrupted(track)
+                playNextAfter(track: track)
+            }
         } catch {
-            markCorrupted(track)
-            playNextAfter(track: track)
+            importError = "Нет доступа к \(track.title): \(error.localizedDescription)"
+            selectedTrackID = track.id
         }
     }
 

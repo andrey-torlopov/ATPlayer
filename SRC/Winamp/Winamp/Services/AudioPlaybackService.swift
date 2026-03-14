@@ -19,6 +19,7 @@ final class AudioPlaybackService: ObservableObject {
     private var scheduledAt: Date?
     private var progressTimer: Timer?
     private var meterTimer: Timer?
+    private var scheduleGeneration: UInt = 0
 
     let bands: [Float] = [60, 170, 310, 600, 1000, 3000, 6000, 12000, 14000, 16000]
     @Published var preamp: Float = 0 {
@@ -47,38 +48,37 @@ final class AudioPlaybackService: ObservableObject {
     }
 
     func loadAndPlay(url: URL) throws {
-        stop()
+        invalidateSchedule()
+        playerNode.stop()
+        progressTimer?.invalidate()
+
         let file = try AVAudioFile(forReading: url)
         currentFile = file
         duration = TimeInterval(file.length) / file.processingFormat.sampleRate
         playbackOffset = 0
-        scheduleCurrentFile(from: playbackOffset)
-        playerNode.play()
-        scheduledAt = .now
-        isPlaying = true
-        startProgressUpdates()
+        currentTime = 0
+
+        scheduleAndPlay(from: 0)
     }
 
     func play() {
         guard currentFile != nil else { return }
         guard !isPlaying else { return }
-        scheduleCurrentFile(from: playbackOffset)
-        playerNode.play()
-        scheduledAt = .now
-        isPlaying = true
-        startProgressUpdates()
+        scheduleAndPlay(from: playbackOffset)
     }
 
     func pause() {
         guard isPlaying else { return }
         updateProgressValue()
         playbackOffset = currentTime
+        invalidateSchedule()
         playerNode.stop()
         isPlaying = false
         progressTimer?.invalidate()
     }
 
     func stop() {
+        invalidateSchedule()
         playerNode.stop()
         progressTimer?.invalidate()
         playbackOffset = 0
@@ -92,30 +92,33 @@ final class AudioPlaybackService: ObservableObject {
         let clampedTime = max(0, min(duration, time))
         let wasPlaying = isPlaying
 
+        invalidateSchedule()
         playerNode.stop()
         progressTimer?.invalidate()
         playbackOffset = clampedTime
         currentTime = clampedTime
 
         if wasPlaying {
-            scheduleCurrentFile(from: clampedTime)
-            playerNode.play()
-            scheduledAt = .now
-            isPlaying = true
-            startProgressUpdates()
+            scheduleAndPlay(from: clampedTime)
         }
     }
 
-    private func scheduleCurrentFile(from offset: TimeInterval) {
+    private func invalidateSchedule() {
+        scheduleGeneration &+= 1
+    }
+
+    private func scheduleAndPlay(from offset: TimeInterval) {
         guard let file = currentFile else { return }
         let sampleRate = file.processingFormat.sampleRate
         let startFrame = AVAudioFramePosition(offset * sampleRate)
         let remainingFrames = AVAudioFrameCount(max(0, file.length - startFrame))
         guard remainingFrames > 0 else {
-            handleTrackEnd()
+            stop()
+            onTrackFinished?()
             return
         }
 
+        let generation = scheduleGeneration
         playerNode.stop()
         playerNode.scheduleSegment(
             file,
@@ -125,14 +128,15 @@ final class AudioPlaybackService: ObservableObject {
         ) { [weak self] in
             Task { @MainActor [weak self] in
                 guard let self else { return }
-                self.handleTrackEnd()
+                guard self.scheduleGeneration == generation else { return }
+                self.stop()
+                self.onTrackFinished?()
             }
         }
-    }
-
-    private func handleTrackEnd() {
-        stop()
-        onTrackFinished?()
+        playerNode.play()
+        scheduledAt = .now
+        isPlaying = true
+        startProgressUpdates()
     }
 
     private func configureAudioSession() {
@@ -244,7 +248,8 @@ final class AudioPlaybackService: ObservableObject {
         let played = Date().timeIntervalSince(scheduledAt)
         currentTime = min(duration, playbackOffset + played)
         if currentTime >= duration {
-            handleTrackEnd()
+            stop()
+            onTrackFinished?()
         }
     }
 }
