@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct VisualizerView: View {
     let values: [CGFloat]
@@ -96,6 +97,12 @@ struct EqualizerWindowView: View {
         }
         .padding()
         .background(theme.background)
+        .onAppear {
+            setLandscape(true)
+        }
+        .onDisappear {
+            setLandscape(false)
+        }
     }
 
     private func label(for value: Float) -> String {
@@ -103,5 +110,14 @@ struct EqualizerWindowView: View {
             return "\(Int(value / 1000))k"
         }
         return "\(Int(value))"
+    }
+
+    private func setLandscape(_ lock: Bool) {
+        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
+        if lock {
+            scene.requestGeometryUpdate(.iOS(interfaceOrientations: .landscape))
+        } else {
+            scene.requestGeometryUpdate(.iOS(interfaceOrientations: .all))
+        }
     }
 }

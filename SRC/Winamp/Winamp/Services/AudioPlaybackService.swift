@@ -22,15 +22,22 @@ final class AudioPlaybackService: ObservableObject {
 
     let bands: [Float] = [60, 170, 310, 600, 1000, 3000, 6000, 12000, 14000, 16000]
     @Published var preamp: Float = 0 {
-        didSet { equalizer.globalGain = preamp }
+        didSet {
+            equalizer.globalGain = preamp
+            UserDefaults.standard.set(preamp, forKey: "eq_preamp")
+        }
     }
     @Published var gains: [Float] = Array(repeating: 0, count: 10) {
-        didSet { applyGains() }
+        didSet {
+            applyGains()
+            UserDefaults.standard.set(gains, forKey: "eq_gains")
+        }
     }
 
     init() {
         configureAudioSession()
         configureEngine()
+        restoreEQSettings()
         startMeters()
     }
 
@@ -200,6 +207,18 @@ final class AudioPlaybackService: ObservableObject {
                     self.visualizer = self.visualizer.map { max(0.05, $0 * 0.9) }
                 }
             }
+        }
+    }
+
+    private func restoreEQSettings() {
+        let savedPreamp = UserDefaults.standard.float(forKey: "eq_preamp")
+        preamp = savedPreamp
+        equalizer.globalGain = savedPreamp
+
+        if let savedGains = UserDefaults.standard.array(forKey: "eq_gains") as? [Float],
+           savedGains.count == 10 {
+            gains = savedGains
+            applyGains()
         }
     }
 
