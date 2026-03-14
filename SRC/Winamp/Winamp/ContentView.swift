@@ -3,7 +3,12 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.colorScheme) private var colorScheme
     @State private var viewModel: WinampViewModel?
+
+    private var theme: AppTheme {
+        colorScheme == .dark ? AppTheme.dark : AppTheme.light
+    }
 
     var body: some View {
         Group {
@@ -11,9 +16,9 @@ struct ContentView: View {
                 WinampRootView(viewModel: viewModel)
             } else {
                 ProgressView()
-                    .tint(.white)
+                    .tint(theme.accent)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(WinampTheme.background.ignoresSafeArea())
+                    .background(theme.background.ignoresSafeArea())
             }
         }
         .task {
@@ -25,5 +30,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
-        .modelContainer(for: TrackItem.self, inMemory: true)
+        .modelContainer(for: [TrackItem.self, PlaylistSection.self], inMemory: true)
 }

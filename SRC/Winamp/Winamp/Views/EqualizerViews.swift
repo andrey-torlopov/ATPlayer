@@ -2,6 +2,7 @@ import SwiftUI
 
 struct VisualizerView: View {
     let values: [CGFloat]
+    @Environment(\.theme) private var theme
 
     var body: some View {
         HStack(alignment: .bottom, spacing: 3) {
@@ -9,7 +10,7 @@ struct VisualizerView: View {
                 RoundedRectangle(cornerRadius: 1)
                     .fill(
                         LinearGradient(
-                            colors: [WinampTheme.neon, WinampTheme.amber],
+                            colors: [theme.visualizerLow, theme.visualizerHigh],
                             startPoint: .bottom,
                             endPoint: .top
                         )
@@ -19,13 +20,15 @@ struct VisualizerView: View {
         }
         .padding(.horizontal, 6)
         .frame(maxWidth: .infinity, minHeight: 70, maxHeight: 70, alignment: .bottom)
-        .background(Color.black.opacity(0.85))
-        .overlay(Rectangle().stroke(WinampTheme.borderLight, lineWidth: 1))
+        .background(theme.background.opacity(0.85))
+        .clipShape(RoundedRectangle(cornerRadius: 4))
+        .overlay(RoundedRectangle(cornerRadius: 4).stroke(theme.borderLight, lineWidth: 1))
     }
 }
 
 struct EqualizerCompactView: View {
     @ObservedObject var playbackService: AudioPlaybackService
+    @Environment(\.theme) private var theme
     let onTap: () -> Void
 
     var body: some View {
@@ -33,43 +36,44 @@ struct EqualizerCompactView: View {
             VisualizerView(values: playbackService.visualizer)
             HStack(spacing: 8) {
                 Text("EQ")
-                    .font(.system(size: 12, weight: .bold, design: .monospaced))
-                    .foregroundStyle(WinampTheme.neon)
+                    .font(AppFonts.body(12))
+                    .foregroundStyle(theme.accent)
                 Text("PREAMP \(Int(playbackService.preamp)) dB")
-                    .font(.system(size: 11, weight: .medium, design: .monospaced))
-                    .foregroundStyle(.white)
+                    .font(AppFonts.caption())
+                    .foregroundStyle(theme.textPrimary)
                 Spacer()
-                Button("ОТКРЫТЬ") { onTap() }
+                Button("EQ") { onTap() }
                     .buttonStyle(.borderedProminent)
-                    .tint(WinampTheme.amber)
-                    .font(.system(size: 11, weight: .bold, design: .monospaced))
+                    .tint(theme.accentSecondary)
+                    .font(AppFonts.caption())
             }
         }
-        .winampPanel()
+        .themedPanel()
     }
 }
 
 struct EqualizerWindowView: View {
     @ObservedObject var playbackService: AudioPlaybackService
+    @Environment(\.theme) private var theme
 
     var body: some View {
         VStack(spacing: 12) {
             HStack {
-                Text("WINAMP EQUALIZER")
-                    .font(.system(size: 18, weight: .heavy, design: .monospaced))
-                    .foregroundStyle(WinampTheme.neon)
+                Text("EQUALIZER")
+                    .font(AppFonts.title())
+                    .foregroundStyle(theme.accent)
                 Spacer()
             }
 
             VStack(alignment: .leading, spacing: 8) {
                 Text("PREAMP")
-                    .foregroundStyle(.white)
-                    .font(.system(size: 11, weight: .bold, design: .monospaced))
+                    .foregroundStyle(theme.textPrimary)
+                    .font(AppFonts.caption())
                 Slider(value: Binding(
                     get: { Double(playbackService.preamp) },
                     set: { playbackService.preamp = Float($0) }
                 ), in: -12...12)
-                .tint(WinampTheme.amber)
+                .tint(theme.accentSecondary)
             }
 
             HStack(alignment: .bottom, spacing: 8) {
@@ -82,8 +86,8 @@ struct EqualizerWindowView: View {
                         .rotationEffect(.degrees(-90))
                         .frame(height: 110)
                         Text(label(for: frequency))
-                            .foregroundStyle(.white)
-                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                            .foregroundStyle(theme.textPrimary)
+                            .font(AppFonts.caption(10))
                     }
                 }
             }
@@ -91,7 +95,7 @@ struct EqualizerWindowView: View {
             VisualizerView(values: playbackService.visualizer)
         }
         .padding()
-        .background(WinampTheme.background)
+        .background(theme.background)
     }
 
     private func label(for value: Float) -> String {

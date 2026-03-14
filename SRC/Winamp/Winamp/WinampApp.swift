@@ -7,7 +7,7 @@ struct WinampApp: App {
 
     init() {
         do {
-            container = try ModelContainer(for: TrackItem.self)
+            container = try ModelContainer(for: TrackItem.self, PlaylistSection.self)
         } catch {
             fatalError("Не удалось создать ModelContainer: \(error.localizedDescription)")
         }

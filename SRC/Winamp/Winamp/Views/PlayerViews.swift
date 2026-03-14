@@ -2,84 +2,72 @@ import SwiftUI
 
 struct PlayerPanelView: View {
     @ObservedObject var viewModel: WinampViewModel
-    let compactControls: Bool
+    @Environment(\.theme) private var theme
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(viewModel.nowPlayingTitle)
-                .font(.system(size: 20, weight: .heavy, design: .monospaced))
-                .foregroundStyle(WinampTheme.neon)
+                .font(AppFonts.title(16))
+                .foregroundStyle(theme.accent)
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(8)
-                .background(Color.black.opacity(0.88))
+                .background(theme.background.opacity(0.6))
+                .clipShape(RoundedRectangle(cornerRadius: 6))
 
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("TIME")
-                        .font(.system(size: 10, weight: .bold, design: .monospaced))
-                        .foregroundStyle(.white.opacity(0.75))
-                    Text(timeText)
-                        .font(.system(size: 16, weight: .bold, design: .monospaced))
-                        .foregroundStyle(WinampTheme.neon)
-                }
-                Spacer()
-                Button("+ FILE") {
-                    viewModel.showImporter = true
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(WinampTheme.amber)
-                .font(.system(size: 12, weight: .bold, design: .monospaced))
+            HStack(spacing: 4) {
+                Text(formatted(seconds: viewModel.playbackService.currentTime))
+                    .font(AppFonts.caption(12))
+                    .foregroundStyle(theme.accent)
+                    .monospacedDigit()
+
+                Slider(
+                    value: Binding(
+                        get: { viewModel.playbackService.currentTime },
+                        set: { viewModel.seek(to: $0) }
+                    ),
+                    in: 0...max(1, viewModel.playbackService.duration)
+                )
+                .tint(theme.accent)
+
+                Text(formatted(seconds: viewModel.playbackService.duration))
+                    .font(AppFonts.caption(12))
+                    .foregroundStyle(theme.textSecondary)
+                    .monospacedDigit()
             }
 
             TransportControlsView(
                 isPlaying: viewModel.playbackService.isPlaying,
-                compactMode: compactControls,
                 onPrevious: viewModel.playPrevious,
                 onTogglePlay: viewModel.togglePlayback,
-                onNext: viewModel.playNext
+                onNext: viewModel.playNext,
+                theme: theme
             )
-
-            if !compactControls {
-                EqualizerCompactView(playbackService: viewModel.playbackService) {
-                    viewModel.showEqualizerWindow = true
-                }
-            }
         }
-        .winampPanel()
-    }
-
-    private var timeText: String {
-        let current = formatted(seconds: viewModel.playbackService.currentTime)
-        let total = formatted(seconds: viewModel.playbackService.duration)
-        return "\(current) / \(total)"
+        .themedPanel()
     }
 
     private func formatted(seconds: TimeInterval) -> String {
-        guard seconds.isFinite else { return "--:--" }
-        let formatter = DateComponentsFormatter()
-        formatter.allowedUnits = [.minute, .second]
-        formatter.zeroFormattingBehavior = .pad
-        return formatter.string(from: seconds) ?? "--:--"
+        guard seconds.isFinite, seconds > 0 else { return "0:00" }
+        let minutes = Int(seconds) / 60
+        let secs = Int(seconds) % 60
+        return String(format: "%d:%02d", minutes, secs)
     }
 }
 
 struct TransportControlsView: View {
     let isPlaying: Bool
-    let compactMode: Bool
     let onPrevious: () -> Void
     let onTogglePlay: () -> Void
     let onNext: () -> Void
+    let theme: AppTheme
 
     var body: some View {
         HStack(spacing: 12) {
-            ControlButton(symbol: "backward.end.fill", action: onPrevious)
-            ControlButton(symbol: isPlaying ? "pause.fill" : "play.fill", action: onTogglePlay)
-            ControlButton(symbol: "forward.end.fill", action: onNext)
-
-            if !compactMode {
-                Spacer()
-            }
+            ControlButton(symbol: "backward.end.fill", action: onPrevious, theme: theme)
+            ControlButton(symbol: isPlaying ? "pause.fill" : "play.fill", action: onTogglePlay, theme: theme)
+            ControlButton(symbol: "forward.end.fill", action: onNext, theme: theme)
+            Spacer()
         }
     }
 }
@@ -87,15 +75,15 @@ struct TransportControlsView: View {
 private struct ControlButton: View {
     let symbol: String
     let action: () -> Void
+    let theme: AppTheme
 
     var body: some View {
         Button(action: action) {
             Image(systemName: symbol)
-                .font(.system(size: 18, weight: .bold))
-                .frame(width: 52, height: 38)
+                .font(.system(size: 15, weight: .bold))
+                .frame(width: 44, height: 36)
         }
         .buttonStyle(.borderedProminent)
-        .tint(Color(red: 0.78, green: 0.82, blue: 0.95))
-        .foregroundStyle(Color(red: 0.12, green: 0.14, blue: 0.24))
+        .tint(theme.accent)
     }
 }

@@ -2,30 +2,37 @@ import SwiftUI
 
 struct WinampRootView: View {
     @StateObject private var viewModel: WinampViewModel
+    @Environment(\.colorScheme) private var colorScheme
 
     init(viewModel: @autoclosure @escaping () -> WinampViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel())
     }
 
+    private var theme: AppTheme {
+        colorScheme == .dark ? AppTheme.dark : AppTheme.light
+    }
+
     var body: some View {
         NavigationStack {
-            GeometryReader { proxy in
-                let isLandscape = proxy.size.width > proxy.size.height
+            VStack(spacing: 10) {
+                PlayerPanelView(viewModel: viewModel)
 
-                Group {
-                    if isLandscape {
-                        LandscapeContent(viewModel: viewModel)
-                    } else {
-                        PortraitContent(viewModel: viewModel)
-                    }
+                EqualizerCompactView(playbackService: viewModel.playbackService) {
+                    viewModel.showEqualizerWindow = true
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(WinampTheme.background.ignoresSafeArea())
+
+                PlaylistPanelView(viewModel: viewModel)
+                    .frame(maxHeight: .infinity)
             }
+            .padding()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(theme.background.ignoresSafeArea())
             .navigationDestination(isPresented: $viewModel.showEqualizerWindow) {
                 EqualizerWindowView(playbackService: viewModel.playbackService)
+                    .environment(\.theme, theme)
             }
         }
+        .environment(\.theme, theme)
         .fileImporter(
             isPresented: $viewModel.showImporter,
             allowedContentTypes: viewModel.supportedTypes,
@@ -33,40 +40,7 @@ struct WinampRootView: View {
             onCompletion: viewModel.importFiles
         )
         .onAppear {
-            viewModel.reloadTracks()
+            viewModel.reloadSections()
         }
-    }
-}
-
-private struct LandscapeContent: View {
-    @ObservedObject var viewModel: WinampViewModel
-
-    var body: some View {
-        HStack(spacing: 12) {
-            PlayerPanelView(viewModel: viewModel, compactControls: false)
-            PlaylistPanelView(viewModel: viewModel)
-                .frame(maxWidth: 380)
-        }
-        .padding()
-    }
-}
-
-private struct PortraitContent: View {
-    @ObservedObject var viewModel: WinampViewModel
-
-    var body: some View {
-        VStack(spacing: 10) {
-            if !viewModel.playlistExpanded {
-                PlayerPanelView(viewModel: viewModel, compactControls: false)
-                    .transition(.move(edge: .top).combined(with: .opacity))
-            } else {
-                PlayerPanelView(viewModel: viewModel, compactControls: true)
-                    .transition(.move(edge: .top).combined(with: .opacity))
-            }
-
-            PlaylistPanelView(viewModel: viewModel)
-                .frame(maxHeight: .infinity)
-        }
-        .padding()
     }
 }

@@ -2,6 +2,27 @@ import Foundation
 import SwiftData
 
 @Model
+final class PlaylistSection {
+    @Attribute(.unique) var id: UUID
+    var name: String
+    var order: Int
+    @Relationship(deleteRule: .cascade, inverse: \TrackItem.section)
+    var tracks: [TrackItem]
+
+    init(
+        id: UUID = UUID(),
+        name: String,
+        order: Int,
+        tracks: [TrackItem] = []
+    ) {
+        self.id = id
+        self.name = name
+        self.order = order
+        self.tracks = tracks
+    }
+}
+
+@Model
 final class TrackItem {
     @Attribute(.unique) var id: UUID
     var title: String
@@ -10,7 +31,9 @@ final class TrackItem {
     var bookmark: Data
     var duration: Double
     var order: Int
+    var isCorrupted: Bool
     var createdAt: Date
+    var section: PlaylistSection?
 
     init(
         id: UUID = UUID(),
@@ -20,6 +43,7 @@ final class TrackItem {
         bookmark: Data,
         duration: Double,
         order: Int,
+        isCorrupted: Bool = false,
         createdAt: Date = .now
     ) {
         self.id = id
@@ -29,6 +53,7 @@ final class TrackItem {
         self.bookmark = bookmark
         self.duration = duration
         self.order = order
+        self.isCorrupted = isCorrupted
         self.createdAt = createdAt
     }
 }
@@ -41,9 +66,8 @@ extension TrackItem {
 
     var durationText: String {
         guard duration > 0 else { return "--:--" }
-        let formatter = DateComponentsFormatter()
-        formatter.allowedUnits = [.minute, .second]
-        formatter.zeroFormattingBehavior = .pad
-        return formatter.string(from: duration) ?? "--:--"
+        let minutes = Int(duration) / 60
+        let seconds = Int(duration) % 60
+        return String(format: "%d:%02d", minutes, seconds)
     }
 }

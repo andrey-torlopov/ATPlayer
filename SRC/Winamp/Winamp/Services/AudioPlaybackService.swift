@@ -9,6 +9,8 @@ final class AudioPlaybackService: ObservableObject {
     @Published private(set) var duration: TimeInterval = 0
     @Published private(set) var visualizer: [CGFloat] = Array(repeating: 0.1, count: 24)
 
+    var onTrackFinished: (() -> Void)?
+
     private let engine = AVAudioEngine()
     private let playerNode = AVAudioPlayerNode()
     private let equalizer = AVAudioUnitEQ(numberOfBands: 10)
@@ -51,7 +53,7 @@ final class AudioPlaybackService: ObservableObject {
     }
 
     func play() {
-        guard let _ = currentFile else { return }
+        guard currentFile != nil else { return }
         guard !isPlaying else { return }
         scheduleCurrentFile(from: playbackOffset)
         playerNode.play()
@@ -63,6 +65,7 @@ final class AudioPlaybackService: ObservableObject {
     func pause() {
         guard isPlaying else { return }
         updateProgressValue()
+        playbackOffset = currentTime
         playerNode.stop()
         isPlaying = false
         progressTimer?.invalidate()
@@ -77,13 +80,32 @@ final class AudioPlaybackService: ObservableObject {
         isPlaying = false
     }
 
+    func seek(to time: TimeInterval) {
+        guard currentFile != nil else { return }
+        let clampedTime = max(0, min(duration, time))
+        let wasPlaying = isPlaying
+
+        playerNode.stop()
+        progressTimer?.invalidate()
+        playbackOffset = clampedTime
+        currentTime = clampedTime
+
+        if wasPlaying {
+            scheduleCurrentFile(from: clampedTime)
+            playerNode.play()
+            scheduledAt = .now
+            isPlaying = true
+            startProgressUpdates()
+        }
+    }
+
     private func scheduleCurrentFile(from offset: TimeInterval) {
         guard let file = currentFile else { return }
         let sampleRate = file.processingFormat.sampleRate
         let startFrame = AVAudioFramePosition(offset * sampleRate)
         let remainingFrames = AVAudioFrameCount(max(0, file.length - startFrame))
         guard remainingFrames > 0 else {
-            stop()
+            handleTrackEnd()
             return
         }
 
@@ -96,9 +118,14 @@ final class AudioPlaybackService: ObservableObject {
         ) { [weak self] in
             Task { @MainActor [weak self] in
                 guard let self else { return }
-                self.stop()
+                self.handleTrackEnd()
             }
         }
+    }
+
+    private func handleTrackEnd() {
+        stop()
+        onTrackFinished?()
     }
 
     private func configureAudioSession() {
@@ -167,9 +194,11 @@ final class AudioPlaybackService: ObservableObject {
     private func startMeters() {
         meterTimer?.invalidate()
         meterTimer = Timer.scheduledTimer(withTimeInterval: 0.09, repeats: true) { [weak self] _ in
-            guard let self else { return }
-            if !self.isPlaying {
-                self.visualizer = self.visualizer.map { max(0.05, $0 * 0.9) }
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                if !self.isPlaying {
+                    self.visualizer = self.visualizer.map { max(0.05, $0 * 0.9) }
+                }
             }
         }
     }
@@ -182,9 +211,11 @@ final class AudioPlaybackService: ObservableObject {
 
     private func startProgressUpdates() {
         progressTimer?.invalidate()
-        progressTimer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in
-            guard let self else { return }
-            self.updateProgressValue()
+        progressTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.updateProgressValue()
+            }
         }
     }
 
@@ -194,7 +225,7 @@ final class AudioPlaybackService: ObservableObject {
         let played = Date().timeIntervalSince(scheduledAt)
         currentTime = min(duration, playbackOffset + played)
         if currentTime >= duration {
-            stop()
+            handleTrackEnd()
         }
     }
 }
