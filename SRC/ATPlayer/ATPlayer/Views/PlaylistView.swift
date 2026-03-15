@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct PlaylistPanelView: View {
-    @ObservedObject var viewModel: WinampViewModel
+    @ObservedObject var viewModel: ATPlayerViewModel
     @Environment(\.theme) private var theme
     @State private var showNewSectionAlert = false
     @State private var newSectionName = ""
@@ -60,7 +60,7 @@ struct PlaylistPanelView: View {
 
 private struct SectionView: View {
     let section: PlaylistSection
-    @ObservedObject var viewModel: WinampViewModel
+    @ObservedObject var viewModel: ATPlayerViewModel
     let theme: AppTheme
     @State private var isExpanded = true
 

@@ -2,11 +2,11 @@ import Combine
 import SwiftUI
 
 struct PlayerPanelView: View {
-    @ObservedObject var viewModel: WinampViewModel
+    @ObservedObject var viewModel: ATPlayerViewModel
     @ObservedObject private var playback: AudioPlaybackService
     @Environment(\.theme) private var theme
 
-    init(viewModel: WinampViewModel) {
+    init(viewModel: ATPlayerViewModel) {
         self.viewModel = viewModel
         self.playback = viewModel.playbackService
     }

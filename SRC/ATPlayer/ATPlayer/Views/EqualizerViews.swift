@@ -58,45 +58,56 @@ struct EqualizerWindowView: View {
     @Environment(\.theme) private var theme
 
     var body: some View {
-        VStack(spacing: 12) {
-            HStack {
-                Text("EQUALIZER")
-                    .font(AppFonts.title())
-                    .foregroundStyle(theme.accent)
-                Spacer()
-            }
-
-            VStack(alignment: .leading, spacing: 8) {
+        VStack(spacing: 16) {
+            HStack(spacing: 8) {
                 Text("PREAMP")
                     .foregroundStyle(theme.textPrimary)
                     .font(AppFonts.caption())
-                Slider(value: Binding(
-                    get: { Double(playbackService.preamp) },
-                    set: { playbackService.preamp = Float($0) }
-                ), in: -12...12)
-                .tint(theme.accentSecondary)
+                Text("\(Int(playbackService.preamp)) dB")
+                    .foregroundStyle(theme.accent)
+                    .font(AppFonts.caption())
+                Spacer()
+                Button("Сбросить") {
+                    playbackService.preamp = 0
+                    playbackService.gains = Array(repeating: 0, count: 10)
+                }
+                .font(AppFonts.caption(12))
+                .tint(theme.destructive)
             }
 
-            HStack(alignment: .bottom, spacing: 8) {
+            Slider(value: Binding(
+                get: { Double(playbackService.preamp) },
+                set: { playbackService.preamp = Float($0) }
+            ), in: -12...12)
+            .tint(theme.accentSecondary)
+
+            HStack(alignment: .bottom, spacing: 0) {
                 ForEach(Array(playbackService.bands.enumerated()), id: \.offset) { index, frequency in
-                    VStack {
+                    VStack(spacing: 4) {
+                        Text("\(Int(playbackService.gains[index]))")
+                            .foregroundStyle(theme.accent)
+                            .font(AppFonts.caption(9))
                         Slider(value: Binding(
                             get: { Double(playbackService.gains[index]) },
                             set: { playbackService.gains[index] = Float($0) }
                         ), in: -12...12)
                         .rotationEffect(.degrees(-90))
-                        .frame(height: 110)
+                        .frame(maxHeight: .infinity)
                         Text(label(for: frequency))
                             .foregroundStyle(theme.textPrimary)
                             .font(AppFonts.caption(10))
                     }
+                    .frame(maxWidth: .infinity)
                 }
             }
+            .frame(maxHeight: .infinity)
 
             VisualizerView(values: playbackService.visualizer)
         }
         .padding()
-        .background(theme.background)
+        .background(theme.background.ignoresSafeArea())
+        .navigationTitle("Эквалайзер")
+        .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             setLandscape(true)
         }

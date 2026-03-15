@@ -4,7 +4,7 @@ import SwiftUI
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.colorScheme) private var colorScheme
-    @State private var viewModel: WinampViewModel?
+    @State private var viewModel: ATPlayerViewModel?
 
     private var theme: AppTheme {
         colorScheme == .dark ? AppTheme.dark : AppTheme.light
@@ -13,7 +13,7 @@ struct ContentView: View {
     var body: some View {
         Group {
             if let viewModel {
-                WinampRootView(viewModel: viewModel)
+                ATPlayerRootView(viewModel: viewModel)
             } else {
                 ProgressView()
                     .tint(theme.accent)
@@ -23,7 +23,7 @@ struct ContentView: View {
         }
         .task {
             guard viewModel == nil else { return }
-            viewModel = WinampViewModel(context: modelContext)
+            viewModel = ATPlayerViewModel(context: modelContext)
         }
     }
 }

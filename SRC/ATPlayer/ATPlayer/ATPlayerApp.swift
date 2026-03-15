@@ -2,7 +2,7 @@ import SwiftData
 import SwiftUI
 
 @main
-struct WinampApp: App {
+struct ATPlayerApp: App {
     private let container: ModelContainer
 
     init() {

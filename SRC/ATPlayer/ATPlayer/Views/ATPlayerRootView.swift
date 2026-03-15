@@ -1,11 +1,14 @@
 import SwiftUI
 
-struct WinampRootView: View {
-    @StateObject private var viewModel: WinampViewModel
+struct ATPlayerRootView: View {
+    @StateObject private var viewModel: ATPlayerViewModel
+    @ObservedObject private var playbackService: AudioPlaybackService
     @Environment(\.colorScheme) private var colorScheme
 
-    init(viewModel: @autoclosure @escaping () -> WinampViewModel) {
-        _viewModel = StateObject(wrappedValue: viewModel())
+    init(viewModel: @autoclosure @escaping () -> ATPlayerViewModel) {
+        let vm = viewModel()
+        _viewModel = StateObject(wrappedValue: vm)
+        _playbackService = ObservedObject(wrappedValue: vm.playbackService)
     }
 
     private var theme: AppTheme {
@@ -15,11 +18,20 @@ struct WinampRootView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 10) {
+                HStack {
+                    Spacer()
+                    Button {
+                        viewModel.showSettings = true
+                    } label: {
+                        Image(systemName: "gearshape.fill")
+                            .font(.system(size: 20))
+                            .foregroundStyle(theme.textSecondary)
+                    }
+                }
+
                 PlayerPanelView(viewModel: viewModel)
 
-                EqualizerCompactView(playbackService: viewModel.playbackService) {
-                    viewModel.showEqualizerWindow = true
-                }
+                VisualizerView(values: playbackService.visualizer)
 
                 PlaylistPanelView(viewModel: viewModel)
                     .frame(maxHeight: .infinity)
@@ -27,8 +39,8 @@ struct WinampRootView: View {
             .padding()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(theme.background.ignoresSafeArea())
-            .navigationDestination(isPresented: $viewModel.showEqualizerWindow) {
-                EqualizerWindowView(playbackService: viewModel.playbackService)
+            .navigationDestination(isPresented: $viewModel.showSettings) {
+                SettingsView(viewModel: viewModel)
                     .environment(\.theme, theme)
             }
         }

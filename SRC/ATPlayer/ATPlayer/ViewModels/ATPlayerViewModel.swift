@@ -6,11 +6,11 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 @MainActor
-final class WinampViewModel: ObservableObject {
+final class ATPlayerViewModel: ObservableObject {
     @Published var sections: [PlaylistSection] = []
     @Published var selectedTrackID: UUID?
     @Published var showImporter = false
-    @Published var showEqualizerWindow = false
+    @Published var showSettings = false
     @Published var nowPlayingTitle = "READY"
     @Published var importError: String?
     @Published var importTargetSection: PlaylistSection?
@@ -102,6 +102,11 @@ final class WinampViewModel: ObservableObject {
             return
         }
 
+        if playbackService.duration > 0 {
+            playbackService.play()
+            return
+        }
+
         guard let track = selectedTrack else { return }
         Task {
             await play(track: track)
@@ -171,6 +176,27 @@ final class WinampViewModel: ObservableObject {
         } catch {
             importError = "Не удалось удалить трек: \(error.localizedDescription)"
         }
+    }
+
+    // MARK: - Export
+
+    func exportPlaylistsJSON() -> Data {
+        var result: [String: [[String: String]]] = [:]
+        for section in sections {
+            let tracks = storageService.sortedTracks(in: section).map { track in
+                [
+                    "author": track.artist,
+                    "title": track.title,
+                    "path": track.filePath
+                ]
+            }
+            result[section.name] = tracks
+        }
+        let data = (try? JSONSerialization.data(
+            withJSONObject: result,
+            options: [.prettyPrinted, .sortedKeys]
+        )) ?? Data()
+        return data
     }
 
     // MARK: - Private
