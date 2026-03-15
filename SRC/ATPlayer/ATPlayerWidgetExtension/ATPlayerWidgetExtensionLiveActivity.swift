@@ -81,12 +81,12 @@ struct ATPlayerWidgetExtensionLiveActivity: Widget {
                     Text(context.state.trackTitle)
                         .font(.headline)
                         .lineLimit(1)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(.primary)
 
                     Text(context.state.artistName)
                         .font(.subheadline)
                         .lineLimit(1)
-                        .foregroundStyle(.white.opacity(0.7))
+                        .foregroundStyle(.secondary)
                 }
 
                 Spacer()
@@ -102,42 +102,44 @@ struct ATPlayerWidgetExtensionLiveActivity: Widget {
                 Text(formattedTime(context.state.currentTime))
                     .font(.caption2)
                     .monospacedDigit()
-                    .foregroundStyle(.white.opacity(0.7))
+                    .foregroundStyle(.secondary)
 
                 Spacer()
 
                 Text(formattedTime(context.state.duration))
                     .font(.caption2)
                     .monospacedDigit()
-                    .foregroundStyle(.white.opacity(0.7))
+                    .foregroundStyle(.secondary)
             }
 
             HStack(spacing: 32) {
                 Button(intent: PreviousTrackIntent()) {
                     Image(systemName: "backward.end.fill")
                         .font(.title3)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(.primary)
                 }
                 .buttonStyle(.plain)
 
                 Button(intent: TogglePlaybackIntent()) {
                     Image(systemName: context.state.isPlaying ? "pause.fill" : "play.fill")
                         .font(.title2)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(.primary)
                 }
                 .buttonStyle(.plain)
 
                 Button(intent: NextTrackIntent()) {
                     Image(systemName: "forward.end.fill")
                         .font(.title3)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(.primary)
                 }
                 .buttonStyle(.plain)
             }
             .padding(.top, 4)
         }
         .padding(16)
-        .background(Color.black.opacity(0.85))
+        .containerBackground(for: .widget) {
+            Rectangle().fill(.ultraThinMaterial)
+        }
     }
 
     private func formattedTime(_ seconds: TimeInterval) -> String {
