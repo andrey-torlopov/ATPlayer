@@ -6,26 +6,30 @@ final class ATPlayerActivityService {
     private var currentActivity: Activity<ATPlayerActivityAttributes>?
     private var lastUpdateTime: Date = .distantPast
 
-    func startActivity(
+    func startOrUpdateActivity(
         trackTitle: String,
         artistName: String,
-        duration: TimeInterval
+        duration: TimeInterval,
+        currentTime: TimeInterval,
+        isPlaying: Bool
     ) {
-        endActivity()
-
         let state = ATPlayerActivityAttributes.ContentState(
             trackTitle: trackTitle,
             artistName: artistName,
             duration: duration,
-            currentTime: 0,
-            isPlaying: true
+            currentTime: currentTime,
+            isPlaying: isPlaying
         )
 
-        let content = ActivityContent(
-            state: state,
-            staleDate: nil
-        )
+        if let currentActivity {
+            let content = ActivityContent(state: state, staleDate: nil)
+            Task {
+                await currentActivity.update(content)
+            }
+            return
+        }
 
+        let content = ActivityContent(state: state, staleDate: nil)
         do {
             currentActivity = try Activity<ATPlayerActivityAttributes>.request(
                 attributes: ATPlayerActivityAttributes(),
@@ -58,11 +62,7 @@ final class ATPlayerActivityService {
             isPlaying: isPlaying
         )
 
-        let content = ActivityContent(
-            state: state,
-            staleDate: nil
-        )
-
+        let content = ActivityContent(state: state, staleDate: nil)
         Task {
             await currentActivity.update(content)
         }
@@ -79,11 +79,7 @@ final class ATPlayerActivityService {
             isPlaying: false
         )
 
-        let content = ActivityContent(
-            state: state,
-            staleDate: nil
-        )
-
+        let content = ActivityContent(state: state, staleDate: nil)
         Task {
             await currentActivity.end(content, dismissalPolicy: .immediate)
         }

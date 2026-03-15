@@ -1,4 +1,5 @@
 import ActivityKit
+import AppIntents
 import SwiftUI
 import WidgetKit
 
@@ -35,23 +36,26 @@ struct ATPlayerWidgetExtensionLiveActivity: Widget {
                 }
                 DynamicIslandExpandedRegion(.bottom) {
                     HStack(spacing: 24) {
-                        Link(destination: URL(string: "atplayer://previous")!) {
+                        Button(intent: PreviousTrackIntent()) {
                             Image(systemName: "backward.end.fill")
                                 .font(.body)
                                 .foregroundStyle(.white)
                         }
+                        .buttonStyle(.plain)
 
-                        Link(destination: URL(string: "atplayer://toggle")!) {
+                        Button(intent: TogglePlaybackIntent()) {
                             Image(systemName: context.state.isPlaying ? "pause.fill" : "play.fill")
                                 .font(.title3)
                                 .foregroundStyle(.white)
                         }
+                        .buttonStyle(.plain)
 
-                        Link(destination: URL(string: "atplayer://next")!) {
+                        Button(intent: NextTrackIntent()) {
                             Image(systemName: "forward.end.fill")
                                 .font(.body)
                                 .foregroundStyle(.white)
                         }
+                        .buttonStyle(.plain)
                     }
                     .padding(.top, 4)
                 }
@@ -109,23 +113,26 @@ struct ATPlayerWidgetExtensionLiveActivity: Widget {
             }
 
             HStack(spacing: 32) {
-                Link(destination: URL(string: "atplayer://previous")!) {
+                Button(intent: PreviousTrackIntent()) {
                     Image(systemName: "backward.end.fill")
                         .font(.title3)
                         .foregroundStyle(.white)
                 }
+                .buttonStyle(.plain)
 
-                Link(destination: URL(string: "atplayer://toggle")!) {
+                Button(intent: TogglePlaybackIntent()) {
                     Image(systemName: context.state.isPlaying ? "pause.fill" : "play.fill")
                         .font(.title2)
                         .foregroundStyle(.white)
                 }
+                .buttonStyle(.plain)
 
-                Link(destination: URL(string: "atplayer://next")!) {
+                Button(intent: NextTrackIntent()) {
                     Image(systemName: "forward.end.fill")
                         .font(.title3)
                         .foregroundStyle(.white)
                 }
+                .buttonStyle(.plain)
             }
             .padding(.top, 4)
         }

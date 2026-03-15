@@ -7,7 +7,9 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 @MainActor
-final class ATPlayerViewModel: ObservableObject {
+public final class ATPlayerViewModel: ObservableObject {
+    static weak var shared: ATPlayerViewModel?
+
     @Published var sections: [PlaylistSection] = []
     @Published var selectedTrackID: UUID?
     @Published var showImporter = false
@@ -24,8 +26,9 @@ final class ATPlayerViewModel: ObservableObject {
     private var activeScopedURL: URL?
     private var activityUpdateCancellable: AnyCancellable?
 
-    init(context: ModelContext) {
+    public init(context: ModelContext) {
         self.storageService = PlaylistStorageService(context: context)
+        ATPlayerViewModel.shared = self
         playbackService.onTrackFinished = { [weak self] in
             guard let self else { return }
             self.activityService.endActivity()
@@ -143,10 +146,12 @@ final class ATPlayerViewModel: ObservableObject {
                 nowPlayingArtwork = track.artwork
                 importError = nil
 
-                activityService.startActivity(
+                activityService.startOrUpdateActivity(
                     trackTitle: track.title,
                     artistName: track.artist,
-                    duration: track.duration
+                    duration: track.duration,
+                    currentTime: 0,
+                    isPlaying: true
                 )
             } catch {
                 markCorrupted(track)
