@@ -1,11 +1,11 @@
 import SwiftUI
-import UIKit
+import UniformTypeIdentifiers
 
 struct SettingsView: View {
     @ObservedObject var viewModel: ATPlayerViewModel
     @Environment(\.theme) private var theme
-    @State private var showExportShare = false
-    @State private var exportURL: URL?
+    @State private var exportFileURL: URL?
+    @State private var showFileExporter = false
 
     var body: some View {
         ScrollView {
@@ -17,10 +17,16 @@ struct SettingsView: View {
         }
         .background(theme.background.ignoresSafeArea())
         .navigationTitle("Настройки")
-        .sheet(isPresented: $showExportShare) {
-            if let url = exportURL {
-                ShareSheet(url: url)
+        .fileExporter(
+            isPresented: $showFileExporter,
+            document: JSONExportDocument(url: exportFileURL),
+            contentType: .json,
+            defaultFilename: "playlists.json"
+        ) { result in
+            if case let .failure(error) = result {
+                viewModel.importError = "Не удалось сохранить: \(error.localizedDescription)"
             }
+            cleanupExportFile()
         }
     }
 
@@ -75,20 +81,34 @@ struct SettingsView: View {
         let fileURL = tempDir.appendingPathComponent("playlists.json")
         do {
             try data.write(to: fileURL)
-            exportURL = fileURL
-            showExportShare = true
+            exportFileURL = fileURL
+            showFileExporter = true
         } catch {
             viewModel.importError = "Не удалось экспортировать: \(error.localizedDescription)"
         }
     }
+
+    private func cleanupExportFile() {
+        guard let url = exportFileURL else { return }
+        try? FileManager.default.removeItem(at: url)
+        exportFileURL = nil
+    }
 }
 
-private struct ShareSheet: UIViewControllerRepresentable {
-    let url: URL
+private struct JSONExportDocument: FileDocument {
+    static var readableContentTypes: [UTType] { [.json] }
 
-    func makeUIViewController(context: Context) -> UIActivityViewController {
-        UIActivityViewController(activityItems: [url], applicationActivities: nil)
+    let data: Data
+
+    init(url: URL?) {
+        self.data = (try? Data(contentsOf: url ?? URL(fileURLWithPath: ""))) ?? Data()
     }
 
-    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+    init(configuration: ReadConfiguration) throws {
+        self.data = configuration.file.regularFileContents ?? Data()
+    }
+
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        FileWrapper(regularFileWithContents: data)
+    }
 }
