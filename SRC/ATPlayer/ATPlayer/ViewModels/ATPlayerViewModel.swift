@@ -147,13 +147,13 @@ public final class ATPlayerViewModel: ObservableObject {
                 nowPlayingArtwork = track.artwork
                 importError = nil
 
-                activityService.startOrUpdateActivity(
-                    trackTitle: track.title,
-                    artistName: track.artist,
-                    duration: track.duration,
-                    currentTime: 0,
-                    isPlaying: true
-                )
+                // activityService.startOrUpdateActivity(
+                //     trackTitle: track.title,
+                //     artistName: track.artist,
+                //     duration: track.duration,
+                //     currentTime: 0,
+                //     isPlaying: true
+                // )
             } catch {
                 markCorrupted(track)
                 playNextAfter(track: track)
@@ -196,7 +196,7 @@ public final class ATPlayerViewModel: ObservableObject {
         do {
             if track.id == selectedTrackID {
                 playbackService.stop()
-                activityService.endActivity()
+                // activityService.endActivity()
                 nowPlayingTitle = "READY"
             }
             try storageService.removeTrack(track)
