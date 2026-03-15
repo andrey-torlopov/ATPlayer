@@ -1,8 +1,15 @@
+import Combine
 import SwiftUI
 
 struct PlayerPanelView: View {
     @ObservedObject var viewModel: WinampViewModel
+    @ObservedObject private var playback: AudioPlaybackService
     @Environment(\.theme) private var theme
+
+    init(viewModel: WinampViewModel) {
+        self.viewModel = viewModel
+        self.playback = viewModel.playbackService
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -16,28 +23,28 @@ struct PlayerPanelView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 6))
 
             HStack(spacing: 4) {
-                Text(formatted(seconds: viewModel.playbackService.currentTime))
+                Text(formatted(seconds: playback.currentTime))
                     .font(AppFonts.caption(12))
                     .foregroundStyle(theme.accent)
                     .monospacedDigit()
 
                 Slider(
                     value: Binding(
-                        get: { viewModel.playbackService.currentTime },
+                        get: { playback.currentTime },
                         set: { viewModel.seek(to: $0) }
                     ),
-                    in: 0...max(1, viewModel.playbackService.duration)
+                    in: 0...max(1, playback.duration)
                 )
                 .tint(theme.accent)
 
-                Text(formatted(seconds: viewModel.playbackService.duration))
+                Text(formatted(seconds: playback.duration))
                     .font(AppFonts.caption(12))
                     .foregroundStyle(theme.textSecondary)
                     .monospacedDigit()
             }
 
             TransportControlsView(
-                isPlaying: viewModel.playbackService.isPlaying,
+                isPlaying: playback.isPlaying,
                 onPrevious: viewModel.playPrevious,
                 onTogglePlay: viewModel.togglePlayback,
                 onNext: viewModel.playNext,
