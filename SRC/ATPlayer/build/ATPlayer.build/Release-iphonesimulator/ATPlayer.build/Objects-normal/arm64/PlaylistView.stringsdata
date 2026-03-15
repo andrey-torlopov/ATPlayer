@@ -1,0 +1,120 @@
+{
+  "source": "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/ATPlayer/Views/PlaylistView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Новый плейлист",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 47
+        }
+      },
+      {
+        "comment": "",
+        "key": "PLAYLIST",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 13
+        }
+      },
+      {
+        "comment": "",
+        "key": "Название",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 48
+        }
+      },
+      {
+        "comment": "",
+        "key": "Создать",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 49
+        }
+      },
+      {
+        "comment": "",
+        "key": "Отмена",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 55
+        }
+      },
+      {
+        "comment": "",
+        "key": "Удалить плейлист «%@»?",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 73
+        }
+      },
+      {
+        "comment": "",
+        "key": "Удалить",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 74
+        }
+      },
+      {
+        "comment": "",
+        "key": "Отмена",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 77
+        }
+      },
+      {
+        "comment": "",
+        "key": "Все треки в этом плейлисте будут удалены.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 79
+        }
+      },
+      {
+        "comment": "",
+        "key": "Удалить",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 123
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 147
+        }
+      },
+      {
+        "comment": "",
+        "key": "Добавить треки",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 158
+        }
+      },
+      {
+        "comment": "",
+        "key": "Удалить секцию",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 165
+        }
+      },
+      {
+        "comment": "",
+        "key": "❌",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 184
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -1,0 +1,72 @@
+{
+  "source": "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/ATPlayer/Views/EqualizerViews.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "EQ",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 76
+        }
+      },
+      {
+        "comment": "",
+        "key": "PREAMP %lld dB",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 79
+        }
+      },
+      {
+        "comment": "",
+        "key": "EQ",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 83
+        }
+      },
+      {
+        "comment": "",
+        "key": "Эквалайзер",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 146
+        }
+      },
+      {
+        "comment": "",
+        "key": "PREAMP",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 100
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld dB",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 103
+        }
+      },
+      {
+        "comment": "",
+        "key": "Сбросить",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 107
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 124
+        }
+      }
+    ]
+  },
+  "version": 1
+}

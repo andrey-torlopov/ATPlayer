@@ -1,0 +1,5 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/Release-iphonesimulator/ATPlayer.app/ATPlayer'
+relocations:     []
+...

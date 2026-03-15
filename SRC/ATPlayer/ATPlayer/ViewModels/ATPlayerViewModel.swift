@@ -1,3 +1,4 @@
+import ActivityKit
 import AVFoundation
 import Combine
 import Foundation
@@ -18,15 +19,19 @@ final class ATPlayerViewModel: ObservableObject {
 
     let supportedTypes: [UTType] = [.mp3, .mpeg4Audio, .audio, .folder]
     let playbackService = AudioPlaybackService()
+    let activityService = ATPlayerActivityService()
     private let storageService: PlaylistStorageService
     private var activeScopedURL: URL?
+    private var activityUpdateCancellable: AnyCancellable?
 
     init(context: ModelContext) {
         self.storageService = PlaylistStorageService(context: context)
         playbackService.onTrackFinished = { [weak self] in
             guard let self else { return }
+            self.activityService.endActivity()
             self.playNext()
         }
+        setupActivityUpdates()
         reloadSections()
     }
 
@@ -128,6 +133,12 @@ final class ATPlayerViewModel: ObservableObject {
                 nowPlayingTitle = track.displayTitle.uppercased()
                 nowPlayingArtwork = track.artwork
                 importError = nil
+
+                activityService.startActivity(
+                    trackTitle: track.title,
+                    artistName: track.artist,
+                    duration: track.duration
+                )
             } catch {
                 markCorrupted(track)
                 playNextAfter(track: track)
@@ -170,6 +181,7 @@ final class ATPlayerViewModel: ObservableObject {
         do {
             if track.id == selectedTrackID {
                 playbackService.stop()
+                activityService.endActivity()
                 nowPlayingTitle = "READY"
             }
             try storageService.removeTrack(track)
@@ -201,6 +213,36 @@ final class ATPlayerViewModel: ObservableObject {
     }
 
     // MARK: - Private
+
+    func handleDeepLink(_ url: URL) {
+        guard url.scheme == "atplayer" else { return }
+        switch url.host {
+        case "previous":
+            playPrevious()
+        case "toggle":
+            togglePlayback()
+        case "next":
+            playNext()
+        default:
+            break
+        }
+    }
+
+    private func setupActivityUpdates() {
+        activityUpdateCancellable = playbackService.$currentTime
+            .combineLatest(playbackService.$isPlaying)
+            .sink { [weak self] currentTime, isPlaying in
+                guard let self else { return }
+                guard let track = self.selectedTrack else { return }
+                self.activityService.updateActivity(
+                    trackTitle: track.title,
+                    artistName: track.artist,
+                    duration: self.playbackService.duration,
+                    currentTime: currentTime,
+                    isPlaying: isPlaying
+                )
+            }
+    }
 
     private func playNextAfter(track: TrackItem) {
         let all = allTracks

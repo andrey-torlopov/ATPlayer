@@ -1,0 +1,144 @@
+import ActivityKit
+import SwiftUI
+import WidgetKit
+
+struct ATPlayerLiveActivityView: Widget {
+    var body: some WidgetConfiguration {
+        ActivityConfiguration(for: ATPlayerActivityAttributes.self) { context in
+            lockScreenView(context: context)
+        } dynamicIsland: { context in
+            DynamicIsland {
+                DynamicIslandExpandedRegion(.leading) {
+                    Image(systemName: context.state.isPlaying ? "pause.fill" : "play.fill")
+                        .font(.title2)
+                        .foregroundStyle(.white)
+                }
+                DynamicIslandExpandedRegion(.center) {
+                    VStack(spacing: 2) {
+                        Text(context.state.trackTitle)
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .lineLimit(1)
+                            .foregroundStyle(.white)
+
+                        Text(context.state.artistName)
+                            .font(.caption2)
+                            .lineLimit(1)
+                            .foregroundStyle(.white.opacity(0.7))
+                    }
+                }
+                DynamicIslandExpandedRegion(.trailing) {
+                    HStack(spacing: 8) {
+                        Text(formattedTime(context.state.currentTime))
+                            .font(.caption2)
+                            .monospacedDigit()
+                            .foregroundStyle(.white.opacity(0.7))
+                    }
+                }
+                DynamicIslandExpandedRegion(.bottom) {
+                    HStack(spacing: 24) {
+                        Link(destination: URL(string: "atplayer://previous")!) {
+                            Image(systemName: "backward.end.fill")
+                                .font(.body)
+                                .foregroundStyle(.white)
+                        }
+
+                        Link(destination: URL(string: "atplayer://toggle")!) {
+                            Image(systemName: context.state.isPlaying ? "pause.fill" : "play.fill")
+                                .font(.title3)
+                                .foregroundStyle(.white)
+                        }
+
+                        Link(destination: URL(string: "atplayer://next")!) {
+                            Image(systemName: "forward.end.fill")
+                                .font(.body)
+                                .foregroundStyle(.white)
+                        }
+                    }
+                    .padding(.top, 4)
+                }
+            } compactLeading: {
+                Image(systemName: context.state.isPlaying ? "music.note" : "pause.fill")
+                    .foregroundStyle(.cyan)
+            } compactTrailing: {
+                Text(formattedTime(context.state.currentTime))
+                    .font(.caption2)
+                    .monospacedDigit()
+                    .foregroundStyle(.cyan)
+            } minimal: {
+                Image(systemName: "music.note")
+                    .foregroundStyle(.cyan)
+            }
+        }
+    }
+
+    private func lockScreenView(context: ActivityViewContext<ATPlayerActivityAttributes>) -> some View {
+        VStack(spacing: 8) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(context.state.trackTitle)
+                        .font(.headline)
+                        .lineLimit(1)
+                        .foregroundStyle(.white)
+
+                    Text(context.state.artistName)
+                        .font(.subheadline)
+                        .lineLimit(1)
+                        .foregroundStyle(.white.opacity(0.7))
+                }
+
+                Spacer()
+            }
+
+            ProgressView(
+                value: context.state.currentTime,
+                total: max(1, context.state.duration)
+            )
+            .tint(.cyan)
+
+            HStack {
+                Text(formattedTime(context.state.currentTime))
+                    .font(.caption2)
+                    .monospacedDigit()
+                    .foregroundStyle(.white.opacity(0.7))
+
+                Spacer()
+
+                Text(formattedTime(context.state.duration))
+                    .font(.caption2)
+                    .monospacedDigit()
+                    .foregroundStyle(.white.opacity(0.7))
+            }
+
+            HStack(spacing: 32) {
+                Link(destination: URL(string: "atplayer://previous")!) {
+                    Image(systemName: "backward.end.fill")
+                        .font(.title3)
+                        .foregroundStyle(.white)
+                }
+
+                Link(destination: URL(string: "atplayer://toggle")!) {
+                    Image(systemName: context.state.isPlaying ? "pause.fill" : "play.fill")
+                        .font(.title2)
+                        .foregroundStyle(.white)
+                }
+
+                Link(destination: URL(string: "atplayer://next")!) {
+                    Image(systemName: "forward.end.fill")
+                        .font(.title3)
+                        .foregroundStyle(.white)
+                }
+            }
+            .padding(.top, 4)
+        }
+        .padding(16)
+        .background(Color.black.opacity(0.85))
+    }
+
+    private func formattedTime(_ seconds: TimeInterval) -> String {
+        guard seconds.isFinite, seconds > 0 else { return "0:00" }
+        let minutes = Int(seconds) / 60
+        let secs = Int(seconds) % 60
+        return String(format: "%d:%02d", minutes, secs)
+    }
+}

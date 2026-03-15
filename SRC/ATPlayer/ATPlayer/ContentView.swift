@@ -25,6 +25,9 @@ struct ContentView: View {
             guard viewModel == nil else { return }
             viewModel = ATPlayerViewModel(context: modelContext)
         }
+        .onOpenURL { url in
+            viewModel?.handleDeepLink(url)
+        }
     }
 }
 

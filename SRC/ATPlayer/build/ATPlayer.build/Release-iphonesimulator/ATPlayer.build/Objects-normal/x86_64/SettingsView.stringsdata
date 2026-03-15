@@ -1,0 +1,48 @@
+{
+  "source": "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/ATPlayer/Views/SettingsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Настройки",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 19
+        }
+      },
+      {
+        "comment": "",
+        "key": "ЭКСПОРТ",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 35
+        }
+      },
+      {
+        "comment": "",
+        "key": "Экспортировать плейлисты в JSON",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 44
+        }
+      },
+      {
+        "comment": "",
+        "key": "ЭКВАЛАЙЗЕР",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 57
+        }
+      },
+      {
+        "comment": "",
+        "key": "Настроить эквалайзер",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 67
+        }
+      }
+    ]
+  },
+  "version": 1
+}
