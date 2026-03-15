@@ -6,6 +6,23 @@ final class ATPlayerActivityService {
     private var currentActivity: Activity<ATPlayerActivityAttributes>?
     private var lastUpdateTime: Date = .distantPast
 
+    func endAllStaleActivities() {
+        let state = ATPlayerActivityAttributes.ContentState(
+            trackTitle: "",
+            artistName: "",
+            duration: 0,
+            currentTime: 0,
+            isPlaying: false,
+            playbackStartDate: Date.now
+        )
+        let content = ActivityContent(state: state, staleDate: nil)
+        for activity in Activity<ATPlayerActivityAttributes>.activities {
+            Task {
+                await activity.end(content, dismissalPolicy: .immediate)
+            }
+        }
+    }
+
     func startOrUpdateActivity(
         trackTitle: String,
         artistName: String,
@@ -22,15 +39,17 @@ final class ATPlayerActivityService {
             playbackStartDate: Date.now.addingTimeInterval(-currentTime)
         )
 
+        let staleDate = Date.now.addingTimeInterval(30)
+
         if let currentActivity {
-            let content = ActivityContent(state: state, staleDate: nil)
+            let content = ActivityContent(state: state, staleDate: staleDate)
             Task {
                 await currentActivity.update(content)
             }
             return
         }
 
-        let content = ActivityContent(state: state, staleDate: nil)
+        let content = ActivityContent(state: state, staleDate: staleDate)
         do {
             currentActivity = try Activity<ATPlayerActivityAttributes>.request(
                 attributes: ATPlayerActivityAttributes(),

@@ -29,6 +29,7 @@ public final class ATPlayerViewModel: ObservableObject {
     public init(context: ModelContext) {
         self.storageService = PlaylistStorageService(context: context)
         ATPlayerViewModel.shared = self
+        activityService.endAllStaleActivities()
         playbackService.onTrackFinished = { [weak self] in
             guard let self else { return }
             self.activityService.endActivity()
