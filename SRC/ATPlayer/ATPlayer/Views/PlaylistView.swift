@@ -63,10 +63,17 @@ private struct SectionView: View {
     let section: PlaylistSection
     @ObservedObject var viewModel: ATPlayerViewModel
     let theme: AppTheme
-    @State private var isExpanded = true
+    @State private var isExpanded: Bool
     @State private var showDeleteConfirmation = false
     @State private var showRenameAlert = false
     @State private var renameSectionName = ""
+
+    init(section: PlaylistSection, viewModel: ATPlayerViewModel, theme: AppTheme) {
+        self.section = section
+        self.viewModel = viewModel
+        self.theme = theme
+        _isExpanded = State(initialValue: section.id == viewModel.lastPlayedSectionID)
+    }
 
     var body: some View {
         sectionHeader

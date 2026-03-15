@@ -18,6 +18,7 @@ public final class ATPlayerViewModel: ObservableObject {
     @Published var nowPlayingArtwork: Data?
     @Published var importError: String?
     @Published var importTargetSection: PlaylistSection?
+    @Published var lastPlayedSectionID: UUID?
 
     let supportedTypes: [UTType] = [.mp3, .mpeg4Audio, .audio, .folder]
     let playbackService = AudioPlaybackService()
@@ -29,6 +30,9 @@ public final class ATPlayerViewModel: ObservableObject {
     public init(context: ModelContext) {
         self.storageService = PlaylistStorageService(context: context)
         ATPlayerViewModel.shared = self
+        if let savedID = UserDefaults.standard.string(forKey: "lastPlayedSectionID") {
+            lastPlayedSectionID = UUID(uuidString: savedID)
+        }
         // activityService.endAllStaleActivities()
         playbackService.onTrackFinished = { [weak self] in
             guard let self else { return }
@@ -146,6 +150,11 @@ public final class ATPlayerViewModel: ObservableObject {
                 nowPlayingTitle = track.displayTitle.uppercased()
                 nowPlayingArtwork = track.artwork
                 importError = nil
+
+                if let sectionID = track.section?.id {
+                    lastPlayedSectionID = sectionID
+                    UserDefaults.standard.set(sectionID.uuidString, forKey: "lastPlayedSectionID")
+                }
 
                 // activityService.startOrUpdateActivity(
                 //     trackTitle: track.title,
