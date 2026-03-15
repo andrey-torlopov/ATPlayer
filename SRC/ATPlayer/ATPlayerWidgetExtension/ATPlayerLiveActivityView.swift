@@ -29,7 +29,15 @@ struct ATPlayerLiveActivityView: Widget {
                     }
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    HStack(spacing: 8) {
+                    if context.state.isPlaying {
+                        Text(
+                            timerInterval: context.state.playbackStartDate...context.state.playbackStartDate.addingTimeInterval(context.state.duration),
+                            countsDown: false
+                        )
+                        .font(.caption2)
+                        .monospacedDigit()
+                        .foregroundStyle(.white.opacity(0.7))
+                    } else {
                         Text(formattedTime(context.state.currentTime))
                             .font(.caption2)
                             .monospacedDigit()
@@ -65,10 +73,20 @@ struct ATPlayerLiveActivityView: Widget {
                 Image(systemName: context.state.isPlaying ? "music.note" : "pause.fill")
                     .foregroundStyle(.cyan)
             } compactTrailing: {
-                Text(formattedTime(context.state.currentTime))
+                if context.state.isPlaying {
+                    Text(
+                        timerInterval: context.state.playbackStartDate...context.state.playbackStartDate.addingTimeInterval(context.state.duration),
+                        countsDown: false
+                    )
                     .font(.caption2)
                     .monospacedDigit()
                     .foregroundStyle(.cyan)
+                } else {
+                    Text(formattedTime(context.state.currentTime))
+                        .font(.caption2)
+                        .monospacedDigit()
+                        .foregroundStyle(.cyan)
+                }
             } minimal: {
                 Image(systemName: "music.note")
                     .foregroundStyle(.cyan)
@@ -77,7 +95,10 @@ struct ATPlayerLiveActivityView: Widget {
     }
 
     private func lockScreenView(context: ActivityViewContext<ATPlayerActivityAttributes>) -> some View {
-        VStack(spacing: 8) {
+        let startDate = context.state.playbackStartDate
+        let endDate = startDate.addingTimeInterval(context.state.duration)
+
+        return VStack(spacing: 8) {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(context.state.trackTitle)
@@ -94,18 +115,21 @@ struct ATPlayerLiveActivityView: Widget {
                 Spacer()
             }
 
-            ProgressView(
-                value: context.state.currentTime,
-                total: max(1, context.state.duration)
-            )
-            .tint(.cyan)
+            if context.state.isPlaying {
+                ProgressView(
+                    timerInterval: startDate...endDate,
+                    countsDown: false
+                )
+                .tint(.cyan)
+            } else {
+                ProgressView(
+                    value: context.state.currentTime,
+                    total: max(1, context.state.duration)
+                )
+                .tint(.cyan)
+            }
 
             HStack {
-                Text(formattedTime(context.state.currentTime))
-                    .font(.caption2)
-                    .monospacedDigit()
-                    .foregroundStyle(.secondary)
-
                 Spacer()
 
                 Text(formattedTime(context.state.duration))

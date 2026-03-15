@@ -8,5 +8,6 @@ struct ATPlayerActivityAttributes: ActivityAttributes {
         let duration: TimeInterval
         let currentTime: TimeInterval
         let isPlaying: Bool
+        let playbackStartDate: Date
     }
 }

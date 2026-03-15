@@ -20,6 +20,7 @@ final class AudioPlaybackService: ObservableObject {
     private var progressTimer: Timer?
     private var meterTimer: Timer?
     private var scheduleGeneration: UInt = 0
+    private var lastVisualizerUpdate: CFAbsoluteTime = 0
 
     let bands: [Float] = [60, 170, 310, 600, 1000, 3000, 6000, 12000, 14000, 16000]
     @Published var preamp: Float = 0 {
@@ -166,8 +167,11 @@ final class AudioPlaybackService: ObservableObject {
         engine.connect(playerNode, to: equalizer, format: nil)
         engine.connect(equalizer, to: mainMixer, format: nil)
 
-        mainMixer.installTap(onBus: 0, bufferSize: 1024, format: mainMixer.outputFormat(forBus: 0)) { [weak self] buffer, _ in
+        mainMixer.installTap(onBus: 0, bufferSize: 4096, format: mainMixer.outputFormat(forBus: 0)) { [weak self] buffer, _ in
             guard let self else { return }
+            let now = CFAbsoluteTimeGetCurrent()
+            guard now - self.lastVisualizerUpdate >= 0.07 else { return }
+            self.lastVisualizerUpdate = now
             let level = self.calculateLevel(buffer: buffer)
             Task { @MainActor [weak self] in
                 guard let self else { return }
@@ -204,7 +208,7 @@ final class AudioPlaybackService: ObservableObject {
 
     private func startMeters() {
         meterTimer?.invalidate()
-        meterTimer = Timer.scheduledTimer(withTimeInterval: 0.09, repeats: true) { [weak self] _ in
+        meterTimer = Timer.scheduledTimer(withTimeInterval: 0.15, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 if !self.isPlaying {

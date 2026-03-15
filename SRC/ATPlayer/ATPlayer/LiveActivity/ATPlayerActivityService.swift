@@ -18,7 +18,8 @@ final class ATPlayerActivityService {
             artistName: artistName,
             duration: duration,
             currentTime: currentTime,
-            isPlaying: isPlaying
+            isPlaying: isPlaying,
+            playbackStartDate: Date.now.addingTimeInterval(-currentTime)
         )
 
         if let currentActivity {
@@ -51,7 +52,7 @@ final class ATPlayerActivityService {
         guard let currentActivity else { return }
 
         let now = Date()
-        guard now.timeIntervalSince(lastUpdateTime) >= 1.0 else { return }
+        guard now.timeIntervalSince(lastUpdateTime) >= 5.0 else { return }
         lastUpdateTime = now
 
         let state = ATPlayerActivityAttributes.ContentState(
@@ -59,7 +60,8 @@ final class ATPlayerActivityService {
             artistName: artistName,
             duration: duration,
             currentTime: currentTime,
-            isPlaying: isPlaying
+            isPlaying: isPlaying,
+            playbackStartDate: Date.now.addingTimeInterval(-currentTime)
         )
 
         let content = ActivityContent(state: state, staleDate: nil)
@@ -76,7 +78,8 @@ final class ATPlayerActivityService {
             artistName: "",
             duration: 0,
             currentTime: 0,
-            isPlaying: false
+            isPlaying: false,
+            playbackStartDate: Date.now
         )
 
         let content = ActivityContent(state: state, staleDate: nil)
