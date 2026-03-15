@@ -80,6 +80,31 @@ private struct SectionView: View {
             }
 
         if isExpanded {
+            HStack(spacing: 12) {
+                Button {
+                    viewModel.requestImport(to: section)
+                } label: {
+                    Image(systemName: "plus.circle")
+                        .font(.system(size: 16))
+                        .foregroundStyle(theme.accentSecondary)
+                }
+                .buttonStyle(.plain)
+
+                if viewModel.sections.count > 1 {
+                    Button {
+                        showDeleteConfirmation = true
+                    } label: {
+                        Image(systemName: "minus.circle")
+                            .font(.system(size: 16))
+                            .foregroundStyle(theme.destructive)
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                Spacer()
+            }
+            .listRowBackground(Color.clear)
+
             let tracks = viewModel.tracks(in: section)
             ForEach(tracks, id: \.id) { track in
                 TrackRowView(
@@ -99,20 +124,6 @@ private struct SectionView: View {
                     }
                 }
             }
-
-            Button {
-                viewModel.requestImport(to: section)
-            } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "plus")
-                        .font(.system(size: 12, weight: .bold))
-                    Text("Добавить треки")
-                        .font(AppFonts.caption(12))
-                }
-                .foregroundStyle(theme.textSecondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .listRowBackground(Color.clear)
         }
     }
 
@@ -136,17 +147,6 @@ private struct SectionView: View {
             Text("\(viewModel.tracks(in: section).count)")
                 .font(AppFonts.caption(10))
                 .foregroundStyle(theme.textSecondary)
-
-            if viewModel.sections.count > 1 {
-                Button {
-                    showDeleteConfirmation = true
-                } label: {
-                    Image(systemName: "minus.circle")
-                        .font(.system(size: 14))
-                        .foregroundStyle(theme.destructive)
-                }
-                .buttonStyle(.plain)
-            }
         }
         .onLongPressGesture {
             viewModel.requestImport(to: section)

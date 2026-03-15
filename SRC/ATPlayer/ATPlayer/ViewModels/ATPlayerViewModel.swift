@@ -127,6 +127,7 @@ final class ATPlayerViewModel: ObservableObject {
                 selectedTrackID = track.id
                 nowPlayingTitle = track.displayTitle.uppercased()
                 nowPlayingArtwork = track.artwork
+                importError = nil
             } catch {
                 markCorrupted(track)
                 playNextAfter(track: track)
