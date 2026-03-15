@@ -4,7 +4,9 @@
       "mcp__acp__Write",
       "mcp__acp__Edit",
       "mcp__acp__Bash",
-      "Bash(xcodebuild -project Winamp.xcodeproj -scheme Winamp -destination 'generic/platform=iOS' build)"
+      "Bash(xcodebuild -project Winamp.xcodeproj -scheme Winamp -destination 'generic/platform=iOS' build)",
+      "Bash(ls -la /Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/*.xcodeproj)",
+      "Bash(ls -la /Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/*.xcworkspace)"
     ]
   }
 }
