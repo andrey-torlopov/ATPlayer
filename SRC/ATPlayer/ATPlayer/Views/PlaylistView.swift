@@ -65,12 +65,14 @@ private struct SectionView: View {
     let theme: AppTheme
     @State private var isExpanded = true
     @State private var showDeleteConfirmation = false
+    @State private var showRenameAlert = false
+    @State private var renameSectionName = ""
 
     var body: some View {
         sectionHeader
             .listRowBackground(Color.clear)
             .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 4, trailing: 0))
-            .alert("Удалить плейлист «\(section.name)»?", isPresented: $showDeleteConfirmation) {
+            .alert("Удалить плейлист \"\(section.name)\"?", isPresented: $showDeleteConfirmation) {
                 Button("Удалить", role: .destructive) {
                     viewModel.removeSection(section)
                 }
@@ -78,33 +80,17 @@ private struct SectionView: View {
             } message: {
                 Text("Все треки в этом плейлисте будут удалены.")
             }
+            .alert("Переименовать плейлист", isPresented: $showRenameAlert) {
+                TextField("Название", text: $renameSectionName)
+                Button("Сохранить") {
+                    let name = renameSectionName.trimmingCharacters(in: .whitespaces)
+                    guard !name.isEmpty else { return }
+                    viewModel.renameSection(section, to: name)
+                }
+                Button("Отмена", role: .cancel) {}
+            }
 
         if isExpanded {
-            HStack(spacing: 12) {
-                Button {
-                    viewModel.requestImport(to: section)
-                } label: {
-                    Image(systemName: "plus.circle")
-                        .font(.system(size: 16))
-                        .foregroundStyle(theme.accentSecondary)
-                }
-                .buttonStyle(.plain)
-
-                if viewModel.sections.count > 1 {
-                    Button {
-                        showDeleteConfirmation = true
-                    } label: {
-                        Image(systemName: "minus.circle")
-                            .font(.system(size: 16))
-                            .foregroundStyle(theme.destructive)
-                    }
-                    .buttonStyle(.plain)
-                }
-
-                Spacer()
-            }
-            .listRowBackground(Color.clear)
-
             let tracks = viewModel.tracks(in: section)
             ForEach(tracks, id: \.id) { track in
                 TrackRowView(
@@ -148,9 +134,6 @@ private struct SectionView: View {
                 .font(AppFonts.caption(10))
                 .foregroundStyle(theme.textSecondary)
         }
-        .onLongPressGesture {
-            viewModel.requestImport(to: section)
-        }
         .contextMenu {
             Button {
                 viewModel.requestImport(to: section)
@@ -158,11 +141,18 @@ private struct SectionView: View {
                 Label("Добавить треки", systemImage: "plus")
             }
 
+            Button {
+                renameSectionName = section.name
+                showRenameAlert = true
+            } label: {
+                Label("Переименовать", systemImage: "pencil")
+            }
+
             if viewModel.sections.count > 1 {
                 Button(role: .destructive) {
                     showDeleteConfirmation = true
                 } label: {
-                    Label("Удалить секцию", systemImage: "trash")
+                    Label("Удалить плейлист", systemImage: "trash")
                 }
             }
         }

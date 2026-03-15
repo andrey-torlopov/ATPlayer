@@ -76,6 +76,15 @@ final class ATPlayerViewModel: ObservableObject {
         }
     }
 
+    func renameSection(_ section: PlaylistSection, to name: String) {
+        do {
+            try storageService.renameSection(section, to: name)
+            reloadSections()
+        } catch {
+            importError = "Не удалось переименовать секцию: \(error.localizedDescription)"
+        }
+    }
+
     // MARK: - Import
 
     func requestImport(to section: PlaylistSection) {

@@ -1,0 +1,51 @@
+{
+  "" : {
+    "const-values" : "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/x86_64/ATPlayerWidgetExtensionExtension-primary.swiftconstvalues",
+    "dependencies" : "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/x86_64/ATPlayerWidgetExtensionExtension-primary.d",
+    "diagnostics" : "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/x86_64/ATPlayerWidgetExtensionExtension-primary.dia",
+    "emit-module-dependencies" : "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/x86_64/ATPlayerWidgetExtensionExtension-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/x86_64/ATPlayerWidgetExtensionExtension-primary-emit-module.dia",
+    "pch" : "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/x86_64/ATPlayerWidgetExtensionExtension-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/x86_64/ATPlayerWidgetExtensionExtension-primary.swiftdeps"
+  },
+  "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/ATPlayer/LiveActivity/ATPlayerActivityAttributes.swift" : {
+    "index-unit-output-path" : "/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/x86_64/ATPlayerActivityAttributes.o",
+    "llvm-bc" : "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/x86_64/ATPlayerActivityAttributes.bc",
+    "object" : "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/x86_64/ATPlayerActivityAttributes.o"
+  },
+  "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/ATPlayer/LiveActivity/ATPlayerActivityService.swift" : {
+    "index-unit-output-path" : "/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/x86_64/ATPlayerActivityService.o",
+    "llvm-bc" : "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/x86_64/ATPlayerActivityService.bc",
+    "object" : "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/x86_64/ATPlayerActivityService.o"
+  },
+  "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/ATPlayerWidgetExtension/ATPlayerLiveActivityView.swift" : {
+    "index-unit-output-path" : "/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/x86_64/ATPlayerLiveActivityView.o",
+    "llvm-bc" : "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/x86_64/ATPlayerLiveActivityView.bc",
+    "object" : "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/x86_64/ATPlayerLiveActivityView.o"
+  },
+  "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/ATPlayerWidgetExtension/ATPlayerWidgetExtension.swift" : {
+    "index-unit-output-path" : "/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/x86_64/ATPlayerWidgetExtension.o",
+    "llvm-bc" : "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/x86_64/ATPlayerWidgetExtension.bc",
+    "object" : "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/x86_64/ATPlayerWidgetExtension.o"
+  },
+  "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/ATPlayerWidgetExtension/ATPlayerWidgetExtensionBundle.swift" : {
+    "index-unit-output-path" : "/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/x86_64/ATPlayerWidgetExtensionBundle.o",
+    "llvm-bc" : "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/x86_64/ATPlayerWidgetExtensionBundle.bc",
+    "object" : "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/x86_64/ATPlayerWidgetExtensionBundle.o"
+  },
+  "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/ATPlayerWidgetExtension/ATPlayerWidgetExtensionControl.swift" : {
+    "index-unit-output-path" : "/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/x86_64/ATPlayerWidgetExtensionControl.o",
+    "llvm-bc" : "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/x86_64/ATPlayerWidgetExtensionControl.bc",
+    "object" : "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/x86_64/ATPlayerWidgetExtensionControl.o"
+  },
+  "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/ATPlayerWidgetExtension/ATPlayerWidgetExtensionLiveActivity.swift" : {
+    "index-unit-output-path" : "/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/x86_64/ATPlayerWidgetExtensionLiveActivity.o",
+    "llvm-bc" : "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/x86_64/ATPlayerWidgetExtensionLiveActivity.bc",
+    "object" : "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/x86_64/ATPlayerWidgetExtensionLiveActivity.o"
+  },
+  "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "index-unit-output-path" : "/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/x86_64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/x86_64/GeneratedAssetSymbols.bc",
+    "object" : "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/x86_64/GeneratedAssetSymbols.o"
+  }
+}

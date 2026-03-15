@@ -18,11 +18,31 @@
 		</data>
 		<key>Info.plist</key>
 		<data>
-		Kx3TxFYLaavZZaLbBojUvwCRoGI=
+		4W+ulHMvrdZqq3IRI9SfoQp6TUo=
 		</data>
 		<key>PkgInfo</key>
 		<data>
 		n57qDP4tZfLD1rCS43W0B4LQjzE=
+		</data>
+		<key>PlugIns/ATPlayerWidgetExtensionExtension.appex/ATPlayerWidgetExtensionExtension</key>
+		<data>
+		wxe6SKHoV7vC4kdpQzOq+7iNENc=
+		</data>
+		<key>PlugIns/ATPlayerWidgetExtensionExtension.appex/Info.plist</key>
+		<data>
+		X96tnfm9uUjhaGmjrcLSwFjXd/M=
+		</data>
+		<key>PlugIns/ATPlayerWidgetExtensionExtension.appex/Metadata.appintents/extract.actionsdata</key>
+		<data>
+		03d4SlQi9nQalhBX2TGyhy+70jg=
+		</data>
+		<key>PlugIns/ATPlayerWidgetExtensionExtension.appex/Metadata.appintents/version.json</key>
+		<data>
+		AnCWG4rKs5jrO4QrJ0dwHs72tMI=
+		</data>
+		<key>PlugIns/ATPlayerWidgetExtensionExtension.appex/_CodeSignature/CodeResources</key>
+		<data>
+		LdwIKEcyzALlpnDN2NxDj1NqAZo=
 		</data>
 	</dict>
 	<key>files2</key>
@@ -46,6 +66,41 @@
 			<key>hash2</key>
 			<data>
 			XVr8282o0vGTGwCz/+z43HBKGKcSlAbJsnrOrYMNR0A=
+			</data>
+		</dict>
+		<key>PlugIns/ATPlayerWidgetExtensionExtension.appex/ATPlayerWidgetExtensionExtension</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			iBwRJPaPmXy4QIL1iTU6YFRtjjQaZ2IveTAX0WcFQCo=
+			</data>
+		</dict>
+		<key>PlugIns/ATPlayerWidgetExtensionExtension.appex/Info.plist</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			8xkynPG7TNZlxR0U4mPmr6K5n0jq8O/kqMQ1+fjIIv8=
+			</data>
+		</dict>
+		<key>PlugIns/ATPlayerWidgetExtensionExtension.appex/Metadata.appintents/extract.actionsdata</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			1vqw81Q+adHp54m3W3CX06eqzH5apZfs/xyPEvQ8eBg=
+			</data>
+		</dict>
+		<key>PlugIns/ATPlayerWidgetExtensionExtension.appex/Metadata.appintents/version.json</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			S8xCv9nzQ8VW9KYw29TGYHI5yTSFkAK3pTib1ARd6Zo=
+			</data>
+		</dict>
+		<key>PlugIns/ATPlayerWidgetExtensionExtension.appex/_CodeSignature/CodeResources</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			LKRG6dDYIhm81Qd4jyxQLzLiWh3J3e2OMVIGVAffK90=
 			</data>
 		</dict>
 	</dict>

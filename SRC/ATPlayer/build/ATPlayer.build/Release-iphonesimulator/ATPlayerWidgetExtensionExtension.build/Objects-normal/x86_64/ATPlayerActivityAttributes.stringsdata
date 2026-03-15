@@ -1,0 +1,16 @@
+{
+  "source": "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/ATPlayer/LiveActivity/ATPlayerActivityAttributes.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Timer is running",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 13
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -44,10 +44,18 @@
       },
       {
         "comment": "",
-        "key": "Удалить плейлист «%@»?",
+        "key": "Удалить плейлист \"%@\"?",
         "location": {
           "startingColumn": 20,
-          "startingLine": 73
+          "startingLine": 75
+        }
+      },
+      {
+        "comment": "",
+        "key": "Переименовать плейлист",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 83
         }
       },
       {
@@ -55,7 +63,7 @@
         "key": "Удалить",
         "location": {
           "startingColumn": 24,
-          "startingLine": 74
+          "startingLine": 76
         }
       },
       {
@@ -63,7 +71,7 @@
         "key": "Отмена",
         "location": {
           "startingColumn": 24,
-          "startingLine": 77
+          "startingLine": 79
         }
       },
       {
@@ -71,7 +79,31 @@
         "key": "Все треки в этом плейлисте будут удалены.",
         "location": {
           "startingColumn": 22,
-          "startingLine": 79
+          "startingLine": 81
+        }
+      },
+      {
+        "comment": "",
+        "key": "Название",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 84
+        }
+      },
+      {
+        "comment": "",
+        "key": "Сохранить",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 85
+        }
+      },
+      {
+        "comment": "",
+        "key": "Отмена",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 90
         }
       },
       {
@@ -79,7 +111,7 @@
         "key": "Удалить",
         "location": {
           "startingColumn": 31,
-          "startingLine": 123
+          "startingLine": 109
         }
       },
       {
@@ -87,7 +119,7 @@
         "key": "%lld",
         "location": {
           "startingColumn": 18,
-          "startingLine": 147
+          "startingLine": 133
         }
       },
       {
@@ -95,15 +127,23 @@
         "key": "Добавить треки",
         "location": {
           "startingColumn": 23,
-          "startingLine": 158
+          "startingLine": 141
         }
       },
       {
         "comment": "",
-        "key": "Удалить секцию",
+        "key": "Переименовать",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 148
+        }
+      },
+      {
+        "comment": "",
+        "key": "Удалить плейлист",
         "location": {
           "startingColumn": 27,
-          "startingLine": 165
+          "startingLine": 155
         }
       },
       {
@@ -111,7 +151,7 @@
         "key": "❌",
         "location": {
           "startingColumn": 26,
-          "startingLine": 184
+          "startingLine": 174
         }
       }
     ]

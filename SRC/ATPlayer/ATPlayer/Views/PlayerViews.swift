@@ -5,10 +5,12 @@ struct PlayerPanelView: View {
     @ObservedObject var viewModel: ATPlayerViewModel
     @ObservedObject private var playback: AudioPlaybackService
     @Environment(\.theme) private var theme
+    let onSettings: () -> Void
 
-    init(viewModel: ATPlayerViewModel) {
+    init(viewModel: ATPlayerViewModel, onSettings: @escaping () -> Void) {
         self.viewModel = viewModel
         self.playback = viewModel.playbackService
+        self.onSettings = onSettings
     }
 
     var body: some View {
@@ -48,6 +50,7 @@ struct PlayerPanelView: View {
                 onPrevious: viewModel.playPrevious,
                 onTogglePlay: viewModel.togglePlayback,
                 onNext: viewModel.playNext,
+                onSettings: onSettings,
                 theme: theme
             )
         }
@@ -67,6 +70,7 @@ struct TransportControlsView: View {
     let onPrevious: () -> Void
     let onTogglePlay: () -> Void
     let onNext: () -> Void
+    let onSettings: (() -> Void)?
     let theme: AppTheme
 
     var body: some View {
@@ -75,6 +79,13 @@ struct TransportControlsView: View {
             ControlButton(symbol: isPlaying ? "pause.fill" : "play.fill", action: onTogglePlay, theme: theme)
             ControlButton(symbol: "forward.end.fill", action: onNext, theme: theme)
             Spacer()
+            if let onSettings {
+                Button(action: onSettings) {
+                    Image(systemName: "gearshape.fill")
+                        .font(.system(size: 18))
+                        .foregroundStyle(theme.textSecondary)
+                }
+            }
         }
     }
 }

@@ -1,0 +1,4 @@
+Target dependency graph (2 targets)
+Target 'ATPlayer' in project 'ATPlayer'
+➜ Explicit dependency on target 'ATPlayerWidgetExtensionExtension' in project 'ATPlayer'
+Target 'ATPlayerWidgetExtensionExtension' in project 'ATPlayer' (no dependencies)

@@ -1,0 +1,60 @@
+{
+  "source": "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/ATPlayerWidgetExtension/ATPlayerWidgetExtensionControl.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Timer",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 26
+        }
+      },
+      {
+        "comment": "",
+        "key": "A an example control that runs a timer.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 27
+        }
+      },
+      {
+        "comment": "",
+        "key": "Start Timer",
+        "location": {
+          "startingColumn": 17,
+          "startingLine": 19
+        }
+      },
+      {
+        "comment": "",
+        "key": "Timer is running"
+      },
+      {
+        "comment": "",
+        "key": "On",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 23
+        }
+      },
+      {
+        "comment": "",
+        "key": "Off",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 23
+        }
+      },
+      {
+        "comment": "",
+        "key": "Start a timer",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 45
+        }
+      }
+    ]
+  },
+  "version": 1
+}

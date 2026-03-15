@@ -1,0 +1,12 @@
+{
+  "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/ATPlayer/LiveActivity/ATPlayerActivityAttributes.swift" : {
+    "abi-baseline-json" : "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/arm64/ATPlayerWidgetExtensionExtension.abi.json",
+    "const-values" : "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/arm64/ATPlayerWidgetExtensionExtension-primary.swiftconstvalues",
+    "dependencies" : "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/arm64/ATPlayerWidgetExtensionExtension-primary.d",
+    "diagnostics" : "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/arm64/ATPlayerWidgetExtensionExtension-primary.dia",
+    "objc-header" : "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/arm64/ATPlayerWidgetExtensionExtension-Swift.h",
+    "swiftdoc" : "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/arm64/ATPlayerWidgetExtensionExtension.swiftdoc",
+    "swiftmodule" : "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/arm64/ATPlayerWidgetExtensionExtension.swiftmodule",
+    "swiftsourceinfo" : "/Users/andreytorlopov/Dev/Projects/Winamp/SRC/ATPlayer/build/ATPlayer.build/Release-iphonesimulator/ATPlayerWidgetExtensionExtension.build/Objects-normal/arm64/ATPlayerWidgetExtensionExtension.swiftsourceinfo"
+  }
+}

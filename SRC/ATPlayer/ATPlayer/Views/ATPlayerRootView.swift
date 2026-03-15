@@ -19,18 +19,10 @@ struct ATPlayerRootView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 10) {
-                HStack {
-                    Spacer()
-                    Button {
-                        viewModel.showSettings = true
-                    } label: {
-                        Image(systemName: "gearshape.fill")
-                            .font(.system(size: 20))
-                            .foregroundStyle(theme.textSecondary)
-                    }
-                }
-
-                PlayerPanelView(viewModel: viewModel)
+                PlayerPanelView(
+                    viewModel: viewModel,
+                    onSettings: { viewModel.showSettings = true }
+                )
 
                 NowPlayingVisualizerView(
                     artworkData: viewModel.nowPlayingArtwork,

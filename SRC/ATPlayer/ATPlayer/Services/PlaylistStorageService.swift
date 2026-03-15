@@ -31,6 +31,11 @@ final class PlaylistStorageService {
         try normalizeSectionOrder()
     }
 
+    func renameSection(_ section: PlaylistSection, to name: String) throws {
+        section.name = name
+        try context.save()
+    }
+
     func ensureDefaultSection() throws -> PlaylistSection {
         let sections = try fetchSections()
         if let first = sections.first {
