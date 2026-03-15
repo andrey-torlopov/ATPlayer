@@ -83,7 +83,7 @@ final class ATPlayerActivityService {
             playbackStartDate: Date.now.addingTimeInterval(-currentTime)
         )
 
-        let content = ActivityContent(state: state, staleDate: nil)
+        let content = ActivityContent(state: state, staleDate: Date.now.addingTimeInterval(30))
         Task {
             await currentActivity.update(content)
         }
