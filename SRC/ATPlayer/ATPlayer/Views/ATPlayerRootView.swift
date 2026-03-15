@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct ATPlayerRootView: View {
     @StateObject private var viewModel: ATPlayerViewModel
@@ -31,7 +32,10 @@ struct ATPlayerRootView: View {
 
                 PlayerPanelView(viewModel: viewModel)
 
-                VisualizerView(values: playbackService.visualizer)
+                NowPlayingVisualizerView(
+                    artworkData: viewModel.nowPlayingArtwork,
+                    visualizerValues: playbackService.visualizer
+                )
 
                 PlaylistPanelView(viewModel: viewModel)
                     .frame(maxHeight: .infinity)

@@ -33,6 +33,7 @@ final class TrackItem {
     var order: Int
     var isCorrupted: Bool
     var createdAt: Date
+    var artwork: Data?
     var section: PlaylistSection?
 
     init(
@@ -44,7 +45,8 @@ final class TrackItem {
         duration: Double,
         order: Int,
         isCorrupted: Bool = false,
-        createdAt: Date = .now
+        createdAt: Date = .now,
+        artwork: Data? = nil
     ) {
         self.id = id
         self.title = title
@@ -55,6 +57,7 @@ final class TrackItem {
         self.order = order
         self.isCorrupted = isCorrupted
         self.createdAt = createdAt
+        self.artwork = artwork
     }
 }
 

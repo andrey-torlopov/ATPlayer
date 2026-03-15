@@ -12,10 +12,11 @@ final class ATPlayerViewModel: ObservableObject {
     @Published var showImporter = false
     @Published var showSettings = false
     @Published var nowPlayingTitle = "READY"
+    @Published var nowPlayingArtwork: Data?
     @Published var importError: String?
     @Published var importTargetSection: PlaylistSection?
 
-    let supportedTypes: [UTType] = [.mp3, .mpeg4Audio, .audio]
+    let supportedTypes: [UTType] = [.mp3, .mpeg4Audio, .audio, .folder]
     let playbackService = AudioPlaybackService()
     private let storageService: PlaylistStorageService
     private var activeScopedURL: URL?
@@ -85,9 +86,7 @@ final class ATPlayerViewModel: ObservableObject {
             let targetSection = importTargetSection
             Task {
                 guard let section = targetSection ?? sections.first else { return }
-                for url in urls {
-                    await importTrack(at: url, to: section)
-                }
+                await importURLs(urls, to: section)
                 reloadSections()
             }
         }
@@ -127,6 +126,7 @@ final class ATPlayerViewModel: ObservableObject {
                 activeScopedURL = url
                 selectedTrackID = track.id
                 nowPlayingTitle = track.displayTitle.uppercased()
+                nowPlayingArtwork = track.artwork
             } catch {
                 markCorrupted(track)
                 playNextAfter(track: track)
@@ -220,13 +220,34 @@ final class ATPlayerViewModel: ObservableObject {
         }
     }
 
-    private func importTrack(at url: URL, to section: PlaylistSection) async {
-        guard url.startAccessingSecurityScopedResource() else {
-            importError = "Нет доступа к \(url.lastPathComponent)"
-            return
-        }
-        defer { url.stopAccessingSecurityScopedResource() }
+    private func importURLs(_ urls: [URL], to section: PlaylistSection) async {
+        let fileManager = FileManager.default
+        for url in urls {
+            guard url.startAccessingSecurityScopedResource() else {
+                importError = "Нет доступа к \(url.lastPathComponent)"
+                continue
+            }
 
+            var isDirectory: ObjCBool = false
+            if fileManager.fileExists(atPath: url.path, isDirectory: &isDirectory), isDirectory.boolValue {
+                let audioFiles = collectAudioFiles(in: url)
+                for fileURL in audioFiles {
+                    guard await downloadFromiCloud(fileURL) else { continue }
+                    await importSingleTrack(at: fileURL, to: section)
+                }
+                url.stopAccessingSecurityScopedResource()
+            } else {
+                guard await downloadFromiCloud(url) else {
+                    url.stopAccessingSecurityScopedResource()
+                    continue
+                }
+                await importSingleTrack(at: url, to: section)
+                url.stopAccessingSecurityScopedResource()
+            }
+        }
+    }
+
+    private func importSingleTrack(at url: URL, to section: PlaylistSection) async {
         do {
             let bookmark = try url.bookmarkData(options: .minimalBookmark)
             let asset = AVURLAsset(url: url)
@@ -240,6 +261,7 @@ final class ATPlayerViewModel: ObservableObject {
                 url: url,
                 bookmark: bookmark,
                 duration: metadata.duration,
+                artwork: metadata.artwork,
                 to: section
             )
         } catch {
@@ -247,10 +269,39 @@ final class ATPlayerViewModel: ObservableObject {
         }
     }
 
+    private func isDownloaded(_ url: URL) -> Bool {
+        do {
+            let values = try url.resourceValues(forKeys: [.ubiquitousItemDownloadingStatusKey])
+            let status = values.ubiquitousItemDownloadingStatus
+            return status == .current || status == nil
+        } catch {
+            return FileManager.default.isReadableFile(atPath: url.path)
+        }
+    }
+
+    private func downloadFromiCloud(_ url: URL) async -> Bool {
+        guard !isDownloaded(url) else { return true }
+
+        do {
+            try FileManager.default.startDownloadingUbiquitousItem(at: url)
+        } catch {
+            importError = "Ошибка загрузки \(url.lastPathComponent): \(error.localizedDescription)"
+            return false
+        }
+
+        for _ in 0..<120 {
+            try? await Task.sleep(for: .milliseconds(500))
+            if isDownloaded(url) { return true }
+        }
+
+        importError = "Таймаут скачивания \(url.lastPathComponent) из iCloud"
+        return false
+    }
+
     private func extractMetadata(
         from asset: AVURLAsset,
         fallbackName: String
-    ) async throws -> (title: String, artist: String, duration: Double) {
+    ) async throws -> (title: String, artist: String, duration: Double, artwork: Data?) {
         let duration = try await asset.load(.duration).seconds
         let metadataItems = try await asset.load(.commonMetadata)
 
@@ -262,10 +313,34 @@ final class ATPlayerViewModel: ObservableObject {
             from: metadataItems,
             filteredByIdentifier: .commonIdentifierArtist
         ).first
+        let artworkItem = AVMetadataItem.metadataItems(
+            from: metadataItems,
+            filteredByIdentifier: .commonIdentifierArtwork
+        ).first
+
         let title = (try await titleItem?.load(.stringValue)) ?? fallbackName
         let artist = (try await artistItem?.load(.stringValue)) ?? "Unknown Artist"
+        let artwork = try await artworkItem?.load(.dataValue)
 
-        return (title, artist, duration)
+        return (title, artist, duration, artwork)
+    }
+
+    private let audioExtensions: Set<String> = ["mp3", "m4a", "aac", "wav", "aiff", "flac", "alac", "caf"]
+
+    private func collectAudioFiles(in directoryURL: URL) -> [URL] {
+        var result: [URL] = []
+        guard let enumerator = FileManager.default.enumerator(
+            at: directoryURL,
+            includingPropertiesForKeys: [.isRegularFileKey, .ubiquitousItemDownloadingStatusKey],
+            options: [.skipsHiddenFiles]
+        ) else { return result }
+
+        for case let fileURL as URL in enumerator {
+            if audioExtensions.contains(fileURL.pathExtension.lowercased()) {
+                result.append(fileURL)
+            }
+        }
+        return result
     }
 
     private func resolvedURL(for track: TrackItem) throws -> URL {

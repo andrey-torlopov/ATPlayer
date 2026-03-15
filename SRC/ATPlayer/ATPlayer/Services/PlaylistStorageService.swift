@@ -51,6 +51,7 @@ final class PlaylistStorageService {
         url: URL,
         bookmark: Data,
         duration: Double,
+        artwork: Data?,
         to section: PlaylistSection
     ) throws -> TrackItem {
         let nextOrder = section.tracks.count
@@ -60,7 +61,8 @@ final class PlaylistStorageService {
             filePath: url.path,
             bookmark: bookmark,
             duration: duration,
-            order: nextOrder
+            order: nextOrder,
+            artwork: artwork
         )
         item.section = section
         context.insert(item)

@@ -1,6 +1,43 @@
 import SwiftUI
 import UIKit
 
+struct NowPlayingVisualizerView: View {
+    let artworkData: Data?
+    let visualizerValues: [CGFloat]
+    @Environment(\.theme) private var theme
+
+    var body: some View {
+        HStack(spacing: 10) {
+            if let artworkData, let uiImage = UIImage(data: artworkData) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 70, height: 70)
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(theme.borderLight, lineWidth: 1)
+                    )
+            } else {
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(theme.panel)
+                    .frame(width: 70, height: 70)
+                    .overlay(
+                        Image(systemName: "music.note")
+                            .font(.system(size: 24))
+                            .foregroundStyle(theme.textSecondary)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(theme.borderLight, lineWidth: 1)
+                    )
+            }
+
+            VisualizerView(values: visualizerValues)
+        }
+    }
+}
+
 struct VisualizerView: View {
     let values: [CGFloat]
     @Environment(\.theme) private var theme

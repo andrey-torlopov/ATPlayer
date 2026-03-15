@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct PlaylistPanelView: View {
     @ObservedObject var viewModel: ATPlayerViewModel
@@ -63,81 +64,105 @@ private struct SectionView: View {
     @ObservedObject var viewModel: ATPlayerViewModel
     let theme: AppTheme
     @State private var isExpanded = true
+    @State private var showDeleteConfirmation = false
 
     var body: some View {
-        Section {
-            if isExpanded {
-                let tracks = viewModel.tracks(in: section)
-                ForEach(tracks, id: \.id) { track in
-                    TrackRowView(
-                        track: track,
-                        isSelected: track.id == viewModel.selectedTrackID,
-                        theme: theme
-                    ) {
-                        viewModel.selectedTrackID = track.id
-                        Task { await viewModel.play(track: track) }
-                    }
-                    .listRowBackground(Color.clear)
-                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        Button(role: .destructive) {
-                            viewModel.removeTrack(track)
-                        } label: {
-                            Label("Удалить", systemImage: "trash")
-                        }
-                    }
+        sectionHeader
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 4, trailing: 0))
+            .alert("Удалить плейлист «\(section.name)»?", isPresented: $showDeleteConfirmation) {
+                Button("Удалить", role: .destructive) {
+                    viewModel.removeSection(section)
                 }
+                Button("Отмена", role: .cancel) {}
+            } message: {
+                Text("Все треки в этом плейлисте будут удалены.")
+            }
 
-                Button {
-                    viewModel.requestImport(to: section)
-                } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "plus")
-                            .font(.system(size: 12, weight: .bold))
-                        Text("Добавить треки")
-                            .font(AppFonts.caption(12))
-                    }
-                    .foregroundStyle(theme.textSecondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+        if isExpanded {
+            let tracks = viewModel.tracks(in: section)
+            ForEach(tracks, id: \.id) { track in
+                TrackRowView(
+                    track: track,
+                    isSelected: track.id == viewModel.selectedTrackID,
+                    theme: theme
+                ) {
+                    viewModel.selectedTrackID = track.id
+                    Task { await viewModel.play(track: track) }
                 }
                 .listRowBackground(Color.clear)
-            }
-        } header: {
-            HStack {
-                Button {
-                    withAnimation(.snappy) { isExpanded.toggle() }
-                } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
-                            .font(.system(size: 10, weight: .bold))
-                        Text(section.name.uppercased())
-                            .font(AppFonts.caption(12))
+                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                    Button(role: .destructive) {
+                        viewModel.removeTrack(track)
+                    } label: {
+                        Label("Удалить", systemImage: "trash")
                     }
-                    .foregroundStyle(theme.accentSecondary)
+                }
+            }
+
+            Button {
+                viewModel.requestImport(to: section)
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 12, weight: .bold))
+                    Text("Добавить треки")
+                        .font(AppFonts.caption(12))
+                }
+                .foregroundStyle(theme.textSecondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .listRowBackground(Color.clear)
+        }
+    }
+
+    private var sectionHeader: some View {
+        HStack {
+            Button {
+                withAnimation(.snappy) { isExpanded.toggle() }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                        .font(.system(size: 10, weight: .bold))
+                    Text(section.name.uppercased())
+                        .font(AppFonts.caption(12))
+                }
+                .foregroundStyle(theme.accentSecondary)
+            }
+            .buttonStyle(.plain)
+
+            Spacer()
+
+            Text("\(viewModel.tracks(in: section).count)")
+                .font(AppFonts.caption(10))
+                .foregroundStyle(theme.textSecondary)
+
+            if viewModel.sections.count > 1 {
+                Button {
+                    showDeleteConfirmation = true
+                } label: {
+                    Image(systemName: "minus.circle")
+                        .font(.system(size: 14))
+                        .foregroundStyle(theme.destructive)
                 }
                 .buttonStyle(.plain)
-
-                Spacer()
-
-                Text("\(viewModel.tracks(in: section).count)")
-                    .font(AppFonts.caption(10))
-                    .foregroundStyle(theme.textSecondary)
             }
-            .onLongPressGesture {
+        }
+        .onLongPressGesture {
+            viewModel.requestImport(to: section)
+        }
+        .contextMenu {
+            Button {
                 viewModel.requestImport(to: section)
+            } label: {
+                Label("Добавить треки", systemImage: "plus")
             }
-            .contextMenu {
-                Button {
-                    viewModel.requestImport(to: section)
-                } label: {
-                    Label("Добавить треки", systemImage: "plus")
-                }
 
-                if viewModel.sections.count > 1 {
-                    Button(role: .destructive) {
-                        viewModel.removeSection(section)
-                    } label: {
-                        Label("Удалить секцию", systemImage: "trash")
-                    }
+            if viewModel.sections.count > 1 {
+                Button(role: .destructive) {
+                    showDeleteConfirmation = true
+                } label: {
+                    Label("Удалить секцию", systemImage: "trash")
                 }
             }
         }
@@ -153,6 +178,8 @@ private struct TrackRowView: View {
     var body: some View {
         Button(action: onTap) {
             HStack(spacing: 8) {
+                TrackArtworkView(artworkData: track.artwork, size: 32, theme: theme)
+
                 if track.isCorrupted {
                     Text("❌")
                         .font(.system(size: 12))
@@ -182,5 +209,30 @@ private struct TrackRowView: View {
             return theme.textSecondary
         }
         return isSelected ? theme.accent : theme.textPrimary
+    }
+}
+
+private struct TrackArtworkView: View {
+    let artworkData: Data?
+    let size: CGFloat
+    let theme: AppTheme
+
+    var body: some View {
+        if let artworkData, let uiImage = UIImage(data: artworkData) {
+            Image(uiImage: uiImage)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: size, height: size)
+                .clipShape(RoundedRectangle(cornerRadius: 4))
+        } else {
+            RoundedRectangle(cornerRadius: 4)
+                .fill(theme.panel)
+                .frame(width: size, height: size)
+                .overlay(
+                    Image(systemName: "music.note")
+                        .font(.system(size: size * 0.4))
+                        .foregroundStyle(theme.textSecondary)
+                )
+        }
     }
 }
