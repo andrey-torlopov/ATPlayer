@@ -1,0 +1,133 @@
+PASS audio.eq.nonFinitePreamp 
+PASS audio.eq.preampBounds 
+PASS audio.eq.sanitizeArray 
+PASS audio.eq.restoreSanitizedSettings 
+PASS audio.load.valid 
+PASS audio.clock.progresses 
+PASS audio.spectrum.realBoundedBands 
+PASS audio.spectrum.frequencySelective 
+objc[5596]: Class UIAccessibilityLoaderWebShared is implemented in both /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x10b0a0310) and /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x10adb8398). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+PASS audio.pause.stableTime 
+PASS audio.pause.spectrumCleared 
+PASS audio.seek.paused 
+PASS audio.seek.rejectsNaN 
+PASS audio.resume.fromOffset 
+PASS audio.seek.playing 
+PASS audio.stop.unloads 
+PASS audio.stop.cannotResumeStaleFile 
+PASS audio.eof.notDataConsumed 
+PASS audio.eof.waitsPlayedBack elapsed=1.2567209999542683, expected>=1.05s
+PASS audio.eof.retainsFinalPosition 
+PASS audio.eof.callbackExactlyOnce 
+PASS audio.eof.playRestarts 
+2026-10-17 21:58:16.220 ATPlayerSessionRegression[5596:11283804] Audio files cannot be non-interleaved. Ignoring setting AVLinearPCMIsNonInterleaved YES.
+PASS audio.spectrum.antiphaseStereo 
+PASS audio.format.stereo48kDuration 
+PASS audio.format.mono96kClock audio=0.4693650793650794, wall=0.5035694583784789
+PASS audio.spectrum.silenceConvergesToZero initialPeak=0.0414841091260314, finalPeak=2.5319890823993774e-06
+PASS audio.interruption.beganPauses 
+PASS audio.interruption.manualPlayWithoutEnded 
+PASS audio.interruption.shouldResumeRestarts 
+PASS audio.route.oldDeviceUnavailablePauses 
+PASS audio.load.missingThrows 
+PASS audio.load.failedDoesNotKeepStaleState 
+PASS audio.load.failedCannotResumeOldFile 
+PASS audio.load.emptyRejected 
+PASS mp3.tone-mono-44100.starts 
+PASS mp3.tone-mono-44100.duration 
+PASS mp3.tone-mono-44100.playbackCategory 
+PASS mp3.tone-mono-44100.defaultMode 
+PASS mp3.tone-mono-44100.clock 
+PASS mp3.tone-mono-44100.spectrum 
+PASS mp3.tone-mono-44100.pausedSeek 
+PASS mp3.tone-mono-44100.resume 
+PASS mp3.tone-mono-44100.EOF 
+PASS mp3.tone-stereo-48000.starts 
+PASS mp3.tone-stereo-48000.duration 
+PASS mp3.tone-stereo-48000.playbackCategory 
+PASS mp3.tone-stereo-48000.defaultMode 
+PASS mp3.tone-stereo-48000.clock 
+PASS mp3.tone-stereo-48000.spectrum 
+PASS mp3.tone-stereo-48000.pausedSeek 
+PASS mp3.tone-stereo-48000.resume 
+PASS mp3.tone-stereo-48000.EOF 
+PASS mp3.VM.importsBothFiles 
+PASS mp3.VM.importedFilePlays 
+PASS session.mainActorAvailableDuringActivation 
+PASS session.stop.cancelsInflightLoad 
+PASS session.stop.noLatePlaybackOrError 
+PASS session.pause.cancelsInflightLoad 
+PASS session.pause.retainsFile 
+PASS session.resume.publishesPendingSynchronously 
+PASS session.resume.duplicatePlayIgnored 
+PASS session.seek.supersedesInflightLoad 
+PASS session.seek.lastPositionWins 
+PASS session.replacement.staleFailureBecomesCancellation 
+PASS session.replacement.staleFailureCannotStopNewTrack 
+PASS session.taskCancellation.propagatesToStart 
+PASS session.taskCancellation.noLatePlayback 
+PASS session.VM.replacementOwnsSelectionAndErrors 
+PASS session.VM.togglePausesPendingResume 
+PASS session.VM.cancelledResumeStaysPaused 
+PASS session.matchingCategoryNotReconfigured categoryCalls=1
+PASS session.systemCallsRunOffMainThread activationCalls=12, mainThreadCalls=0
+LOGIC_REGRESSION_BEGIN
+PASS Blank title falls back to filename 
+PASS Legacy Unknown Artist is absent 
+PASS Legacy placeholder omitted from title 
+PASS Finite duration truncates fractional seconds 
+PASS Actual artist metadata preserved 
+PASS Metadata whitespace normalized 
+PASS Unsafe duration rejected 0 
+PASS Unsafe duration rejected 1 
+PASS Unsafe duration rejected 2 
+PASS Unsafe duration rejected 3 
+PASS Unsafe duration rejected 4 
+PASS Unsafe duration rejected 5 
+PASS Unsafe duration rejected 6 
+PASS Hour duration remains complete minutes 
+PASS Section delete normalizes order 
+PASS Section append uses next available order 
+PASS Track removal preserves remaining tracks 
+PASS Track delete normalizes order 
+PASS Track append follows normalized order 
+PASS Section deletion cascades to its tracks 
+PASS Duplicate playlist names preserve every playlist 
+PASS Duplicate export preserves every track 
+PASS Export suffixes avoid existing playlist names 
+PASS Export does not rename stored playlists 
+PASS Legacy raw bookmark plays 
+PASS Bookmark resolution repairs stored file path 
+PASS Now playing title preserves natural case 
+PASS Active track has fixture artwork before deletion 
+PASS Active track removal clears selected ID 
+PASS Active track removal unloads audio and progress 
+PASS Active track removal clears artwork 
+PASS Active track is removed from storage 
+PASS Folder envelope bookmark plays descendant 
+PASS Playback records containing playlist 
+PASS Active playlist removal resets playback selection 
+PASS Active playlist removal clears timeline and artwork 
+PASS Active playlist removal clears persisted last playlist 
+PASS Active playlist deletion cascades stored tracks 
+PASS Empty library restores one default playlist 
+PASS Navigation starts at last valid track 
+PASS Navigation availability reflects last track 
+PASS Previous skips missing and empty files backward 
+PASS Empty audio file is marked corrupted 
+PASS Missing file is not permanently marked corrupted 
+PASS Navigation availability reflects first track 
+PASS Next skips invalid files forward 
+PASS Exhausted invalid candidates leave unloaded state 
+PASS Exhausted invalid candidates expose recoverable error 
+PASS Import publishes in-progress state immediately 
+PASS Folder import includes supported descendants only 
+PASS Import uses filenames without fabricated metadata 
+PASS Missing artist metadata remains absent 
+PASS Every imported descendant persists directory access bookmark 
+PASS Imported nested file plays after import scope closes 
+PASS Cancelled import adds no files and resets progress 
+PASS Dismissed importer does not show an error 
+LOGIC_REGRESSION_END
+RESULTS_PATH /Users/at/Library/Developer/CoreSimulator/Devices/82302B12-A38C-4846-B09F-ED3FB2943B49/data/Containers/Data/Application/134E1286-83C9-4BD5-B34F-CFFFCA56E813/Documents/regression-results.json
+REGRESSION_PASS

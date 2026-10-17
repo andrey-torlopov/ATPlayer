@@ -1,5 +1,7 @@
 # Исправление запуска MP3 и положения ошибки
 
+Исторический прогон. После него изменён запуск аудиосессии; текущие результаты и SHA-256: [Verification-AudioSession](../Verification-AudioSession/README.md).
+
 17 октября 2026. Исходники: `SRC/ATPlayer/ATPlayer/Services/AudioPlaybackService.swift` и `Views/Components/V1/ATPlayerRootViewV1.swift` относительно папки приложения.
 
 ## Диагноз
@@ -30,7 +32,7 @@ All: successful / all = 109 / 109
 
 Для mono 44,1 кГц и stereo 48 кГц проверены запуск, длительность, категория/режим сессии, таймер, реальный спектр, перемотка на паузе, продолжение и EOF. Через настоящую VM проверены импорт обоих MP3 и воспроизведение импортированного файла. Повторно выполнены прежние проверки аудио, SwiftData, bookmarks, удаления, переходов, экспорта и отмены.
 
-Лог: [runtime.log](runtime.log). Исходники: [RegressionHarness.swift](RegressionHarness.swift), [LogicRegression.swift](LogicRegression.swift). [SHA-256](source-sha256.json) проверенных production-файлов сопоставлены с текущими исходниками. Предупреждения в [compile.log](compile.log) относятся к старому UIKit bootstrap временного harness; сборка production-приложения предупреждений не содержит.
+Лог: [runtime.log](runtime.log). Исходники: [RegressionHarness.swift](RegressionHarness.swift), [LogicRegression.swift](LogicRegression.swift). [SHA-256](source-sha256.json) проверенных production-файлов соответствуют исходникам на момент этого прогона, до изменения запуска аудиосессии. Предупреждения в [compile.log](compile.log) относятся к старому UIKit bootstrap временного harness; сборка production-приложения предупреждений не содержит.
 
 Положение ошибки проверено через реальный `ATPlayerRootViewV1` в отдельном UI-образце с заданным текстом ошибки. Это проверка отображения, а не воспроизведение аппаратного отказа: [портрет](error-portrait.png), [две колонки](error-landscape.png). Тестовое приложение и QA Simulator после проверки остановлены.
 

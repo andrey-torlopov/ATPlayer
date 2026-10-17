@@ -1,0 +1,18 @@
+{
+  "SRC/ATPlayer/ATPlayer/Models/TrackItem.swift": "c4357b69b589027ce8fd0436494a35f6ddaf26975b301d433fa27493e8a5789e",
+  "SRC/ATPlayer/ATPlayer/Services/PlaylistStorageService.swift": "ffa39119c87ecbaa8833e9c8bba509065db735e1b1a3dd1f6d386443b7cce8e1",
+  "SRC/ATPlayer/ATPlayer/Services/AudioPlaybackService.swift": "9a3de97716f3dc26a72dff94f15546fb377aee408c8b05f40200d553d22d4654",
+  "SRC/ATPlayer/ATPlayer/ViewModels/ATPlayerViewModel.swift": "54a464c3882225f58b13a956cb7936ad624a045f1527bf45424cbfc137422a9a",
+  "SRC/ATPlayer/ATPlayer/LiveActivity/ATPlayerActivityAttributes.swift": "6d8bd8c7002fc707f32e7bb86c16c9f331df3c703588c8533147ff666afebd80",
+  "SRC/ATPlayer/ATPlayer/LiveActivity/ATPlayerActivityService.swift": "a99b05582562b6a327b848b1328f21495ce5f982fa0c854c6f8c2d7b81ed64eb",
+  "SRC/ATPlayer/ATPlayer/Views/Components/V1/ATPlayerRootViewV1.swift": "ecaf12b5b68508f036e1eacf45cb931ee7920fac77669dda2e3dbfc8d9f7a205",
+  "SRC/ATPlayer/ATPlayer/Views/Components/V1/EqualizerSettingsViewV1.swift": "2faacc729652ee9757114bcb3576d4536c597ed498974dabe007c43d777fa2ed",
+  "SRC/ATPlayer/ATPlayer/Views/Components/V1/PlayerPanelV1.swift": "22f51343287e75de712c82e08c83546c3916347c3f715b3f3b8ca28c4ef9c9b7",
+  "SRC/ATPlayer/ATPlayer/Views/Components/V1/PlayerThemeV1.swift": "28d71feaf6c8698a8d630c0d773fbbaeb2c20ba6fc8cfab1218a917a2b594535",
+  "SRC/ATPlayer/ATPlayer/Views/Components/V1/PlaylistViewV1.swift": "b91aa38a7317550f17adc2662f6c0fca3064a736b917f1540c7f2c76665e434e",
+  "SRC/ATPlayer/ATPlayer/Views/Components/V1/RadialPlayerV1.swift": "7564369865b79f74540ecc6abeb332f92be448c1bf9ef43cc1e42dabd2458ca1",
+  "SRC/ATPlayer/ATPlayer/Views/Components/V1/SettingsViewV1.swift": "6d47d37d0ff3bb99f6a3dec75b61bf851a9491c322c265477ce261cdd23774b4",
+  "Task/Redisign/Verification-AudioSession/RegressionHarness.swift": "249bfb373923cf24460c3c345a049ac9f773a5b4171770379dd356b4f0d49f44",
+  "Task/Redisign/Verification-AudioSession/LogicRegression.swift": "1e7b4be2df1efa5ebcd88bca9e158386aed27477eb568e00119e4821914a7857",
+  "Task/Redisign/Verification-AudioSession/SessionRegression.swift": "93161b223bd5bebbc614a1b9f0f13b01be1705fd90cf56bd86277541a70bfe49"
+}
