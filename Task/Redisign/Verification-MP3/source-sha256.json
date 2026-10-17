@@ -1,0 +1,15 @@
+{
+  "Models/TrackItem.swift": "c4357b69b589027ce8fd0436494a35f6ddaf26975b301d433fa27493e8a5789e",
+  "Services/PlaylistStorageService.swift": "ffa39119c87ecbaa8833e9c8bba509065db735e1b1a3dd1f6d386443b7cce8e1",
+  "Services/AudioPlaybackService.swift": "8a3515160dcd074c00416907a34762663b00de0ee3c3c5d4541fa74b09816122",
+  "ViewModels/ATPlayerViewModel.swift": "757e0af530a297feb5a3deeb0cb23034f7f7b13f4decc510383aefff4acf8d70",
+  "LiveActivity/ATPlayerActivityAttributes.swift": "6d8bd8c7002fc707f32e7bb86c16c9f331df3c703588c8533147ff666afebd80",
+  "LiveActivity/ATPlayerActivityService.swift": "a99b05582562b6a327b848b1328f21495ce5f982fa0c854c6f8c2d7b81ed64eb",
+  "Views/Components/V1/ATPlayerRootViewV1.swift": "ecaf12b5b68508f036e1eacf45cb931ee7920fac77669dda2e3dbfc8d9f7a205",
+  "Views/Components/V1/EqualizerSettingsViewV1.swift": "2faacc729652ee9757114bcb3576d4536c597ed498974dabe007c43d777fa2ed",
+  "Views/Components/V1/PlayerPanelV1.swift": "f70b2c6cdac7fa562209ec9dadadc7708b370e1bc5bba3859d1b584081c8befc",
+  "Views/Components/V1/PlayerThemeV1.swift": "28d71feaf6c8698a8d630c0d773fbbaeb2c20ba6fc8cfab1218a917a2b594535",
+  "Views/Components/V1/PlaylistViewV1.swift": "b91aa38a7317550f17adc2662f6c0fca3064a736b917f1540c7f2c76665e434e",
+  "Views/Components/V1/RadialPlayerV1.swift": "7564369865b79f74540ecc6abeb332f92be448c1bf9ef43cc1e42dabd2458ca1",
+  "Views/Components/V1/SettingsViewV1.swift": "6d47d37d0ff3bb99f6a3dec75b61bf851a9491c322c265477ce261cdd23774b4"
+}

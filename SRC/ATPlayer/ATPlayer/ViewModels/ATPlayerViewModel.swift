@@ -14,11 +14,12 @@ public final class ATPlayerViewModel: ObservableObject {
     @Published var selectedTrackID: UUID?
     @Published var showImporter = false
     @Published var showSettings = false
-    @Published var nowPlayingTitle = "READY"
+    @Published var nowPlayingTitle = "Готов к воспроизведению"
     @Published var nowPlayingArtwork: Data?
     @Published var importError: String?
     @Published var importTargetSection: PlaylistSection?
     @Published var lastPlayedSectionID: UUID?
+    @Published private(set) var isImporting = false
 
     let supportedTypes: [UTType] = [.mp3, .mpeg4Audio, .audio, .folder]
     let playbackService = AudioPlaybackService()
@@ -26,6 +27,25 @@ public final class ATPlayerViewModel: ObservableObject {
     private let storageService: PlaylistStorageService
     private var activeScopedURL: URL?
     private var activityUpdateCancellable: AnyCancellable?
+    private var playbackErrorCancellable: AnyCancellable?
+    private var playbackRequestID = UUID()
+    private var pendingPlaybackRequestID: UUID?
+    private var importTask: Task<Void, Never>?
+
+    // Files imported through a folder need the folder's access grant after relaunch.
+    // The envelope lives in the existing Data attribute; legacy raw bookmarks still resolve.
+    private struct TrackBookmark: Codable {
+        var file: Data
+        var directory: Data?
+    }
+
+    private enum PlaybackDirection: Int {
+        case previous = -1
+        case next = 1
+    }
+
+    private static let cloudDownloadAttempts = 120
+    private static let cloudDownloadPollInterval: Duration = .milliseconds(500)
 
     public init(context: ModelContext) {
         self.storageService = PlaylistStorageService(context: context)
@@ -35,11 +55,16 @@ public final class ATPlayerViewModel: ObservableObject {
         }
         // activityService.endAllStaleActivities()
         playbackService.onTrackFinished = { [weak self] in
-            guard let self else { return }
+            guard let self, self.pendingPlaybackRequestID == nil else { return }
             // self.activityService.endActivity()
             self.playNext()
         }
         // setupActivityUpdates()
+        playbackErrorCancellable = playbackService.$playbackError
+            .compactMap { $0 }
+            .sink { [weak self] message in
+                self?.importError = message
+            }
         reloadSections()
     }
 
@@ -52,7 +77,7 @@ public final class ATPlayerViewModel: ObservableObject {
             _ = try storageService.ensureDefaultSection()
             sections = try storageService.fetchSections()
         } catch {
-            importError = "Не удалось загрузить плейлист: \(error.localizedDescription)"
+            importError = "Не удалось загрузить плейлисты. Повторите попытку."
         }
     }
 
@@ -71,16 +96,25 @@ public final class ATPlayerViewModel: ObservableObject {
             _ = try storageService.createSection(name: name)
             reloadSections()
         } catch {
-            importError = "Не удалось создать секцию: \(error.localizedDescription)"
+            importError = "Не удалось создать плейлист. Повторите попытку."
         }
     }
 
     func removeSection(_ section: PlaylistSection) {
+        let sectionID = section.id
+        let removesSelectedTrack = section.tracks.contains { $0.id == selectedTrackID }
         do {
             try storageService.removeSection(section)
+            if removesSelectedTrack {
+                resetPlayback()
+            }
+            if lastPlayedSectionID == sectionID {
+                lastPlayedSectionID = nil
+                UserDefaults.standard.removeObject(forKey: "lastPlayedSectionID")
+            }
             reloadSections()
         } catch {
-            importError = "Не удалось удалить секцию: \(error.localizedDescription)"
+            importError = "Не удалось удалить плейлист. Повторите попытку."
         }
     }
 
@@ -89,36 +123,52 @@ public final class ATPlayerViewModel: ObservableObject {
             try storageService.renameSection(section, to: name)
             reloadSections()
         } catch {
-            importError = "Не удалось переименовать секцию: \(error.localizedDescription)"
+            importError = "Не удалось переименовать плейлист. Повторите попытку."
         }
     }
 
     // MARK: - Import
 
     func requestImport(to section: PlaylistSection) {
+        guard !isImporting else { return }
         importTargetSection = section
         showImporter = true
     }
 
     func importFiles(_ result: Result<[URL], Error>) {
+        let targetSectionID = importTargetSection?.id ?? sections.first?.id
+        importTargetSection = nil
         switch result {
         case let .failure(error):
-            importError = "Ошибка импорта: \(error.localizedDescription)"
+            guard (error as? CocoaError)?.code != .userCancelled else { return }
+            importError = "Не удалось открыть выбранные файлы. Повторите импорт."
         case let .success(urls):
-            let targetSection = importTargetSection
-            Task {
-                guard let section = targetSection ?? sections.first else { return }
-                await importURLs(urls, to: section)
-                reloadSections()
+            guard !isImporting, let targetSectionID, !urls.isEmpty else { return }
+            isImporting = true
+            importError = nil
+            importTask = Task { [weak self] in
+                guard let self else { return }
+                defer {
+                    self.isImporting = false
+                    self.importTask = nil
+                    self.reloadSections()
+                }
+                await self.importURLs(urls, to: targetSectionID)
             }
         }
-        importTargetSection = nil
+    }
+
+    func cancelImport() {
+        importTask?.cancel()
     }
 
     // MARK: - Playback
 
     func togglePlayback() {
-        if playbackService.isPlaying {
+        // A pause/resume command also cancels a pending cloud track switch.
+        playbackRequestID = UUID()
+        pendingPlaybackRequestID = nil
+        if playbackService.isPlaying || playbackService.isStarting {
             playbackService.pause()
             return
         }
@@ -135,64 +185,129 @@ public final class ATPlayerViewModel: ObservableObject {
     }
 
     func play(track: TrackItem) async {
-        guard !track.isCorrupted else {
-            playNextAfter(track: track)
-            return
-        }
+        await playCandidates(startingAt: track.id, direction: .next)
+    }
 
-        do {
-            stopActiveScopedURLIfNeeded()
-            let url = try resolvedURL(for: track)
-            do {
-                try playbackService.loadAndPlay(url: url)
-                activeScopedURL = url
-                selectedTrackID = track.id
-                nowPlayingTitle = track.displayTitle.uppercased()
-                nowPlayingArtwork = track.artwork
-                importError = nil
+    var canPlayPrevious: Bool {
+        guard let current = selectedTrack,
+              let index = allTracks.firstIndex(where: { $0.id == current.id }) else { return false }
+        return index > allTracks.startIndex
+    }
 
-                if let sectionID = track.section?.id {
-                    lastPlayedSectionID = sectionID
-                    UserDefaults.standard.set(sectionID.uuidString, forKey: "lastPlayedSectionID")
-                }
-
-                // activityService.startOrUpdateActivity(
-                //     trackTitle: track.title,
-                //     artistName: track.artist,
-                //     duration: track.duration,
-                //     currentTime: 0,
-                //     isPlaying: true
-                // )
-            } catch {
-                markCorrupted(track)
-                playNextAfter(track: track)
-            }
-        } catch {
-            importError = "Нет доступа к \(track.title): \(error.localizedDescription)"
-            selectedTrackID = track.id
-        }
+    var canPlayNext: Bool {
+        guard let current = selectedTrack,
+              let index = allTracks.firstIndex(where: { $0.id == current.id }) else { return false }
+        return index + 1 < allTracks.endIndex
     }
 
     func playNext() {
-        guard let current = selectedTrack else { return }
-        let all = allTracks
-        guard let index = all.firstIndex(where: { $0.id == current.id }) else { return }
-        let nextIndex = all.index(after: index)
-        guard all.indices.contains(nextIndex) else { return }
-        Task {
-            await play(track: all[nextIndex])
-        }
+        playAdjacent(direction: .next)
     }
 
     func playPrevious() {
+        playAdjacent(direction: .previous)
+    }
+
+    private func playAdjacent(direction: PlaybackDirection) {
         guard let current = selectedTrack else { return }
-        let all = allTracks
-        guard let index = all.firstIndex(where: { $0.id == current.id }) else { return }
-        let previousIndex = all.index(before: index)
-        guard all.indices.contains(previousIndex) else { return }
+        let tracks = allTracks
+        guard let index = tracks.firstIndex(where: { $0.id == current.id }) else { return }
+        let adjacentIndex = index + direction.rawValue
+        guard tracks.indices.contains(adjacentIndex) else { return }
+        let trackID = tracks[adjacentIndex].id
         Task {
-            await play(track: all[previousIndex])
+            await playCandidates(startingAt: trackID, direction: direction)
         }
+    }
+
+    private func playCandidates(startingAt trackID: UUID, direction: PlaybackDirection) async {
+        let requestID = UUID()
+        playbackRequestID = requestID
+        pendingPlaybackRequestID = requestID
+        defer {
+            if pendingPlaybackRequestID == requestID { pendingPlaybackRequestID = nil }
+        }
+        let tracks = allTracks
+        guard let startIndex = tracks.firstIndex(where: { $0.id == trackID }) else { return }
+        let candidateIDs = stride(
+            from: startIndex,
+            to: direction == .next ? tracks.endIndex : -1,
+            by: direction.rawValue
+        ).map { tracks[$0].id }
+        var failureMessage = "Нет доступных аудиофайлов для воспроизведения."
+
+        for candidateID in candidateIDs {
+            guard playbackRequestID == requestID, !Task.isCancelled else { return }
+            guard let track = allTracks.first(where: { $0.id == candidateID }) else { continue }
+            let title = track.title
+            var scopedURL: URL?
+            var beganLoading = false
+            do {
+                let resource = try resolvedResource(for: track)
+                scopedURL = resource.scopedURL
+                guard await downloadFromiCloud(resource.url, requestID: requestID) else {
+                    scopedURL?.stopAccessingSecurityScopedResource()
+                    failureMessage = "Файл «\(title)» недоступен. Повторите импорт или дождитесь загрузки."
+                    continue
+                }
+                guard playbackRequestID == requestID, !Task.isCancelled else {
+                    scopedURL?.stopAccessingSecurityScopedResource()
+                    return
+                }
+                guard let currentTrack = allTracks.first(where: { $0.id == candidateID }) else {
+                    scopedURL?.stopAccessingSecurityScopedResource()
+                    continue
+                }
+                // Stop the engine before revoking the old file's access grant.
+                playbackService.stop()
+                stopActiveScopedURLIfNeeded()
+                beganLoading = true
+                // Own the access grant before activation suspends. A newer
+                // request can then stop this file and release its grant safely.
+                activeScopedURL = scopedURL
+                scopedURL = nil
+                selectedTrackID = currentTrack.id
+                nowPlayingTitle = currentTrack.displayName
+                nowPlayingArtwork = currentTrack.artwork
+                try await playbackService.loadAndPlay(url: resource.url)
+                try Task.checkCancellation()
+                guard playbackRequestID == requestID else { return }
+                importError = nil
+                if currentTrack.isCorrupted {
+                    try? storageService.setCorrupted(false, for: currentTrack)
+                }
+                if let sectionID = currentTrack.section?.id {
+                    lastPlayedSectionID = sectionID
+                    UserDefaults.standard.set(sectionID.uuidString, forKey: "lastPlayedSectionID")
+                }
+                return
+            } catch {
+                scopedURL?.stopAccessingSecurityScopedResource()
+                guard playbackRequestID == requestID else { return }
+                // Seek/pause may supersede only the audio start while keeping
+                // the selected file. Do not stop that newer playback request.
+                if error is CancellationError, !Task.isCancelled { return }
+                if beganLoading {
+                    playbackService.stop()
+                    stopActiveScopedURLIfNeeded()
+                }
+                guard !Task.isCancelled else { return }
+                if let playbackError = error as? AudioPlaybackService.PlaybackError {
+                    switch playbackError {
+                    case .audioUnavailable:
+                        resetPlayback()
+                        importError = "Не удалось запустить аудиовыход. Попробуйте воспроизведение ещё раз."
+                        return
+                    case .invalidAudioFile:
+                        markCorrupted(track)
+                    }
+                }
+                failureMessage = "Не удалось воспроизвести «\(title)». Проверьте файл или повторите импорт."
+            }
+        }
+        guard playbackRequestID == requestID, !Task.isCancelled else { return }
+        resetPlayback()
+        importError = failureMessage
     }
 
     func seek(to time: TimeInterval) {
@@ -202,16 +317,15 @@ public final class ATPlayerViewModel: ObservableObject {
     // MARK: - Remove
 
     func removeTrack(_ track: TrackItem) {
+        let removesSelectedTrack = track.id == selectedTrackID
         do {
-            if track.id == selectedTrackID {
-                playbackService.stop()
-                // activityService.endActivity()
-                nowPlayingTitle = "READY"
-            }
             try storageService.removeTrack(track)
+            if removesSelectedTrack {
+                resetPlayback()
+            }
             reloadSections()
         } catch {
-            importError = "Не удалось удалить трек: \(error.localizedDescription)"
+            importError = "Не удалось удалить трек. Повторите попытку."
         }
     }
 
@@ -219,6 +333,7 @@ public final class ATPlayerViewModel: ObservableObject {
 
     func exportPlaylistsJSON() -> Data {
         var result: [String: [[String: String]]] = [:]
+        let reservedNames = Set(sections.map(\.name))
         for section in sections {
             let tracks = storageService.sortedTracks(in: section).map { track in
                 [
@@ -227,7 +342,15 @@ public final class ATPlayerViewModel: ObservableObject {
                     "path": track.filePath
                 ]
             }
-            result[section.name] = tracks
+            var key = section.name
+            var suffix = 2
+            while result[key] != nil {
+                repeat {
+                    key = "\(section.name) (\(suffix))"
+                    suffix += 1
+                } while reservedNames.contains(key)
+            }
+            result[key] = tracks
         }
         let data = (try? JSONSerialization.data(
             withJSONObject: result,
@@ -268,100 +391,127 @@ public final class ATPlayerViewModel: ObservableObject {
             }
     }
 
-    private func playNextAfter(track: TrackItem) {
-        let all = allTracks
-        guard let index = all.firstIndex(where: { $0.id == track.id }) else { return }
-        let nextIndex = all.index(after: index)
-        guard all.indices.contains(nextIndex) else { return }
-        Task {
-            await play(track: all[nextIndex])
-        }
+    private func resetPlayback() {
+        playbackRequestID = UUID()
+        pendingPlaybackRequestID = nil
+        playbackService.stop()
+        stopActiveScopedURLIfNeeded()
+        selectedTrackID = nil
+        nowPlayingTitle = "Готов к воспроизведению"
+        nowPlayingArtwork = nil
     }
 
     private func markCorrupted(_ track: TrackItem) {
         do {
-            try storageService.markCorrupted(track)
+            try storageService.setCorrupted(true, for: track)
             reloadSections()
         } catch {
-            importError = "Не удалось пометить трек: \(error.localizedDescription)"
+            importError = "Не удалось сохранить состояние трека."
         }
     }
 
-    private func importURLs(_ urls: [URL], to section: PlaylistSection) async {
+    private func importURLs(_ urls: [URL], to sectionID: UUID) async {
         let fileManager = FileManager.default
         for url in urls {
-            guard url.startAccessingSecurityScopedResource() else {
-                importError = "Нет доступа к \(url.lastPathComponent)"
+            guard !Task.isCancelled else { return }
+            let didAccess = url.startAccessingSecurityScopedResource()
+            defer {
+                if didAccess { url.stopAccessingSecurityScopedResource() }
+            }
+            guard didAccess || fileManager.isReadableFile(atPath: url.path) else {
+                importError = "Нет доступа к «\(url.lastPathComponent)». Выберите файл повторно."
                 continue
             }
-
             var isDirectory: ObjCBool = false
-            if fileManager.fileExists(atPath: url.path, isDirectory: &isDirectory), isDirectory.boolValue {
-                let audioFiles = collectAudioFiles(in: url)
-                for fileURL in audioFiles {
-                    guard await downloadFromiCloud(fileURL) else { continue }
-                    await importSingleTrack(at: fileURL, to: section)
-                }
-                url.stopAccessingSecurityScopedResource()
+            let exists = fileManager.fileExists(atPath: url.path, isDirectory: &isDirectory)
+            let directoryURL = exists && isDirectory.boolValue ? url : nil
+            let files: [URL]
+            if let directoryURL {
+                files = await collectAudioFiles(in: directoryURL)
             } else {
-                guard await downloadFromiCloud(url) else {
-                    url.stopAccessingSecurityScopedResource()
-                    continue
+                files = [url]
+            }
+            for fileURL in files {
+                guard !Task.isCancelled else { return }
+                guard await downloadFromiCloud(fileURL) else { continue }
+                guard let section = sections.first(where: { $0.id == sectionID }) else {
+                    importError = "Плейлист для импорта был удалён."
+                    return
                 }
-                await importSingleTrack(at: url, to: section)
-                url.stopAccessingSecurityScopedResource()
+                await importSingleTrack(at: fileURL, directoryURL: directoryURL, to: section)
+                await Task.yield()
             }
         }
     }
 
-    private func importSingleTrack(at url: URL, to section: PlaylistSection) async {
+    private func importSingleTrack(at url: URL, directoryURL: URL?, to section: PlaylistSection) async {
+        let sectionID = section.id
         do {
-            let bookmark = try url.bookmarkData(options: .minimalBookmark)
+            let bookmark = TrackBookmark(
+                file: try url.bookmarkData(options: .minimalBookmark),
+                directory: try directoryURL?.bookmarkData(options: .minimalBookmark)
+            )
             let asset = AVURLAsset(url: url)
             let metadata = try await extractMetadata(
                 from: asset,
                 fallbackName: url.deletingPathExtension().lastPathComponent
             )
+            try Task.checkCancellation()
+            guard let currentSection = sections.first(where: { $0.id == sectionID }) else { return }
             _ = try storageService.appendTrack(
                 title: metadata.title,
                 artist: metadata.artist,
                 url: url,
-                bookmark: bookmark,
+                bookmark: try JSONEncoder().encode(bookmark),
                 duration: metadata.duration,
                 artwork: metadata.artwork,
-                to: section
+                to: currentSection
             )
+        } catch is CancellationError {
+            return
         } catch {
-            importError = "Не удалось сохранить \(url.lastPathComponent): \(error.localizedDescription)"
+            importError = "Не удалось импортировать «\(url.lastPathComponent)». Проверьте формат и доступ к файлу."
         }
     }
 
     private func isDownloaded(_ url: URL) -> Bool {
         do {
-            let values = try url.resourceValues(forKeys: [.ubiquitousItemDownloadingStatusKey])
+            var resourceURL = url
+            resourceURL.removeCachedResourceValue(forKey: .ubiquitousItemDownloadingStatusKey)
+            let values = try resourceURL.resourceValues(forKeys: [.ubiquitousItemDownloadingStatusKey])
             let status = values.ubiquitousItemDownloadingStatus
-            return status == .current || status == nil
+            return status == .current || status == .downloaded
+                || (status == nil && FileManager.default.isReadableFile(atPath: url.path))
         } catch {
             return FileManager.default.isReadableFile(atPath: url.path)
         }
     }
 
-    private func downloadFromiCloud(_ url: URL) async -> Bool {
+    private func downloadFromiCloud(_ url: URL, requestID: UUID? = nil) async -> Bool {
+        func canContinue() -> Bool {
+            !Task.isCancelled && (requestID == nil || requestID == playbackRequestID)
+        }
+        guard canContinue() else { return false }
         guard !isDownloaded(url) else { return true }
-
         do {
             try FileManager.default.startDownloadingUbiquitousItem(at: url)
         } catch {
-            importError = "Ошибка загрузки \(url.lastPathComponent): \(error.localizedDescription)"
+            guard canContinue() else { return false }
+            importError = "Не удалось загрузить «\(url.lastPathComponent)». Проверьте доступ к iCloud."
             return false
         }
-
-        for _ in 0..<120 {
-            try? await Task.sleep(for: .milliseconds(500))
+        for _ in 0..<Self.cloudDownloadAttempts {
+            guard canContinue() else { return false }
+            do {
+                try await Task.sleep(for: Self.cloudDownloadPollInterval)
+            } catch {
+                return false
+            }
+            guard canContinue() else { return false }
             if isDownloaded(url) { return true }
         }
-
-        importError = "Таймаут скачивания \(url.lastPathComponent) из iCloud"
+        guard canContinue() else { return false }
+        importError = "Время ожидания загрузки «\(url.lastPathComponent)» из iCloud истекло."
         return false
     }
 
@@ -369,8 +519,9 @@ public final class ATPlayerViewModel: ObservableObject {
         from asset: AVURLAsset,
         fallbackName: String
     ) async throws -> (title: String, artist: String, duration: Double, artwork: Data?) {
-        let duration = try await asset.load(.duration).seconds
-        let metadataItems = try await asset.load(.commonMetadata)
+        let rawDuration = try await asset.load(.duration).seconds
+        let duration = rawDuration.isFinite && rawDuration > 0 ? rawDuration : 0
+        let metadataItems = (try? await asset.load(.commonMetadata)) ?? []
 
         let titleItem = AVMetadataItem.metadataItems(
             from: metadataItems,
@@ -385,16 +536,17 @@ public final class ATPlayerViewModel: ObservableObject {
             filteredByIdentifier: .commonIdentifierArtwork
         ).first
 
-        let title = (try await titleItem?.load(.stringValue)) ?? fallbackName
-        let artist = (try await artistItem?.load(.stringValue)) ?? "Unknown Artist"
-        let artwork = try await artworkItem?.load(.dataValue)
-
-        return (title, artist, duration, artwork)
+        let titleValue = try? await titleItem?.load(.stringValue)
+        let artistValue = try? await artistItem?.load(.stringValue)
+        let artwork = try? await artworkItem?.load(.dataValue)
+        let title = titleValue?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let artist = artistValue?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return (title.isEmpty ? fallbackName : title, artist, duration, artwork)
     }
 
     private let audioExtensions: Set<String> = ["mp3", "m4a", "aac", "wav", "aiff", "flac", "alac", "caf"]
 
-    private func collectAudioFiles(in directoryURL: URL) -> [URL] {
+    private func collectAudioFiles(in directoryURL: URL) async -> [URL] {
         var result: [URL] = []
         guard let enumerator = FileManager.default.enumerator(
             at: directoryURL,
@@ -402,27 +554,59 @@ public final class ATPlayerViewModel: ObservableObject {
             options: [.skipsHiddenFiles]
         ) else { return result }
 
-        for case let fileURL as URL in enumerator {
-            if audioExtensions.contains(fileURL.pathExtension.lowercased()) {
+        while let fileURL = enumerator.nextObject() as? URL {
+            // Let cancellation and UI events run while scanning a large library.
+            await Task.yield()
+            guard !Task.isCancelled else { break }
+            let values = try? fileURL.resourceValues(forKeys: [.isRegularFileKey])
+            if values?.isRegularFile == true,
+               audioExtensions.contains(fileURL.pathExtension.lowercased()) {
                 result.append(fileURL)
             }
         }
-        return result
+        return result.sorted { $0.path.localizedStandardCompare($1.path) == .orderedAscending }
     }
 
-    private func resolvedURL(for track: TrackItem) throws -> URL {
-        var stale = false
-        let url = try URL(
-            resolvingBookmarkData: track.bookmark,
-            bookmarkDataIsStale: &stale
-        )
-        if stale {
-            throw CocoaError(.fileReadUnknown)
+    private func resolvedResource(for track: TrackItem) throws -> (url: URL, scopedURL: URL?) {
+        var bookmark = (try? JSONDecoder().decode(TrackBookmark.self, from: track.bookmark))
+            ?? TrackBookmark(file: track.bookmark, directory: nil)
+        var scopedURL: URL?
+        do {
+            var directoryStale = false
+            if let directoryData = bookmark.directory {
+                let directoryURL = try URL(
+                    resolvingBookmarkData: directoryData,
+                    bookmarkDataIsStale: &directoryStale
+                )
+                if directoryURL.startAccessingSecurityScopedResource() {
+                    scopedURL = directoryURL
+                } else if !FileManager.default.isReadableFile(atPath: directoryURL.path) {
+                    throw CocoaError(.fileReadNoPermission)
+                }
+                if directoryStale {
+                    bookmark.directory = try directoryURL.bookmarkData(options: .minimalBookmark)
+                }
+            }
+            var fileStale = false
+            let url = try URL(resolvingBookmarkData: bookmark.file, bookmarkDataIsStale: &fileStale)
+            if scopedURL == nil, url.startAccessingSecurityScopedResource() {
+                scopedURL = url
+            }
+            if fileStale {
+                bookmark.file = try url.bookmarkData(options: .minimalBookmark)
+            }
+            if fileStale || directoryStale || track.filePath != url.path {
+                try storageService.updateBookmark(
+                    for: track,
+                    bookmark: try JSONEncoder().encode(bookmark),
+                    url: url
+                )
+            }
+            return (url, scopedURL)
+        } catch {
+            scopedURL?.stopAccessingSecurityScopedResource()
+            throw error
         }
-        guard url.startAccessingSecurityScopedResource() else {
-            throw CocoaError(.fileReadNoPermission)
-        }
-        return url
     }
 
     private func stopActiveScopedURLIfNeeded() {

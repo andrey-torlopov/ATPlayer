@@ -1,0 +1,17 @@
+/private/tmp/ATPlayer-MP3-Regression/RegressionHarness.swift:278:22: warning: 'init(frame:)' was deprecated in iOS 26.0: Use init(windowScene:) instead. [#DeprecatedDeclaration]
+276 | 
+277 |     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+278 |         let window = UIWindow(frame: UIScreen.main.bounds)
+    |                      `- warning: 'init(frame:)' was deprecated in iOS 26.0: Use init(windowScene:) instead. [#DeprecatedDeclaration]
+279 |         let controller = UIViewController()
+280 |         controller.view.backgroundColor = .systemBackground
+
+/private/tmp/ATPlayer-MP3-Regression/RegressionHarness.swift:278:47: warning: 'main' was deprecated in iOS 26.0: Use a UIScreen instance found through context instead (i.e, view.window.windowScene.screen), or for properties like UIScreen.scale with trait equivalents, use a traitCollection found through context. [#DeprecatedDeclaration]
+276 | 
+277 |     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+278 |         let window = UIWindow(frame: UIScreen.main.bounds)
+    |                                               `- warning: 'main' was deprecated in iOS 26.0: Use a UIScreen instance found through context instead (i.e, view.window.windowScene.screen), or for properties like UIScreen.scale with trait equivalents, use a traitCollection found through context. [#DeprecatedDeclaration]
+279 |         let controller = UIViewController()
+280 |         controller.view.backgroundColor = .systemBackground
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>

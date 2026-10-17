@@ -1,0 +1,8 @@
+{
+  "Services/AudioPlaybackService.swift": "a798505894076b89104bc7b3c1d46d9398c509ffadc4a226bbb13404c3e1a6cb",
+  "Services/PlaylistStorageService.swift": "ffa39119c87ecbaa8833e9c8bba509065db735e1b1a3dd1f6d386443b7cce8e1",
+  "Models/TrackItem.swift": "c4357b69b589027ce8fd0436494a35f6ddaf26975b301d433fa27493e8a5789e",
+  "ViewModels/ATPlayerViewModel.swift": "757e0af530a297feb5a3deeb0cb23034f7f7b13f4decc510383aefff4acf8d70",
+  "LiveActivity/ATPlayerActivityService.swift": "a99b05582562b6a327b848b1328f21495ce5f982fa0c854c6f8c2d7b81ed64eb",
+  "LiveActivity/ATPlayerActivityAttributes.swift": "6d8bd8c7002fc707f32e7bb86c16c9f331df3c703588c8533147ff666afebd80"
+}

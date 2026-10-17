@@ -62,15 +62,32 @@ final class TrackItem {
 }
 
 extension TrackItem {
+    var displayName: String {
+        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedTitle.isEmpty else {
+            return URL(fileURLWithPath: filePath).deletingPathExtension().lastPathComponent
+        }
+        return trimmedTitle
+    }
+
+    var displayArtist: String? {
+        let value = artist.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !value.isEmpty, value.caseInsensitiveCompare("Unknown Artist") != .orderedSame else {
+            return nil
+        }
+        return value
+    }
+
     var displayTitle: String {
-        guard !artist.isEmpty else { return title }
-        return "\(artist) - \(title)"
+        guard let artist = displayArtist else { return displayName }
+        return "\(artist) - \(displayName)"
     }
 
     var durationText: String {
-        guard duration > 0 else { return "--:--" }
-        let minutes = Int(duration) / 60
-        let seconds = Int(duration) % 60
-        return String(format: "%d:%02d", minutes, seconds)
+        guard duration.isFinite, duration > 0, duration < Double(Int.max) else { return "--:--" }
+        let totalSeconds = Int(duration)
+        let minutes = totalSeconds / 60
+        let seconds = totalSeconds % 60
+        return "\(minutes):" + String(format: "%02d", seconds)
     }
 }

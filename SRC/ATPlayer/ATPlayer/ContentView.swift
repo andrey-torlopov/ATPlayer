@@ -5,9 +5,10 @@ struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.colorScheme) private var colorScheme
     @State private var viewModel: ATPlayerViewModel?
+    @State private var pendingDeepLink: URL?
 
-    private var theme: AppTheme {
-        colorScheme == .dark ? AppTheme.dark : AppTheme.light
+    private var theme: PlayerThemeV1 {
+        colorScheme == .dark ? .dark : .light
     }
 
     var body: some View {
@@ -23,10 +24,19 @@ struct ContentView: View {
         }
         .task {
             guard viewModel == nil else { return }
-            viewModel = ATPlayerViewModel(context: modelContext)
+            let model = ATPlayerViewModel(context: modelContext)
+            viewModel = model
+            if let pendingDeepLink {
+                model.handleDeepLink(pendingDeepLink)
+                self.pendingDeepLink = nil
+            }
         }
         .onOpenURL { url in
-            viewModel?.handleDeepLink(url)
+            if let viewModel {
+                viewModel.handleDeepLink(url)
+            } else {
+                pendingDeepLink = url
+            }
         }
     }
 }

@@ -19,21 +19,25 @@ final class PlaylistStorageService {
     }
 
     func createSection(name: String) throws -> PlaylistSection {
-        let nextOrder = try fetchSections().count
+        let nextOrder = (try fetchSections().map(\.order).max() ?? -1) + 1
         let section = PlaylistSection(name: name, order: nextOrder)
         context.insert(section)
-        try context.save()
+        try saveChanges()
         return section
     }
 
     func removeSection(_ section: PlaylistSection) throws {
+        let remaining = try fetchSections().filter { $0.id != section.id }
         context.delete(section)
-        try normalizeSectionOrder()
+        for (index, remainingSection) in remaining.enumerated() {
+            remainingSection.order = index
+        }
+        try saveChanges()
     }
 
     func renameSection(_ section: PlaylistSection, to name: String) throws {
         section.name = name
-        try context.save()
+        try saveChanges()
     }
 
     func ensureDefaultSection() throws -> PlaylistSection {
@@ -59,7 +63,7 @@ final class PlaylistStorageService {
         artwork: Data?,
         to section: PlaylistSection
     ) throws -> TrackItem {
-        let nextOrder = section.tracks.count
+        let nextOrder = (section.tracks.map(\.order).max() ?? -1) + 1
         let item = TrackItem(
             title: title,
             artist: artist,
@@ -71,39 +75,38 @@ final class PlaylistStorageService {
         )
         item.section = section
         context.insert(item)
-        try context.save()
+        try saveChanges()
         return item
     }
 
-    func markCorrupted(_ track: TrackItem) throws {
-        track.isCorrupted = true
-        try context.save()
+    func setCorrupted(_ isCorrupted: Bool, for track: TrackItem) throws {
+        track.isCorrupted = isCorrupted
+        try saveChanges()
+    }
+
+    func updateBookmark(for track: TrackItem, bookmark: Data, url: URL) throws {
+        track.bookmark = bookmark
+        track.filePath = url.path
+        try saveChanges()
     }
 
     func removeTrack(_ track: TrackItem) throws {
-        let section = track.section
+        let remaining = track.section.map { section in
+            sortedTracks(in: section).filter { $0.id != track.id }
+        } ?? []
         context.delete(track)
-        try context.save()
-        if let section {
-            normalizeTrackOrder(in: section)
+        for (index, remainingTrack) in remaining.enumerated() {
+            remainingTrack.order = index
+        }
+        try saveChanges()
+    }
+
+    private func saveChanges() throws {
+        do {
             try context.save()
-        }
-    }
-
-    // MARK: - Ordering
-
-    private func normalizeSectionOrder() throws {
-        let sections = try fetchSections()
-        for (index, section) in sections.enumerated() {
-            section.order = index
-        }
-        try context.save()
-    }
-
-    private func normalizeTrackOrder(in section: PlaylistSection) {
-        let sorted = section.tracks.sorted { $0.order < $1.order }
-        for (index, track) in sorted.enumerated() {
-            track.order = index
+        } catch {
+            context.rollback()
+            throw error
         }
     }
 }
