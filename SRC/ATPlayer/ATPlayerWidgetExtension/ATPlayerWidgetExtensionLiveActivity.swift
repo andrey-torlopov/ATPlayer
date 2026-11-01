@@ -81,23 +81,29 @@ struct ATPlayerWidgetExtensionLiveActivity: Widget {
                 }
             } compactLeading: {
                 Image(systemName: context.state.isPlaying ? "music.note" : "pause.fill")
+                    .font(.caption2)
                     .foregroundStyle(.cyan)
+                    .frame(width: 16, height: 16)
                     .accessibilityLabel(context.state.isPlaying ? "Музыка играет" : "На паузе")
             } compactTrailing: {
-                if context.state.isPlaying {
-                    Text(
-                        timerInterval: playbackInterval(for: context.state),
-                        countsDown: false
-                    )
-                    .font(.caption2)
-                    .monospacedDigit()
-                    .foregroundStyle(.cyan)
-                } else {
-                    Text(formattedTime(context.state.currentTime))
-                        .font(.caption2)
-                        .monospacedDigit()
-                        .foregroundStyle(.cyan)
+                Group {
+                    if context.state.isPlaying {
+                        Text(
+                            timerInterval: playbackInterval(for: context.state),
+                            countsDown: false
+                        )
+                    } else {
+                        Text(formattedTime(context.state.currentTime))
+                    }
                 }
+                .font(.caption2)
+                .monospacedDigit()
+                .foregroundStyle(.cyan)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+                .multilineTextAlignment(.trailing)
+                // Timer text otherwise expands to the full available widget width.
+                .frame(width: 48, alignment: .trailing)
             } minimal: {
                 Image(systemName: context.state.isPlaying ? "music.note" : "pause.fill")
                     .foregroundStyle(.cyan)
