@@ -1,0 +1,74 @@
+{
+  "work_directory": "/private/tmp/ATPlayer-PlaybackRegression-eawguhln",
+  "simulator": "A0EA97FA-8776-4762-96D7-CEA800200E5A",
+  "bundle_id": "dev.torlopov.atplayer.playback-regression",
+  "commands": [
+    [
+      "xcrun",
+      "swiftc",
+      "-swift-version",
+      "5",
+      "-warnings-as-errors",
+      "-module-cache-path",
+      "/private/tmp/ATPlayer-PlaybackRegression-eawguhln/ModuleCache",
+      "/Volumes/DATA-R1/Dev/Projects/ATPlayer/SRC/ATPlayer/ATPlayer/Models/PlaybackQueue.swift",
+      "/Volumes/DATA-R1/Dev/Projects/ATPlayer/Artifacts/PlaybackModes-2026-11-01/PlaybackQueueRegression.swift",
+      "-o",
+      "/private/tmp/ATPlayer-PlaybackRegression-eawguhln/PlaybackQueueRegression"
+    ],
+    [
+      "/private/tmp/ATPlayer-PlaybackRegression-eawguhln/PlaybackQueueRegression",
+      "/private/tmp/ATPlayer-PlaybackRegression-eawguhln/queue-results.json"
+    ],
+    [
+      "xcrun",
+      "--sdk",
+      "iphonesimulator",
+      "swiftc",
+      "-swift-version",
+      "5",
+      "-warnings-as-errors",
+      "-default-isolation",
+      "MainActor",
+      "-target",
+      "arm64-apple-ios26.2-simulator",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk",
+      "-module-cache-path",
+      "/private/tmp/ATPlayer-PlaybackRegression-eawguhln/SimulatorModuleCache",
+      "-parse-as-library",
+      "/Volumes/DATA-R1/Dev/Projects/ATPlayer/SRC/ATPlayer/ATPlayer/Models/TrackItem.swift",
+      "/Volumes/DATA-R1/Dev/Projects/ATPlayer/SRC/ATPlayer/ATPlayer/Models/PlaybackQueue.swift",
+      "/Volumes/DATA-R1/Dev/Projects/ATPlayer/SRC/ATPlayer/ATPlayer/Services/AudioPlaybackService.swift",
+      "/Volumes/DATA-R1/Dev/Projects/ATPlayer/SRC/ATPlayer/ATPlayer/Services/PlaylistStorageService.swift",
+      "/Volumes/DATA-R1/Dev/Projects/ATPlayer/SRC/ATPlayer/ATPlayer/Services/NowPlayingService.swift",
+      "/Volumes/DATA-R1/Dev/Projects/ATPlayer/SRC/ATPlayer/ATPlayer/LiveActivity/ATPlayerActivityAttributes.swift",
+      "/Volumes/DATA-R1/Dev/Projects/ATPlayer/SRC/ATPlayer/ATPlayer/LiveActivity/ATPlayerActivityService.swift",
+      "/Volumes/DATA-R1/Dev/Projects/ATPlayer/SRC/ATPlayer/ATPlayer/ViewModels/ATPlayerViewModel.swift",
+      "/Volumes/DATA-R1/Dev/Projects/ATPlayer/Artifacts/PlaybackModes-2026-11-01/PlaybackIntegrationRegression.swift",
+      "-o",
+      "/private/tmp/ATPlayer-PlaybackRegression-eawguhln/PlaybackRegression.app/PlaybackRegression"
+    ],
+    [
+      "xcrun",
+      "simctl",
+      "launch",
+      "--terminate-running-process",
+      "--console",
+      "A0EA97FA-8776-4762-96D7-CEA800200E5A",
+      "dev.torlopov.atplayer.playback-regression"
+    ]
+  ],
+  "source_sha256": {
+    "SRC/ATPlayer/ATPlayer/Services/PlaylistStorageService.swift": "578015dab1e659e2bc3749587fb7980ce638e9a043476469c574ea65e9e85aa2",
+    "SRC/ATPlayer/ATPlayer/Models/TrackItem.swift": "c4357b69b589027ce8fd0436494a35f6ddaf26975b301d433fa27493e8a5789e",
+    "SRC/ATPlayer/ATPlayer/Services/NowPlayingService.swift": "a46e90132636ad7da3f45dc0549a0fbcd19f57419dc3d45e91d92e61506940e1",
+    "SRC/ATPlayer/ATPlayer/LiveActivity/ATPlayerActivityAttributes.swift": "94bcc1bff448185729a49c36d44c0c1f2f03a80a707239a59886151f8e4d7679",
+    "SRC/ATPlayer/ATPlayer/Models/PlaybackQueue.swift": "5a524ec051f177fdfcaf2f38d85db13746bbe7a61f28352f76c5f93fa1555d15",
+    "Artifacts/PlaybackModes-2026-11-01/PlaybackIntegrationRegression.swift": "28706f624fb63f3518baa97e5fc740cdfd2eaca7a17ae7d45f9ad909b11293ae",
+    "Artifacts/PlaybackModes-2026-11-01/PlaybackQueueRegression.swift": "eaf7f846fdf95346f3b142356de736ada26698c9c92c0f5d2b9d3b108053ba41",
+    "SRC/ATPlayer/ATPlayer/Services/AudioPlaybackService.swift": "0de72cd56439e93f66f7ad0404a15b582794f668cf58ec1e734edba807195ae2",
+    "SRC/ATPlayer/ATPlayer/LiveActivity/ATPlayerActivityService.swift": "f76aa0e75433ba2b85480c002c1f80384dfd35c4589b7b6e444cc0f3536dc7d9",
+    "SRC/ATPlayer/ATPlayer/ViewModels/ATPlayerViewModel.swift": "37d8693273a2bf8927dc7ea7335382f1b3a5f15e2b2838c424eb54e3d713a055"
+  }
+}

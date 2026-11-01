@@ -1,0 +1,16 @@
+PASS: normal EOF crosses playlist boundary
+PASS: normal library end stops
+PASS: normal previous crosses back to preceding playlist
+PASS: playlist repeat wraps and previous stays scoped
+PASS: repeat one restarts same track and permits manual next
+PASS: shuffle is unique, reversible and stops after one pass
+PASS: switching exclusive modes preserves selection and position
+PASS: unavailable files are skipped within repeated playlist
+PASS: all unavailable files exhaust finite fallback
+PASS: restored files can resume after exhausted fallback
+PASS: pause cancels scheduled EOF continuation
+PASS: exclusive playback preference survives model recreation
+PASS: legacy preferences migrate with deterministic priority
+REPORT: Documents/integration-results.json
+RESULT: passed / total = 13 / 13; assertions = 143
+dev.torlopov.atplayer.playback-regression: 77723

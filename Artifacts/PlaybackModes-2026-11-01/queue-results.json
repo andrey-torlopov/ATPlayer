@@ -1,0 +1,78 @@
+{
+  "assertions" : 36835,
+  "passed" : 14,
+  "results" : [
+    {
+      "assertions" : 7,
+      "name" : "sequential navigation and library boundaries",
+      "passed" : true
+    },
+    {
+      "assertions" : 20,
+      "name" : "finite playlist repeat in both directions",
+      "passed" : true
+    },
+    {
+      "assertions" : 21,
+      "name" : "empty queue and unknown track",
+      "passed" : true
+    },
+    {
+      "assertions" : 14,
+      "name" : "single-track queue",
+      "passed" : true
+    },
+    {
+      "assertions" : 7,
+      "name" : "shuffle anchors selected track and preserves source order",
+      "passed" : true
+    },
+    {
+      "assertions" : 19,
+      "name" : "shuffle next then previous retraces the stable queue",
+      "passed" : true
+    },
+    {
+      "assertions" : 5,
+      "name" : "shuffle survives playlist reorder and adds new tracks once",
+      "passed" : true
+    },
+    {
+      "assertions" : 5,
+      "name" : "shuffle removes deleted tracks including current track",
+      "passed" : true
+    },
+    {
+      "assertions" : 4,
+      "name" : "switching playlists cannot retain old candidates",
+      "passed" : true
+    },
+    {
+      "assertions" : 5,
+      "name" : "disabling shuffle restores saved order",
+      "passed" : true
+    },
+    {
+      "assertions" : 5,
+      "name" : "explicit shuffle restart anchors newly selected track",
+      "passed" : true
+    },
+    {
+      "assertions" : 35,
+      "name" : "single mode button cycles playlist, shuffle, one, off",
+      "passed" : true
+    },
+    {
+      "assertions" : 256,
+      "name" : "bounded fallback visits every track at most once",
+      "passed" : true
+    },
+    {
+      "assertions" : 36432,
+      "name" : "randomized shuffle invariants across queue sizes",
+      "passed" : true
+    }
+  ],
+  "scope" : "Production PlaybackQueue and PlaybackMode; no audio engine or UI execution",
+  "total" : 14
+}

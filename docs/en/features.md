@@ -10,7 +10,16 @@ The player reads titles, artist names, duration, and available artwork from audi
 
 ## Playback
 
-The main screen has play/pause, previous/next, and circular seeking. The radial visualization reacts to the audio. Playback proceeds through tracks and then through subsequent playlists in the displayed order. There is no shuffle or repeat control in this version. Unavailable files can be skipped while the player looks for the next playable track.
+The main screen has play/pause, previous/next, and circular seeking. The radial visualization reacts to the audio. By default, playback proceeds through tracks and then through subsequent playlists in the displayed order. Unavailable files can be skipped while the player looks for the next playable track.
+
+**The working version, not yet submitted to the App Store**, adds one mode button directly below Settings. Each tap changes its icon and advances through **playlist repeat → shuffle → repeat one → normal playback**, then starts the cycle again. Only one mode is active at a time.
+
+- **Playlist repeat** loops the current playlist in its saved order.
+- **Shuffle** mixes the current playlist without changing its saved order. Tracks do not repeat within a pass, and Previous follows the same queue backwards. Playback stops at the end of that queue.
+- **Repeat one** restarts the current track when it ends; manual Previous and Next still change tracks within the current playlist.
+- **Normal playback** is shown by a right arrow. It plays tracks and subsequent playlists sequentially, with shuffle and repeat disabled.
+
+The selected mode persists between launches. Selecting a track from another playlist changes the playback scope; shuffle starts a new queue with that track. The mode button does not change the saved playlist or track order. The submitted **1.0.2 (1)** build does not contain this button.
 
 Background playback uses the system audio session. Track information and controls appear through Now Playing. Live Activities provide another system surface on supported devices when enabled. The app is not a general-purpose Home Screen widget collection.
 

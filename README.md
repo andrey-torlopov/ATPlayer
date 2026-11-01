@@ -28,7 +28,7 @@ Developers can [run the project from source](docs/en/development.md). A source t
 
 ## Start listening
 
-1. In a playlist, tap **«Добавить музыку»** (Add Music) or **+**.
+1. In an empty playlist, tap **«Добавить музыку»** (Add Music), or open the playlist's **…** menu → **«Добавить треки»** (Add Tracks).
 2. Choose your audio files or a folder in Files.
 3. Tap a track. Arrange the order once, then let the music play.
 

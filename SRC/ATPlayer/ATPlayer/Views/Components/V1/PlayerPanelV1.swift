@@ -13,13 +13,6 @@ struct PlayerPanelV1: View {
                 .frame(maxWidth: .infinity)
 
             VStack(spacing: 8) {
-                if !isCompact {
-                    Text(viewModel.selectedTrackID == nil ? "ЛОКАЛЬНОЕ АУДИО" : "ВЫБРАННЫЙ ТРЕК")
-                        .font(.system(size: 10, weight: .semibold))
-                        .tracking(2.5)
-                        .foregroundStyle(theme.textSecondary)
-                }
-
                 Text(viewModel.selectedTrackID == nil ? "Ваш звук. Ничего лишнего." : viewModel.nowPlayingTitle)
                     .font(.system(isCompact ? .body : .title3, design: .rounded, weight: .medium))
                     .foregroundStyle(theme.textPrimary)

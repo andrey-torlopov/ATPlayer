@@ -21,6 +21,7 @@ public final class ATPlayerViewModel: ObservableObject {
     @Published var importTargetSection: PlaylistSection?
     @Published var lastPlayedSectionID: UUID?
     @Published private(set) var isImporting = false
+    @Published private(set) var playbackMode: PlaybackMode = .off
 
     let supportedTypes: [UTType] = [.mp3, .mpeg4Audio, .audio, .folder]
     let playbackService = AudioPlaybackService()
@@ -38,6 +39,14 @@ public final class ATPlayerViewModel: ObservableObject {
     private var playbackRequestID = UUID()
     private var pendingPlaybackRequestID: UUID?
     private var importTask: Task<Void, Never>?
+    private var playbackQueue = PlaybackQueue()
+    private var playbackModeRevision: UInt = 0
+
+    private enum PlaybackRequest {
+        case selection(UUID)
+        case adjacent(PlaybackQueue.Direction)
+        case finished
+    }
 
     // Files imported through a folder need the folder's access grant after relaunch.
     // The envelope lives in the existing Data attribute; legacy raw bookmarks still resolve.
@@ -46,28 +55,33 @@ public final class ATPlayerViewModel: ObservableObject {
         var directory: Data?
     }
 
-    private enum PlaybackDirection: Int {
-        case previous = -1
-        case next = 1
-    }
-
     private static let cloudDownloadAttempts = 120
     private static let cloudDownloadPollInterval: Duration = .milliseconds(500)
 
     public init(context: ModelContext) {
         self.storageService = PlaylistStorageService(context: context)
         ATPlayerViewModel.shared = self
+        if let savedMode = UserDefaults.standard.string(forKey: "playbackMode")
+            .flatMap(PlaybackMode.init(rawValue:)) {
+            playbackMode = savedMode
+        } else {
+            // Preserve preferences from the earlier two-button development build.
+            let legacyRepeat = UserDefaults.standard.string(forKey: "playbackRepeatMode")
+            if legacyRepeat == "one" {
+                playbackMode = .repeatOne
+            } else if UserDefaults.standard.bool(forKey: "playbackShuffleEnabled") {
+                playbackMode = .shuffle
+            } else if legacyRepeat == "playlist" {
+                playbackMode = .repeatPlaylist
+            }
+            UserDefaults.standard.set(playbackMode.rawValue, forKey: "playbackMode")
+        }
         if let savedID = UserDefaults.standard.string(forKey: "lastPlayedSectionID") {
             lastPlayedSectionID = UUID(uuidString: savedID)
         }
         activityService.endAllStaleActivities()
         playbackService.onTrackFinished = { [weak self] in
-            guard let self, self.pendingPlaybackRequestID == nil else { return }
-            if self.canPlayNext {
-                self.playNext()
-            } else {
-                self.activityService.endActivity()
-            }
+            self?.handleTrackFinished()
         }
         setupPlaybackPresentation()
         playbackErrorCancellable = playbackService.$playbackError
@@ -86,6 +100,7 @@ public final class ATPlayerViewModel: ObservableObject {
         do {
             _ = try storageService.ensureDefaultSection()
             sections = try storageService.fetchSections()
+            updatePlaybackQueue()
             schedulePlaybackPresentationUpdate()
         } catch {
             importError = "Не удалось загрузить плейлисты. Повторите попытку."
@@ -175,6 +190,47 @@ public final class ATPlayerViewModel: ObservableObject {
 
     // MARK: - Playback
 
+    func cyclePlaybackMode() {
+        playbackMode = playbackMode.next
+        playbackModeRevision &+= 1
+        UserDefaults.standard.set(playbackMode.rawValue, forKey: "playbackMode")
+        updatePlaybackQueue(restart: true)
+        schedulePlaybackPresentationUpdate()
+    }
+
+    private func updatePlaybackQueue(startingAt track: TrackItem? = nil, restart: Bool = false) {
+        playbackQueue = makePlaybackQueue(startingAt: track, restart: restart)
+    }
+
+    private func makePlaybackQueue(startingAt track: TrackItem? = nil, restart: Bool = false) -> PlaybackQueue {
+        let current = track ?? selectedTrack
+        let queueTracks: [TrackItem]
+        if playbackMode != .off, let section = current?.section {
+            queueTracks = tracks(in: section)
+        } else {
+            queueTracks = allTracks
+        }
+        var queue = playbackQueue
+        queue.update(
+            trackIDs: queueTracks.map(\.id),
+            currentID: current?.id,
+            shuffle: playbackMode == .shuffle,
+            restart: restart
+        )
+        return queue
+    }
+
+    private func handleTrackFinished() {
+        guard pendingPlaybackRequestID == nil, let selectedTrackID else { return }
+        let finishedRequestID = playbackRequestID
+        Task { [weak self] in
+            guard let self, self.playbackRequestID == finishedRequestID,
+                  self.selectedTrackID == selectedTrackID,
+                  self.pendingPlaybackRequestID == nil else { return }
+            await self.playRequest(.finished)
+        }
+    }
+
     func togglePlayback() {
         if playbackService.isPlaying || playbackService.isStarting {
             pausePlayback()
@@ -241,19 +297,21 @@ public final class ATPlayerViewModel: ObservableObject {
     }
 
     func play(track: TrackItem) async {
-        await playCandidates(startingAt: track.id, direction: .next)
+        await playRequest(.selection(track.id))
     }
 
     var canPlayPrevious: Bool {
-        guard let current = selectedTrack,
-              let index = allTracks.firstIndex(where: { $0.id == current.id }) else { return false }
-        return index > allTracks.startIndex
+        guard let current = selectedTrack else { return false }
+        return !playbackQueue.candidates(
+            after: current.id, direction: .previous, wrap: playbackMode == .repeatPlaylist
+        ).isEmpty
     }
 
     var canPlayNext: Bool {
-        guard let current = selectedTrack,
-              let index = allTracks.firstIndex(where: { $0.id == current.id }) else { return false }
-        return index + 1 < allTracks.endIndex
+        guard let current = selectedTrack else { return false }
+        return !playbackQueue.candidates(
+            after: current.id, direction: .next, wrap: playbackMode == .repeatPlaylist
+        ).isEmpty
     }
 
     func playNext() {
@@ -264,34 +322,53 @@ public final class ATPlayerViewModel: ObservableObject {
         Task { await playAdjacent(direction: .previous) }
     }
 
-    private func playAdjacent(direction: PlaybackDirection) async {
-        guard let current = selectedTrack else { return }
-        let tracks = allTracks
-        guard let index = tracks.firstIndex(where: { $0.id == current.id }) else { return }
-        let adjacentIndex = index + direction.rawValue
-        guard tracks.indices.contains(adjacentIndex) else { return }
-        let trackID = tracks[adjacentIndex].id
-        await playCandidates(startingAt: trackID, direction: direction)
+    private func playAdjacent(direction: PlaybackQueue.Direction) async {
+        await playRequest(.adjacent(direction))
     }
 
-    private func playCandidates(startingAt trackID: UUID, direction: PlaybackDirection) async {
+    private func playRequest(_ request: PlaybackRequest) async {
+        let candidates: [UUID]
+        switch request {
+        case let .selection(id):
+            guard let track = allTracks.first(where: { $0.id == id }) else { return }
+            // Prepare the new order without replacing the current track's queue.
+            // A cloud download can suspend and then be cancelled by Pause.
+            let queue = makePlaybackQueue(startingAt: track, restart: true)
+            candidates = queue.candidates(startingAt: id, direction: .next, wrap: playbackMode == .repeatPlaylist)
+        case let .adjacent(direction):
+            guard let current = selectedTrack else { return }
+            updatePlaybackQueue()
+            candidates = playbackQueue.candidates(
+                after: current.id, direction: direction, wrap: playbackMode == .repeatPlaylist
+            )
+        case .finished:
+            guard let selectedTrackID else { return }
+            updatePlaybackQueue()
+            candidates = playbackMode == .repeatOne ? [selectedTrackID] : playbackQueue.candidates(
+                after: selectedTrackID, direction: .next, wrap: playbackMode == .repeatPlaylist
+            )
+            if candidates.isEmpty { activityService.endActivity() }
+        }
+        guard !candidates.isEmpty else { return }
+        await playCandidates(candidates, request: request)
+    }
+
+    private func playCandidates(_ candidateIDs: [UUID], request: PlaybackRequest) async {
         let requestID = UUID()
+        let modeRevision = playbackModeRevision
         playbackRequestID = requestID
         pendingPlaybackRequestID = requestID
         defer {
             if pendingPlaybackRequestID == requestID { pendingPlaybackRequestID = nil }
         }
-        let tracks = allTracks
-        guard let startIndex = tracks.firstIndex(where: { $0.id == trackID }) else { return }
-        let candidateIDs = stride(
-            from: startIndex,
-            to: direction == .next ? tracks.endIndex : -1,
-            by: direction.rawValue
-        ).map { tracks[$0].id }
         var failureMessage = "Нет доступных аудиофайлов для воспроизведения."
 
         for candidateID in candidateIDs {
             guard playbackRequestID == requestID, !Task.isCancelled else { return }
+            if modeRevision != playbackModeRevision {
+                await playRequest(request)
+                return
+            }
             guard let track = allTracks.first(where: { $0.id == candidateID }) else { continue }
             let title = track.title
             var scopedURL: URL?
@@ -299,14 +376,24 @@ public final class ATPlayerViewModel: ObservableObject {
             do {
                 let resource = try resolvedResource(for: track)
                 scopedURL = resource.scopedURL
-                guard await downloadFromiCloud(resource.url, requestID: requestID) else {
-                    scopedURL?.stopAccessingSecurityScopedResource()
-                    failureMessage = "Файл «\(title)» недоступен. Повторите импорт или дождитесь загрузки."
-                    continue
-                }
+                let downloaded = await downloadFromiCloud(
+                    resource.url, requestID: requestID, modeRevision: modeRevision
+                )
                 guard playbackRequestID == requestID, !Task.isCancelled else {
                     scopedURL?.stopAccessingSecurityScopedResource()
                     return
+                }
+                if modeRevision != playbackModeRevision {
+                    scopedURL?.stopAccessingSecurityScopedResource()
+                    // Re-evaluate the original action against the still-playing track.
+                    // Enabling playlist repeat during a download must not leave it.
+                    await playRequest(request)
+                    return
+                }
+                guard downloaded else {
+                    scopedURL?.stopAccessingSecurityScopedResource()
+                    failureMessage = "Файл «\(title)» недоступен. Повторите импорт или дождитесь загрузки."
+                    continue
                 }
                 guard let currentTrack = allTracks.first(where: { $0.id == candidateID }) else {
                     scopedURL?.stopAccessingSecurityScopedResource()
@@ -321,6 +408,12 @@ public final class ATPlayerViewModel: ObservableObject {
                 activeScopedURL = scopedURL
                 scopedURL = nil
                 selectedTrackID = currentTrack.id
+                let isExplicitSelection: Bool
+                if case .selection = request { isExplicitSelection = true } else { isExplicitSelection = false }
+                updatePlaybackQueue(
+                    startingAt: currentTrack,
+                    restart: isExplicitSelection || !playbackQueue.orderedIDs.contains(currentTrack.id)
+                )
                 nowPlayingTitle = currentTrack.displayName
                 nowPlayingArtwork = currentTrack.artwork
                 try await playbackService.loadAndPlay(url: resource.url)
@@ -564,6 +657,7 @@ public final class ATPlayerViewModel: ObservableObject {
         playbackService.stop()
         stopActiveScopedURLIfNeeded()
         selectedTrackID = nil
+        updatePlaybackQueue(restart: true)
         nowPlayingTitle = "Готов к воспроизведению"
         nowPlayingArtwork = nil
         nowPlayingService.clear()
@@ -656,9 +750,14 @@ public final class ATPlayerViewModel: ObservableObject {
         }
     }
 
-    private func downloadFromiCloud(_ url: URL, requestID: UUID? = nil) async -> Bool {
+    private func downloadFromiCloud(
+        _ url: URL,
+        requestID: UUID? = nil,
+        modeRevision: UInt? = nil
+    ) async -> Bool {
         func canContinue() -> Bool {
             !Task.isCancelled && (requestID == nil || requestID == playbackRequestID)
+                && (modeRevision == nil || modeRevision == playbackModeRevision)
         }
         guard canContinue() else { return false }
         guard !isDownloaded(url) else { return true }

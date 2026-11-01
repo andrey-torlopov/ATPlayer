@@ -83,7 +83,7 @@ struct ATPlayerRootViewV1: View {
     }
 
     private var header: some View {
-        HStack {
+        HStack(alignment: .top) {
             HStack(spacing: 8) {
                 Image(systemName: "waveform")
                     .font(.system(size: 18, weight: .medium))
@@ -93,12 +93,25 @@ struct ATPlayerRootViewV1: View {
                     .tracking(-0.5)
                     .foregroundStyle(theme.textPrimary)
             }
+            .frame(height: 48)
             .accessibilityElement(children: .combine)
 
             Spacer(minLength: 12)
 
-            CircularButtonV1(symbol: "slider.horizontal.3", label: "Настройки") {
-                viewModel.showSettings = true
+            VStack(spacing: 10) {
+                CircularButtonV1(symbol: "slider.horizontal.3", label: "Настройки") {
+                    viewModel.showSettings = true
+                }
+
+                CircularButtonV1(
+                    symbol: viewModel.playbackMode.symbol,
+                    label: "Режим воспроизведения",
+                    isProminent: viewModel.playbackMode != .off,
+                    action: viewModel.cyclePlaybackMode
+                )
+                .accessibilityValue(viewModel.playbackMode.title)
+                .accessibilityHint("Следующий режим: \(viewModel.playbackMode.next.title)")
+                .accessibilityIdentifier("playback-mode")
             }
         }
     }

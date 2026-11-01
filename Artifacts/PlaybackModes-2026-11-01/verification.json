@@ -1,0 +1,36 @@
+{
+  "date": "2026-11-01",
+  "variant": "single mutually exclusive playback mode button below settings",
+  "cycle": [
+    "repeatPlaylist",
+    "shuffle",
+    "repeatOne",
+    "off"
+  ],
+  "build": "Debug iOS Simulator app and extension: BUILD SUCCEEDED",
+  "compiler_warnings": [],
+  "tests": {
+    "passed": 27,
+    "total": 27
+  },
+  "ui": [
+    "one button below settings",
+    "all four states in requested order",
+    "no separate mode buttons below transport",
+    "portrait dark layout",
+    "compact landscape layout",
+    "legacy preference restored"
+  ],
+  "source_sha256": {
+    "SRC/ATPlayer/ATPlayer/Models/PlaybackQueue.swift": "5a524ec051f177fdfcaf2f38d85db13746bbe7a61f28352f76c5f93fa1555d15",
+    "SRC/ATPlayer/ATPlayer/ViewModels/ATPlayerViewModel.swift": "37d8693273a2bf8927dc7ea7335382f1b3a5f15e2b2838c424eb54e3d713a055",
+    "SRC/ATPlayer/ATPlayer/Views/Components/V1/ATPlayerRootViewV1.swift": "a3a2b931a26e456e04b88a951703fb7f0eb31d733224f6a783c5650218337241"
+  },
+  "not_verified": [
+    "physical device playback/background/routes",
+    "real iCloud pending download cancellation",
+    "natural EOF via AVAudioPlayerNode completion in this regression run"
+  ],
+  "published": false,
+  "version_changed": false
+}

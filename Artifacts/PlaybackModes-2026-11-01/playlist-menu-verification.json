@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-01",
+  "source": "SRC/ATPlayer/ATPlayer/Views/Components/V1/PlaylistViewV1.swift",
+  "sha256": "8b6fb1e1c2ddc6a98feb74630b689aceea68cf4654be3720cfb07a8a851faac6",
+  "build": "BUILD SUCCEEDED",
+  "ui_verified": [
+    "playlist header plus removed",
+    "first menu item: Добавить треки",
+    "next items: Редактировать треки, Переименовать, Удалить плейлист",
+    "new action presents system file picker"
+  ],
+  "documentation": "README and quick-start updated in RU/EN; validator passed",
+  "scope": "V1 menu placement only; original requestImport and isImporting guard preserved",
+  "published": false,
+  "reference": "https://developer.apple.com/documentation/swiftui/menuorder/fixed"
+}

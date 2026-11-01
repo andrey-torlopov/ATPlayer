@@ -4,6 +4,10 @@
 
 Status recorded on **November 1, 2026**.
 
+## Working changes — unreleased
+
+One button below Settings cycles through playlist repeat → shuffle → repeat one → normal playback. The modes are mutually exclusive, and the button icon shows the selected mode. See [playback behavior](features.md#playback). These changes remain local; the version and build numbers are unchanged, and no new build has been uploaded to App Store Connect. They are not part of the previously submitted 1.0.2 (1) build. Folder browsing and playlist reordering are still at the analysis stage.
+
 ## App Store candidate
 
 **Version 1.0.2, build 1** was submitted to App Review on November 1, 2026 at **17:28 Moscow time**. App Store Connect shows **Waiting for Review** for the submitted app version. Automatic release after approval is enabled. The app is not yet publicly available on the App Store; submission does not mean Apple has approved it.

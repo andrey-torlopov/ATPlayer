@@ -1,0 +1,73 @@
+{
+  "assertions" : 143,
+  "passed" : 13,
+  "results" : [
+    {
+      "assertions" : 4,
+      "name" : "normal EOF crosses playlist boundary",
+      "passed" : true
+    },
+    {
+      "assertions" : 6,
+      "name" : "normal library end stops",
+      "passed" : true
+    },
+    {
+      "assertions" : 7,
+      "name" : "normal previous crosses back to preceding playlist",
+      "passed" : true
+    },
+    {
+      "assertions" : 7,
+      "name" : "playlist repeat wraps and previous stays scoped",
+      "passed" : true
+    },
+    {
+      "assertions" : 7,
+      "name" : "repeat one restarts same track and permits manual next",
+      "passed" : true
+    },
+    {
+      "assertions" : 12,
+      "name" : "shuffle is unique, reversible and stops after one pass",
+      "passed" : true
+    },
+    {
+      "assertions" : 40,
+      "name" : "switching exclusive modes preserves selection and position",
+      "passed" : true
+    },
+    {
+      "assertions" : 7,
+      "name" : "unavailable files are skipped within repeated playlist",
+      "passed" : true
+    },
+    {
+      "assertions" : 8,
+      "name" : "all unavailable files exhaust finite fallback",
+      "passed" : true
+    },
+    {
+      "assertions" : 8,
+      "name" : "restored files can resume after exhausted fallback",
+      "passed" : true
+    },
+    {
+      "assertions" : 6,
+      "name" : "pause cancels scheduled EOF continuation",
+      "passed" : true
+    },
+    {
+      "assertions" : 12,
+      "name" : "exclusive playback preference survives model recreation",
+      "passed" : true
+    },
+    {
+      "assertions" : 19,
+      "name" : "legacy preferences migrate with deterministic priority",
+      "passed" : true
+    }
+  ],
+  "scope" : "Real production ATPlayerViewModel, SwiftData, AVAudioEngine, NowPlayingService and ActivityService in an isolated simulator app. EOF triggered through production seek(to:duration).",
+  "total" : 13
+}

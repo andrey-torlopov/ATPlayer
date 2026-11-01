@@ -173,14 +173,14 @@ private struct PlaylistSectionV1: View {
             .accessibilityValue(isExpanded ? "Развёрнут" : "Свёрнут")
             .accessibilityHint(isExpanded ? "Свернуть плейлист" : "Развернуть плейлист")
 
-            CircularButtonV1(
-                symbol: "plus",
-                label: "Добавить треки в \(section.name)",
-                size: 44
-            ) { viewModel.requestImport(to: section) }
-            .disabled(viewModel.isImporting)
-
             Menu {
+                Button {
+                    viewModel.requestImport(to: section)
+                } label: {
+                    Label("Добавить треки", systemImage: "plus")
+                }
+                .disabled(viewModel.isImporting)
+
                 Button {
                     isEditingTracks = true
                 } label: {
@@ -205,6 +205,7 @@ private struct PlaylistSectionV1: View {
                     .frame(width: 44, height: 44)
                     .contentShape(Rectangle())
             }
+            .menuOrder(.fixed)
             .accessibilityLabel("Действия с плейлистом \(section.name)")
         }
     }

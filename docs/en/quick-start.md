@@ -6,7 +6,7 @@ These steps apply to an installed copy of ATPlayer on iOS or iPadOS 26.2 or late
 
 ## 1. Add your files
 
-On first launch, ATPlayer creates a playlist named **My Music**. Tap **«Добавить музыку»** (Add Music), or the **+** button inside that playlist. Select audio files or a folder through Files. Folder import also looks in subfolders.
+On first launch, ATPlayer creates a playlist named **My Music**. Tap **«Добавить музыку»** (Add Music) in the empty playlist, or open its **…** menu and select **«Добавить треки»** (Add Tracks). Select audio files or a folder through Files. Folder import also looks in subfolders.
 
 For a first check, use a local non-DRM MP3 or WAV. When selecting files from iCloud Drive, allow them to finish downloading. ATPlayer reads the original files and remembers access to them; it does not copy the audio into a separate library.
 
