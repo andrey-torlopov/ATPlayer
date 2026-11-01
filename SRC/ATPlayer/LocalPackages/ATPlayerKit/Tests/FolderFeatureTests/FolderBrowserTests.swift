@@ -5,6 +5,80 @@ import XCTest
 
 final class FolderBrowserTests: XCTestCase {
     @MainActor
+    func testImportIgnoresRootWithoutMusicAndPreservesCurrentFolder() async throws {
+        let existing = FolderSource(name: "Existing", bookmark: Data([1]))
+        let empty = FolderSource(name: "Empty", bookmark: Data([2]))
+        let store = MemoryRoots([existing])
+        let access = BrowserAccess(source: empty, listings: ["": []])
+        let model = FolderBrowserViewModel(store: store, access: access, onPlay: { _ in }, onRemoveSource: { _ in })
+        model.refresh()
+        await model.waitForCurrentLoad()
+        model.open(existing)
+        await model.waitForCurrentLoad()
+        model.importFolder(.success([URL(fileURLWithPath: "/Empty")]))
+        await model.waitForSourceMutation()
+        let saved = await store.load()
+        XCTAssertEqual(saved.map(\.id), [existing.id], "An empty root must never be persisted.")
+        XCTAssertEqual(model.sources.map(\.id), [existing.id])
+        XCTAssertEqual(model.source?.id, existing.id, "Ignoring an empty selection must preserve navigation.")
+        XCTAssertNil(model.errorMessage, "An empty folder is silently ignored, not treated as a provider failure.")
+        XCTAssertFalse(model.isUpdatingSources)
+        model.suspend()
+    }
+
+    @MainActor
+    func testImportKeepsRootWithNestedMusicAndReusesItsListing() async throws {
+        let source = FolderSource(name: "Root", bookmark: Data([1]))
+        let directory = FolderEntry(id: UUID(), name: "Album", relativePath: "Album", kind: .directory)
+        let nested = FolderEntry(id: UUID(), name: "Song.flac", relativePath: "Album/Song.flac", kind: .audio)
+        let store = MemoryRoots([])
+        let access = BrowserAccess(source: source, listings: ["": [directory], "Album": [nested]])
+        let model = FolderBrowserViewModel(store: store, access: access, onPlay: { _ in }, onRemoveSource: { _ in })
+        model.refresh()
+        await model.waitForCurrentLoad()
+        model.importFolder(.success([URL(fileURLWithPath: "/Root")]))
+        await model.waitForSourceMutation()
+        await model.waitForCurrentLoad()
+        await model.waitForPrefetch()
+        let saved = await store.load()
+        let listed = await access.listedPaths()
+        let prepared = await access.preparedIDs()
+        XCTAssertEqual(saved.map(\.id), [source.id])
+        XCTAssertEqual(model.entries.map(\.id), [directory.id])
+        XCTAssertEqual(listed, [""], "Import should reuse its scan instead of rescanning a remote tree immediately.")
+        XCTAssertTrue(prepared.isEmpty, "Discovering music below a folder must not prefetch descendant tracks.")
+        model.suspend()
+    }
+
+    @MainActor
+    func testLateImportSavesRootWithoutReplacingNewerNavigation() async throws {
+        let existing = FolderSource(name: "Existing", bookmark: Data([1]))
+        let imported = FolderSource(name: "Imported", bookmark: Data([2]))
+        let directory = FolderEntry(id: UUID(), name: "Album", relativePath: "Album", kind: .directory)
+        let store = MemoryRoots([existing])
+        let access = BrowserAccess(source: imported, listings: ["": [directory], "Album": []])
+        let model = FolderBrowserViewModel(store: store, access: access, onPlay: { _ in }, onRemoveSource: { _ in })
+        model.refresh()
+        await model.waitForCurrentLoad()
+        model.open(existing)
+        await model.waitForCurrentLoad()
+        await access.holdListing(at: "")
+        model.importFolder(.success([URL(fileURLWithPath: "/Imported")]))
+        await access.waitForHeldListing(at: "")
+        model.open(directory)
+        await model.waitForCurrentLoad()
+        model.errorMessage = "Newer screen error"
+        await access.completeHeldListing(at: "")
+        await model.waitForSourceMutation()
+        let saved = await store.load()
+        XCTAssertEqual(saved.map(\.id), [existing.id, imported.id])
+        XCTAssertEqual(model.source?.id, existing.id)
+        XCTAssertEqual(model.relativePath, "Album")
+        XCTAssertEqual(model.errorMessage, "Newer screen error")
+        model.suspend()
+    }
+
+    @MainActor
     func testSelectionContainsOnlyVisibleAudioAndNavigationDoesNotPlay() async throws {
         let source = FolderSource(name: "Root", bookmark: Data([1]))
         let directory = FolderEntry(id: UUID(), name: "Album", relativePath: "Album", kind: .directory)
@@ -157,6 +231,7 @@ private actor BrowserAccess: FolderAccessing {
     private var prepared: [UUID] = []
     private var released: [UUID] = []
     private var forgotten: [UUID] = []
+    private var listed: [String] = []
     private var heldPath: String?
     private var listingContinuation: CheckedContinuation<FolderListing, Error>?
     private var listingRequested: CheckedContinuation<Void, Never>?
@@ -167,6 +242,7 @@ private actor BrowserAccess: FolderAccessing {
     init(source: FolderSource, listings: [String: [FolderEntry]]) { self.source = source; self.listings = listings }
     func makeSource(at url: URL) -> FolderSource { source }
     func list(source: FolderSource, relativePath: String) async throws -> FolderListing {
+        listed.append(relativePath)
         if heldPath == relativePath {
             let result = try await withCheckedThrowingContinuation { continuation in
                 listingContinuation = continuation
@@ -197,6 +273,7 @@ private actor BrowserAccess: FolderAccessing {
     func preparedIDs() -> [UUID] { prepared }
     func releasedIDs() -> [UUID] { released }
     func forgottenIDs() -> [UUID] { forgotten }
+    func listedPaths() -> [String] { listed }
     func holdListing(at path: String) { heldPath = path }
     func waitForHeldListing(at path: String) async {
         if listingContinuation != nil { return }

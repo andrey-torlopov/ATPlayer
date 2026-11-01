@@ -6,6 +6,7 @@ struct PlaylistPanelV1: View {
     @ObservedObject var viewModel: ATPlayerViewModel
     @Environment(\.playerThemeV1) private var theme
     @State private var isCreatingPlaylist = false
+    @State private var isEditingPlaylistOrder = false
     @State private var newPlaylistName = ""
 
     var body: some View {
@@ -24,6 +25,16 @@ struct PlaylistPanelV1: View {
                 Spacer(minLength: 8)
 
                 CircularButtonV1(
+                    symbol: "arrow.up.arrow.down",
+                    label: "Изменить порядок плейлистов",
+                    size: 44
+                ) {
+                    isEditingPlaylistOrder = true
+                }
+                .disabled(viewModel.sections.count < 2 || viewModel.isImporting)
+                .accessibilityIdentifier("edit-playlist-order")
+
+                CircularButtonV1(
                     symbol: "plus",
                     label: "Создать плейлист",
                     size: 44
@@ -38,6 +49,10 @@ struct PlaylistPanelV1: View {
                     PlaylistSectionV1(section: section, viewModel: viewModel)
                 }
             }
+        }
+        .sheet(isPresented: $isEditingPlaylistOrder) {
+            PlaylistOrderEditorV1(viewModel: viewModel)
+                .environment(\.playerThemeV1, theme)
         }
         .alert("Новый плейлист", isPresented: $isCreatingPlaylist) {
             TextField("Название", text: $newPlaylistName)

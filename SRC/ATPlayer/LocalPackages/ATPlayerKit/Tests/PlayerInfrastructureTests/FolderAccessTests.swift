@@ -25,6 +25,7 @@ final class FolderAccessTests: XCTestCase {
         try FileManager.default.createDirectory(at: nested, withIntermediateDirectories: true)
         try FileManager.default.createDirectory(at: fixture.root.appendingPathComponent("Album 10", isDirectory: true), withIntermediateDirectories: true)
         try Data([1]).write(to: nested.appendingPathComponent("Nested.mp3"))
+        try Data([1]).write(to: fixture.root.appendingPathComponent("Album 10/Nested.flac"))
         for name in ["Track 10.mp3", "Track 2.mp3", ".hidden.mp3", "notes.txt"] {
             try Data([2]).write(to: fixture.root.appendingPathComponent(name))
         }
@@ -43,6 +44,63 @@ final class FolderAccessTests: XCTestCase {
                 XCTFail("Traversal or link path must fail: \(path)")
             } catch FolderAccessError.invalidPath { }
         }
+    }
+
+    func testDirectoriesWithoutAudioAreHiddenButAncestorsOfMusicRemainVisible() async throws {
+        let fixture = try fixture()
+        for path in ["Empty", "Documents/Subfolder", "Hidden/.Album", "Links", "Deep/Album/Disc"] {
+            try FileManager.default.createDirectory(at: fixture.root.appendingPathComponent(path), withIntermediateDirectories: true)
+        }
+        try Data([1]).write(to: fixture.root.appendingPathComponent("Documents/Subfolder/notes.txt"))
+        try Data([1]).write(to: fixture.root.appendingPathComponent("Hidden/.song.mp3"))
+        try Data([1]).write(to: fixture.root.appendingPathComponent("Hidden/.Album/song.flac"))
+        let deepAudio = fixture.root.appendingPathComponent("Deep/Album/Disc/Song.FLAC")
+        try Data([1]).write(to: deepAudio)
+        try FileManager.default.createSymbolicLink(at: fixture.root.appendingPathComponent("Links/song.mp3"), withDestinationURL: deepAudio)
+        try FileManager.default.createSymbolicLink(at: fixture.root.appendingPathComponent("Links/cycle"), withDestinationURL: fixture.root)
+        let source = try await fixture.service.makeSource(at: fixture.root)
+        let listing = try await fixture.service.list(source: source, relativePath: "")
+        XCTAssertEqual(listing.entries.map(\.name), ["Deep"], "Only subtrees leading to visible supported music should remain.")
+        XCTAssertTrue(listing.entries.allSatisfy { $0.kind == .directory }, "Discovery must not flatten descendant tracks into this level.")
+        let child = try await fixture.service.list(source: source, relativePath: "Deep")
+        XCTAssertEqual(child.entries.map(\.relativePath), ["Deep/Album"])
+        XCTAssertFalse(FileManager.default.fileExists(atPath: fixture.cache.path), "Checking visibility must not download or cache audio.")
+
+        try FileManager.default.removeItem(at: deepAudio)
+        let emptied = try await fixture.service.list(source: source, relativePath: "")
+        XCTAssertTrue(emptied.entries.isEmpty, "Refresh must hide a subtree after its last audio file disappears.")
+        try Data([1]).write(to: fixture.root.appendingPathComponent("Empty/New.mp3"))
+        let updated = try await fixture.service.list(source: source, relativePath: "")
+        XCTAssertEqual(updated.entries.map(\.name), ["Empty"], "An earlier negative result must not hide newly added music.")
+    }
+
+    func testEverySupportedAudioExtensionKeepsItsParentVisible() async throws {
+        let fixture = try fixture()
+        let extensions = ["mp3", "m4a", "aac", "wav", "aiff", "flac", "alac", "caf"]
+        for ext in extensions {
+            let directory = fixture.root.appendingPathComponent(ext, isDirectory: true)
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            try Data([1]).write(to: directory.appendingPathComponent("Track." + ext.uppercased()))
+        }
+        let source = try await fixture.service.makeSource(at: fixture.root)
+        let listing = try await fixture.service.list(source: source, relativePath: "")
+        XCTAssertEqual(Set(listing.entries.map(\.name)), Set(extensions))
+        XCTAssertTrue(listing.entries.allSatisfy { $0.kind == .directory })
+    }
+
+    func testUnreadableSubtreeDoesNotHideAccessibleSiblings() async throws {
+        let fixture = try fixture()
+        let locked = fixture.root.appendingPathComponent("Unavailable", isDirectory: true)
+        try FileManager.default.createDirectory(at: locked, withIntermediateDirectories: true)
+        try Data([1]).write(to: fixture.root.appendingPathComponent("Song.mp3"))
+        try FileManager.default.setAttributes([.posixPermissions: 0], ofItemAtPath: locked.path)
+        defer {
+            do { try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: locked.path) }
+            catch { XCTFail("Could not restore fixture permissions") }
+        }
+        let source = try await fixture.service.makeSource(at: fixture.root)
+        let listing = try await fixture.service.list(source: source, relativePath: "")
+        XCTAssertEqual(listing.entries.map(\.name), ["Unavailable", "Song.mp3"], "Unknown contents must not be treated as empty or break readable siblings.")
     }
 
     func testCacheReuseInvalidationAndPinning() async throws {

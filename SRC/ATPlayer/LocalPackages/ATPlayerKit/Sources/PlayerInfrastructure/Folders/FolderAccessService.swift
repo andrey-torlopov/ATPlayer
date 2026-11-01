@@ -38,6 +38,7 @@ public actor FolderAccessService: FolderAccessing {
     private let operationTimeout: TimeInterval
     private let playbackQueue: OperationQueue
     private let prefetchQueue: OperationQueue
+    private let discoveryQueue: OperationQueue
     private var cache: [String: CacheRecord] = [:]
     private var leases: [UUID: String] = [:]
     private var cacheAliases: [String: String] = [:]
@@ -71,10 +72,14 @@ public actor FolderAccessService: FolderAccessing {
         prefetchQueue.name = "ATPlayer.folderPrefetch"
         prefetchQueue.qualityOfService = .utility
         prefetchQueue.maxConcurrentOperationCount = 1
+        discoveryQueue = OperationQueue()
+        discoveryQueue.name = "ATPlayer.folderDiscovery"
+        discoveryQueue.qualityOfService = .default
+        discoveryQueue.maxConcurrentOperationCount = 1
     }
 
     public func makeSource(at url: URL) async throws -> FolderSource {
-        try await perform(sourceID: nil, priority: .playback) { request in
+        try await perform(sourceID: nil) { request in
             guard url.isFileURL else { throw FolderAccessError.invalidPath }
             return try Self.withAccess(to: url) {
                 try request.coordinate(at: url, options: [.immediatelyAvailableMetadataOnly]) { coordinatedURL in
@@ -93,10 +98,10 @@ public actor FolderAccessService: FolderAccessing {
 
     public func list(source: FolderSource, relativePath: String) async throws -> FolderListing {
         let generation = generations[source.id, default: 0]
-        let listing: FolderListing = try await perform(sourceID: source.id, priority: .playback) { request in
+        let listing: FolderListing = try await perform(sourceID: source.id) { request in
             try Self.withResolvedSource(source) { root, refreshedSource in
                 let directory = try Self.validatedURL(root: root, relativePath: relativePath, isDirectory: true)
-                return try request.coordinate(at: directory, options: [.immediatelyAvailableMetadataOnly]) { coordinatedDirectory in
+                let listing = try request.coordinate(at: directory, options: [.immediatelyAvailableMetadataOnly]) { coordinatedDirectory in
                     try Self.validateCoordinatedURL(coordinatedDirectory, inside: root)
                     let directoryValues = try coordinatedDirectory.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey])
                     guard directoryValues.isDirectory == true, directoryValues.isSymbolicLink != true else {
@@ -133,6 +138,27 @@ public actor FolderAccessService: FolderAccessing {
                     }
                     return FolderListing(source: refreshedSource, relativePath: relativePath, entries: entries)
                 }
+                var visible: [FolderEntry] = []
+                for entry in listing.entries {
+                    try request.checkCancellation()
+                    if entry.kind == .directory {
+                        do {
+                            let child = try Self.validatedURL(root: root, relativePath: entry.relativePath, isDirectory: true)
+                            guard try Self.containsAudio(in: child, root: root, request: request) else { continue }
+                        } catch is CancellationError {
+                            throw CancellationError()
+                        } catch FolderAccessError.timedOut {
+                            throw FolderAccessError.timedOut
+                        } catch {
+                            // An unreadable descendant is unknown, not empty. Keep
+                            // the directory so a provider outage cannot hide its music
+                            // or prevent playback of accessible siblings.
+                            try request.checkCancellation()
+                        }
+                    }
+                    visible.append(entry)
+                }
+                return FolderListing(source: listing.source, relativePath: listing.relativePath, entries: visible)
             }
         }
         try Task.checkCancellation()
@@ -248,15 +274,14 @@ public actor FolderAccessService: FolderAccessing {
         }
     }
 
-    private func perform<Value: Sendable>(sourceID: UUID?, priority: FolderPreparationPriority,
+    private func perform<Value: Sendable>(sourceID: UUID?,
                                          operation: @escaping @Sendable (FolderIORequest<Value>) throws -> Value) async throws -> Value {
         let id = UUID()
         let request = FolderIORequest<Value>()
         operations[id] = ActiveOperation(sourceID: sourceID, cancel: { request.cancel() })
         defer { operations.removeValue(forKey: id) }
         do {
-            return try await request.run(on: priority == .playback ? playbackQueue : prefetchQueue,
-                                         timeout: operationTimeout, operation: operation)
+            return try await request.run(on: discoveryQueue, timeout: operationTimeout, operation: operation)
         } catch {
             if error is CancellationError { throw error }
             if let folderError = error as? FolderAccessError { throw folderError }
@@ -311,6 +336,45 @@ public actor FolderAccessService: FolderAccessing {
             reservation.abandoned = true
             reservations[id] = reservation
         }
+    }
+
+    /// Discover only whether a subtree leads to music. Never read audio data or
+    /// publish descendant tracks. Coordinate each directory separately so provider
+    /// accessors are not nested, and stop at the first supported file.
+    private static func containsAudio<Value>(in directory: URL, root: URL,
+                                             request: FolderIORequest<Value>) throws -> Bool {
+        let keys: Set<URLResourceKey> = [.isDirectoryKey, .isRegularFileKey, .isSymbolicLinkKey, .isHiddenKey, .isPackageKey]
+        var pending = [directory]
+        while let next = pending.popLast() {
+            try request.checkCancellation()
+            let scan = try request.coordinate(at: next, options: [.immediatelyAvailableMetadataOnly]) { coordinatedURL in
+                try validateCoordinatedURL(coordinatedURL, inside: root)
+                var currentURL = coordinatedURL
+                currentURL.removeAllCachedResourceValues()
+                let current = try currentURL.resourceValues(forKeys: keys)
+                guard current.isDirectory == true, current.isSymbolicLink != true else {
+                    throw FolderAccessError.invalidPath
+                }
+                guard current.isHidden != true, current.isPackage != true else { return (false, [URL]()) }
+                let children = try FileManager.default.contentsOfDirectory(
+                    at: currentURL, includingPropertiesForKeys: Array(keys), options: [.skipsHiddenFiles]
+                )
+                var directories: [URL] = []
+                for child in children {
+                    try request.checkCancellation()
+                    let values = try child.resourceValues(forKeys: keys)
+                    guard values.isSymbolicLink != true, values.isHidden != true else { continue }
+                    if values.isRegularFile == true, audioExtensions.contains(child.pathExtension.lowercased()) {
+                        return (true, [URL]())
+                    }
+                    if values.isDirectory == true, values.isPackage != true { directories.append(child) }
+                }
+                return (false, directories)
+            }
+            if scan.0 { return true }
+            pending.append(contentsOf: scan.1)
+        }
+        return false
     }
 
     private static func withAccess<T>(to url: URL, operation: () throws -> T) throws -> T {

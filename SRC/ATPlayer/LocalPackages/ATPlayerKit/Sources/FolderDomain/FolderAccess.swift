@@ -103,6 +103,8 @@ public enum FolderAccessError: LocalizedError, Sendable {
 
 public protocol FolderAccessing: Sendable {
     func makeSource(at url: URL) async throws -> FolderSource
+    /// Returns immediate audio files and directories whose visible subtree contains
+    /// supported audio. Descendant tracks are neither returned nor prepared.
     func list(source: FolderSource, relativePath: String) async throws -> FolderListing
     func prepare(source: FolderSource, entry: FolderEntry, priority: FolderPreparationPriority) async throws -> CachedAudioLease
     func release(_ lease: CachedAudioLease) async

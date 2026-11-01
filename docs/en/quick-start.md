@@ -20,6 +20,8 @@ In normal playlist playback, the player follows the stored track order. If you h
 
 Use **+** beside **«Плейлисты»** (Playlists) to create another playlist. Open its **…** menu and select **«Редактировать треки»** (Edit Tracks). Drag the handles on the right to reorder tracks; the order saves automatically. Select several tracks to remove them together. Removing entries leaves the original files intact.
 
+In the current source (unreleased), the up/down arrows beside **«Плейлисты»** open playlist reordering. Drag a playlist by its right-hand handle and tap **«Готово»** (Done); order saves automatically.
+
 ## 4. Keep listening
 
 Leave the app or lock the device while playback is running. Use the system playback controls to pause, resume, and switch tracks. Live Activities depend on device support and system settings.
@@ -31,6 +33,8 @@ If a file becomes unavailable after you move it or change providers, select it a
 ## Listen directly from folders — current source, unreleased
 
 This option is not in the submitted **1.0.2 (1)** build. Above the library, choose **«Папки»** (Folders), then **«Добавить папку»** (Add Folder). Select a root directory through Files. Open subfolders one at a time; each screen shows only that level’s folders and audio.
+
+Folders without supported music are hidden; paths to music deeper in the tree remain visible. Selecting an empty root does not add it. Checking a large network tree can take time.
 
 Tap a file to play the audio at that level only. Subfolders are not included. Moving around the browser or switching back to Playlists keeps the active queue playing. Use the back arrow to move up and **«Обновить папку»** (Refresh Folder) after external changes.
 

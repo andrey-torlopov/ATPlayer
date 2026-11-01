@@ -6,6 +6,7 @@ public protocol PlaylistStoring: AnyObject {
     func createSection(name: String) throws -> Playlist
     func removeSection(_ section: Playlist) throws
     func renameSection(_ section: Playlist, to name: String) throws
+    func setSectionOrder(_ sectionIDs: [UUID]) throws
     func ensureDefaultSection() throws -> Playlist
     func sortedTracks(in section: Playlist) -> [PlaylistTrack]
     func appendTrack(

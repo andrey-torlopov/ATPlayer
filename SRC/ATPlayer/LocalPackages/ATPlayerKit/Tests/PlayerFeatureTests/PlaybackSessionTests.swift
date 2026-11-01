@@ -211,6 +211,80 @@ final class PlaybackSessionTests: XCTestCase {
         }
     }
 
+    func testPlaylistMoveKeepsAudioPositionAndUpdatesOrdinaryTraversal() async throws {
+        let fixture = try Fixture()
+        defer { fixture.cleanup() }
+        await fixture.model.play(track: fixture.second[1])
+        fixture.model.seek(to: 4)
+        let loadedBeforeMove = fixture.audio.loadedURLs
+        let secondSectionID = try XCTUnwrap(fixture.second[0].section?.id)
+        let firstSectionID = try XCTUnwrap(fixture.first[0].section?.id)
+        XCTAssertFalse(fixture.model.canPlayNext)
+
+        XCTAssertTrue(fixture.model.moveSections(from: IndexSet(integer: 1), to: 0))
+
+        XCTAssertEqual(fixture.model.sections.map(\.id), [secondSectionID, firstSectionID])
+        XCTAssertEqual(fixture.model.selectedTrackID, fixture.second[1].id)
+        XCTAssertEqual(fixture.model.lastPlayedSectionID, secondSectionID)
+        XCTAssertEqual(fixture.audio.state.currentTime, 4)
+        XCTAssertTrue(fixture.audio.state.isPlaying)
+        XCTAssertEqual(fixture.audio.loadedURLs, loadedBeforeMove, "Reordering must not reload or restart audio.")
+        XCTAssertTrue(fixture.model.canPlayNext, "Ordinary next must follow the new playlist order.")
+        await fixture.model.performPlaybackCommand(.next)
+        XCTAssertEqual(fixture.model.selectedTrackID, fixture.first[0].id)
+        await fixture.model.performPlaybackCommand(.previous)
+        XCTAssertEqual(fixture.model.selectedTrackID, fixture.second[1].id)
+    }
+
+    func testPlaylistMovePreservesShuffleHistoryAndPauseState() async throws {
+        let fixture = try Fixture()
+        defer { fixture.cleanup() }
+        await fixture.model.play(track: fixture.first[0])
+        fixture.setMode(.shuffle)
+        await fixture.model.performPlaybackCommand(.next)
+        let secondPlayedID = try XCTUnwrap(fixture.model.selectedTrackID)
+        fixture.model.seek(to: 3)
+        await fixture.model.performPlaybackCommand(.pause)
+        let loadedBeforeMove = fixture.audio.loadedURLs
+
+        XCTAssertTrue(fixture.model.moveSections(from: IndexSet(integer: 0), to: 2))
+
+        XCTAssertEqual(fixture.model.selectedTrackID, secondPlayedID)
+        XCTAssertEqual(fixture.audio.state.currentTime, 3)
+        XCTAssertFalse(fixture.audio.state.isPlaying)
+        XCTAssertEqual(fixture.audio.loadedURLs, loadedBeforeMove)
+        await fixture.model.performPlaybackCommand(.previous)
+        XCTAssertEqual(fixture.model.selectedTrackID, fixture.first[0].id, "Reordering playlists must not reshuffle playback history.")
+        await fixture.model.performPlaybackCommand(.next)
+        XCTAssertEqual(fixture.model.selectedTrackID, secondPlayedID)
+        await fixture.model.performPlaybackCommand(.next)
+        let lastPlayedID = try XCTUnwrap(fixture.model.selectedTrackID)
+        XCTAssertEqual(Set([fixture.first[0].id, secondPlayedID, lastPlayedID]), Set(fixture.first.map(\.id)))
+        XCTAssertFalse(fixture.model.canPlayNext)
+    }
+
+    func testPlaylistMoveRejectsInvalidOffsetsAndFailedWriteWithoutChangingState() async throws {
+        let fixture = try Fixture()
+        defer { fixture.cleanup() }
+        await fixture.model.play(track: fixture.first[1])
+        fixture.model.seek(to: 2)
+        let originalOrder = fixture.model.sections.map(\.id)
+        let loads = fixture.audio.loadedURLs
+        XCTAssertFalse(fixture.model.moveSections(from: IndexSet(integer: 99), to: 0))
+        XCTAssertFalse(fixture.model.moveSections(from: IndexSet(integer: 0), to: -1))
+        XCTAssertTrue(fixture.model.moveSections(from: [], to: 0))
+        XCTAssertTrue(fixture.model.moveSections(from: IndexSet(integer: 0), to: 1))
+        XCTAssertEqual(fixture.storage.sectionOrderWrites, 0, "No-op and invalid input must not write storage.")
+        fixture.storage.rejectsSectionOrder = true
+        XCTAssertFalse(fixture.model.moveSections(from: IndexSet(integer: 0), to: 2))
+        XCTAssertEqual(fixture.model.sections.map(\.id), originalOrder)
+        XCTAssertEqual(fixture.model.selectedTrackID, fixture.first[1].id)
+        XCTAssertEqual(fixture.audio.state.currentTime, 2)
+        XCTAssertTrue(fixture.audio.state.isPlaying)
+        XCTAssertEqual(fixture.audio.loadedURLs, loads)
+        XCTAssertNotNil(fixture.model.importError)
+    }
+
     func testLegacyPreferencesMigrateWithDeterministicPriority() throws {
         let fixture = try Fixture()
         defer { fixture.cleanup() }
@@ -422,7 +496,9 @@ private final class ActivityDouble: ActivityPresenting {
 
 @MainActor
 private final class MemoryPlaylistStore: PlaylistStoring {
-    private enum StoreError: Error { case invalidTrackOrder }
+    private enum StoreError: Error { case invalidTrackOrder, invalidSectionOrder, rejectedWrite }
+    var rejectsSectionOrder = false
+    private(set) var sectionOrderWrites = 0
     private var sections: [Playlist]
     init(sections: [Playlist]) { self.sections = sections }
     func fetchSections() throws -> [Playlist] { sections.sorted { $0.order < $1.order } }
@@ -461,6 +537,16 @@ private final class MemoryPlaylistStore: PlaylistStoring {
     func removeTracks(withIDs trackIDs: Set<UUID>, from section: Playlist) throws {
         section.tracks.removeAll { trackIDs.contains($0.id) }
         for (index, track) in section.tracks.enumerated() { track.order = index }
+    }
+    func setSectionOrder(_ sectionIDs: [UUID]) throws {
+        guard !rejectsSectionOrder else { throw StoreError.rejectedWrite }
+        guard sectionIDs.count == sections.count, Set(sectionIDs) == Set(sections.map(\.id)) else {
+            throw StoreError.invalidSectionOrder
+        }
+        sectionOrderWrites += 1
+        for (index, id) in sectionIDs.enumerated() {
+            sections.first { $0.id == id }?.order = index
+        }
     }
     func setTrackOrder(_ trackIDs: [UUID], in section: Playlist) throws {
         guard trackIDs.count == section.tracks.count, Set(trackIDs) == Set(section.tracks.map(\.id)) else {

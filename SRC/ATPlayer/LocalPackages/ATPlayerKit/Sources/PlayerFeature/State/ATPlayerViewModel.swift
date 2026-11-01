@@ -193,6 +193,35 @@ public final class ATPlayerViewModel: ObservableObject {
         }
     }
 
+    @discardableResult
+    func moveSections(from source: IndexSet, to destination: Int) -> Bool {
+        guard !isImporting else {
+            importError = "Дождитесь завершения импорта перед изменением порядка плейлистов."
+            return false
+        }
+        var reorderedSections = sections
+        guard source.allSatisfy({ reorderedSections.indices.contains($0) }),
+              (0...reorderedSections.count).contains(destination) else {
+            importError = "Список плейлистов изменился. Повторите перемещение."
+            return false
+        }
+        guard !source.isEmpty else { return true }
+        let previousOrder = reorderedSections.map(\.id)
+        reorderedSections.move(fromOffsets: source, toOffset: destination)
+        let nextOrder = reorderedSections.map(\.id)
+        guard nextOrder != previousOrder else { return true }
+        do {
+            try storageService.setSectionOrder(nextOrder)
+            // Rebuild normal traversal in the saved order. The current file and
+            // shuffle history retain their identities and audio is not restarted.
+            reloadSections()
+            return true
+        } catch {
+            importError = "Не удалось сохранить порядок плейлистов. Повторите попытку."
+            return false
+        }
+    }
+
     // MARK: - Import
 
     func requestImport(to section: Playlist) {

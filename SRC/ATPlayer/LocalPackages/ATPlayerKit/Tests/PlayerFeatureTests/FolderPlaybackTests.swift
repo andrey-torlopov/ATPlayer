@@ -452,6 +452,7 @@ private final class ReadOnlyPlaylistDouble: PlaylistStoring {
     func removeTrack(_ track: PlaylistTrack) throws { try unexpectedMutation() as Void }
     func removeTracks(withIDs trackIDs: Set<UUID>, from section: Playlist) throws { try unexpectedMutation() as Void }
     func setTrackOrder(_ trackIDs: [UUID], in section: Playlist) throws { try unexpectedMutation() as Void }
+    func setSectionOrder(_ sectionIDs: [UUID]) throws { try unexpectedMutation() as Void }
     private func unexpectedMutation<T>() throws -> T {
         XCTFail("Folder playback must not mutate persisted playlists")
         throw Failure.unexpectedMutation

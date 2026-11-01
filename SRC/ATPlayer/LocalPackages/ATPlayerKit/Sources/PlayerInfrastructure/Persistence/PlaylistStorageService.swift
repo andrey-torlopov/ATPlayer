@@ -10,6 +10,7 @@ public final class PlaylistStorageService: PlaylistStoring {
 
     private enum StorageError: Error {
         case invalidTrackOrder
+        case invalidSectionOrder
         case missingPlaylist
         case missingTrack
     }
@@ -93,6 +94,19 @@ public final class PlaylistStorageService: PlaylistStoring {
         try saveChanges(refreshSnapshots: false)
         playlists[section.id]?.name = name
         section.name = name
+    }
+
+    public func setSectionOrder(_ sectionIDs: [UUID]) throws {
+        let records = try fetchRecords()
+        guard sectionIDs.count == records.count,
+              Set(sectionIDs) == Set(records.map(\.id)) else {
+            throw StorageError.invalidSectionOrder
+        }
+        let byID = Dictionary(uniqueKeysWithValues: records.map { ($0.id, $0) })
+        for (index, sectionID) in sectionIDs.enumerated() {
+            byID[sectionID]?.order = index
+        }
+        try saveChanges()
     }
 
     public func ensureDefaultSection() throws -> Playlist {

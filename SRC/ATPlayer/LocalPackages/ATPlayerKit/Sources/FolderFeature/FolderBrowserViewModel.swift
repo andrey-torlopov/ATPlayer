@@ -132,20 +132,29 @@ public final class FolderBrowserViewModel: ObservableObject {
         case let .success(urls):
             guard !isUpdatingSources, let url = urls.first else { return }
             isUpdatingSources = true
+            let requestID = generation
             mutationTask = Task { [weak self] in
                 guard let self else { return }
                 defer { self.isUpdatingSources = false; self.mutationTask = nil }
                 do {
                     let source = try await self.access.makeSource(at: url)
+                    let listing = try await self.access.list(source: source, relativePath: "")
                     try Task.checkCancellation()
-                    self.sources = try await self.store.upsert(source)
+                    if self.isCurrent(requestID) { self.errorMessage = nil }
+                    // The access service excludes subtrees without supported audio.
+                    // An empty result must not create a durable root or replace navigation.
+                    guard !listing.entries.isEmpty else { return }
+                    self.sources = try await self.store.upsert(listing.source)
                     self.loadedSources = true
-                    self.errorMessage = nil
-                    if self.isActive, let saved = self.sources.first(where: { $0.id == source.id }) { self.open(saved) }
+                    if self.isCurrent(requestID), let saved = self.sources.first(where: { $0.id == source.id }) {
+                        self.invalidateLoading()
+                        self.isLoading = false
+                        self.show(FolderListing(source: saved, relativePath: "", entries: listing.entries))
+                    }
                 } catch is CancellationError {
                     return
                 } catch {
-                    self.errorMessage = self.message(for: error)
+                    if self.isCurrent(requestID) { self.errorMessage = self.message(for: error) }
                 }
             }
         }
@@ -213,11 +222,7 @@ public final class FolderBrowserViewModel: ObservableObject {
                     // Merge only this bookmark, never replace a newer roots snapshot.
                     self.sources[index] = refreshed
                 }
-                self.source = listing.source
-                self.relativePath = listing.relativePath
-                self.entries = listing.entries
-                self.preparation = Dictionary(uniqueKeysWithValues: listing.entries.filter { $0.kind == .audio }.map { ($0.id, .waiting) })
-                self.startPrefetch()
+                self.show(listing)
             } catch is CancellationError {
                 return
             } catch {
@@ -225,6 +230,14 @@ public final class FolderBrowserViewModel: ObservableObject {
                 self.errorMessage = self.message(for: error)
             }
         }
+    }
+
+    private func show(_ listing: FolderListing) {
+        source = listing.source
+        relativePath = listing.relativePath
+        entries = listing.entries
+        preparation = Dictionary(uniqueKeysWithValues: listing.entries.filter { $0.kind == .audio }.map { ($0.id, .waiting) })
+        startPrefetch()
     }
 
     private func startPrefetch(excludingID: UUID? = nil) {

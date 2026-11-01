@@ -8,9 +8,13 @@ Create and rename playlists, add files or folders, change track order, and remov
 
 The player reads titles, artist names, duration, and available artwork from audio metadata. When a title is missing, it uses the file name. Folder import includes subfolders and sorts discovered file paths naturally before adding them.
 
+The current source also supports reordering playlists themselves. Tap the up/down arrows beside **«Плейлисты»** (Playlists) to open **«Порядок плейлистов»** (Playlist Order), then drag the handles on the right. Order saves automatically and survives relaunch; the current track keeps playing. This change is unreleased.
+
 ## Folders in the current source
 
-**Unreleased; not included in the submitted 1.0.2 (1) build.** The **«Плейлисты / Папки»** switch changes the library area. In **«Папки»**, add a root through Files and open it to see only its immediate subfolders and supported audio files. Folders appear first; names use natural sorting. Refresh reads the open level again.
+**Unreleased; not included in the submitted 1.0.2 (1) build.** The **«Плейлисты / Папки»** switch changes the library area. In **«Папки»**, add a root through Files and open it to see only its immediate subfolders and supported audio files. Folders appear first; names use natural sorting. Refresh checks the listing again.
+
+Empty subfolders and directories without supported audio anywhere in their subtree are hidden. Parents of nested albums remain visible. Adding a root without music does not save it. Discovery reads metadata without downloading descendant audio; directories with inaccessible contents remain visible until they can be checked. Previously saved roots are not removed automatically.
 
 Tapping audio creates an in-memory queue containing only the audio files at that level, in displayed order. It never descends into subfolders or continues into another folder or playlist. Repeat, shuffle, and repeat-one apply to that active folder queue. Without repeat, playback stops at its end. Browsing elsewhere or switching library modes does not change the active track or queue; selecting another file does.
 
