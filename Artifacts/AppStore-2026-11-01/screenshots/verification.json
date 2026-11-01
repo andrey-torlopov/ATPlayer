@@ -1,0 +1,126 @@
+{
+  "checked_at": "2026-11-01T17:10:17+03:00",
+  "scope": "Проверены пять iPhone JPEG и два iPad JPEG. Для загрузки выбраны четыре iPhone и два iPad; переходный iPhone dark-кадр сохранён, но исключён. JPEG не изменялись, в upload/ размещены побайтные копии рекомендованных файлов.",
+  "source": "Реальные скриншоты iOS Simulator; visual QA через просмотр сохранённых файлов.",
+  "iphone_ready": true,
+  "files": [
+    {
+      "path": "iphone-6.9/01-player-light.jpg",
+      "format": "jpeg",
+      "width": 1320,
+      "height": 2868,
+      "has_alpha": false,
+      "technical_pass": true,
+      "sha256": "c7d6a467129cbc2f3dfd9096bc86c7afd1488f3f971a0f2b383a1dd00dbe528d",
+      "visual_verdict": "pass",
+      "visual_notes": "Светлый главный экран: воспроизведение, плейлист «Моя музыка», четыре оригинальных демо-трека; посторонних диалогов и данных нет.",
+      "upload_eligible": true,
+      "upload_copy_path": "upload/iphone-6.9/01-player-light.jpg",
+      "upload_copy_sha256_matches": true
+    },
+    {
+      "path": "iphone-6.9/02-playlist.jpg",
+      "format": "jpeg",
+      "width": 1320,
+      "height": 2868,
+      "has_alpha": false,
+      "technical_pass": true,
+      "sha256": "bb6d73bdefa8099f031f8dd39c5f71f3fa24aed3a6a599adb32682919c5d2868",
+      "visual_verdict": "pass",
+      "visual_notes": "Редактор плейлиста: все четыре названия и длительности читаются, элементы изменения порядка видны; диалогов поверх экрана нет.",
+      "upload_eligible": true,
+      "upload_copy_path": "upload/iphone-6.9/02-playlist.jpg",
+      "upload_copy_sha256_matches": true
+    },
+    {
+      "path": "iphone-6.9/03-equalizer.jpg",
+      "format": "jpeg",
+      "width": 1320,
+      "height": 2868,
+      "has_alpha": false,
+      "technical_pass": true,
+      "sha256": "58aa9cb5e496ec4172b53cd10fe92bb2a8689b2314913a7c74c829e49224ef79",
+      "visual_verdict": "pass",
+      "visual_notes": "Эквалайзер: заголовок, предусиление и видимые частотные полосы читаются; следующие полосы находятся ниже границы прокрутки, что соответствует реальному интерфейсу.",
+      "upload_eligible": true,
+      "upload_copy_path": "upload/iphone-6.9/03-equalizer.jpg",
+      "upload_copy_sha256_matches": true
+    },
+    {
+      "path": "iphone-6.9/04-player-dark.jpg",
+      "format": "jpeg",
+      "width": 1320,
+      "height": 2868,
+      "has_alpha": false,
+      "technical_pass": true,
+      "sha256": "44ddd10be3ced627a2bd469bf9abedb6d8d1d90fe4ac577312389caec0c60a1d",
+      "visual_verdict": "recapture_required",
+      "visual_notes": "Захвачен переход к тёмной теме: промежуточный серый фон, ещё чёрный статус-бар, наложение цифр таймера. Повторить снимок стабильного dark UI.",
+      "upload_eligible": false,
+      "superseded_by": "iphone-6.9/04-player-dark-stable.jpg"
+    },
+    {
+      "path": "iphone-6.9/04-player-dark-stable.jpg",
+      "format": "jpeg",
+      "width": 1320,
+      "height": 2868,
+      "has_alpha": false,
+      "technical_pass": true,
+      "sha256": "2afcf308bbab6ed12ef27cc2ebbe9f3e3d705de54ee062c0a4211bc106f317a2",
+      "visual_verdict": "pass",
+      "visual_notes": "Стабильная тёмная тема: тёмный фон, белый статус-бар, чёткий таймер 0:58 на паузе; наложений цифр и переходных состояний нет. Плейлист «Моя музыка», трек «Между облаками».",
+      "upload_eligible": true,
+      "upload_copy_path": "upload/iphone-6.9/04-player-dark-stable.jpg",
+      "upload_copy_sha256_matches": true
+    },
+    {
+      "path": "ipad-13/01-player-light.jpg",
+      "format": "jpeg",
+      "width": 2064,
+      "height": 2752,
+      "has_alpha": false,
+      "technical_pass": true,
+      "sha256": "569ef9b8bb9a2cbffb11583eb22ca7a01812ec04a25ba61ee8111ddeee2462d9",
+      "visual_verdict": "pass",
+      "visual_notes": "Светлая iPad-компоновка: плеер слева, полный плейлист «Моя музыка» с четырьмя демо-треками справа; воспроизведение «Тихий берег». Текст и контролы читаются, наложений и модальных диалогов нет. Нижняя свободная область соответствует реальному интерфейсу.",
+      "upload_eligible": true,
+      "upload_copy_path": "upload/ipad-13/01-player-light.jpg",
+      "upload_copy_sha256_matches": true
+    },
+    {
+      "path": "ipad-13/02-player-dark.jpg",
+      "format": "jpeg",
+      "width": 2064,
+      "height": 2752,
+      "has_alpha": false,
+      "technical_pass": true,
+      "sha256": "4ca2231947807e5613778398346bfcecfb68cb535cac68abb7df955cc4d46aaa",
+      "visual_verdict": "pass",
+      "visual_notes": "Стабильная тёмная iPad-компоновка: плеер слева, полный плейлист справа; на паузе «Утренний свет», чёткий таймер 0:05. Контраст и статус-бар соответствуют тёмной теме; переходных состояний, наложений и диалогов нет.",
+      "upload_eligible": true,
+      "upload_copy_path": "upload/ipad-13/02-player-dark.jpg",
+      "upload_copy_sha256_matches": true
+    }
+  ],
+  "iphone_upload_files": [
+    "iphone-6.9/01-player-light.jpg",
+    "iphone-6.9/02-playlist.jpg",
+    "iphone-6.9/03-equalizer.jpg",
+    "iphone-6.9/04-player-dark-stable.jpg"
+  ],
+  "ipad_upload_files": [
+    "ipad-13/01-player-light.jpg",
+    "ipad-13/02-player-dark.jpg"
+  ],
+  "ipad_minimum_ready": true,
+  "upload_directories": {
+    "iphone": "/Volumes/DATA-R1/Dev/Projects/ATPlayer/Artifacts/AppStore-2026-11-01/screenshots/upload/iphone-6.9",
+    "ipad": "/Volumes/DATA-R1/Dev/Projects/ATPlayer/Artifacts/AppStore-2026-11-01/screenshots/upload/ipad-13"
+  },
+  "upload_copy_verification": {
+    "matched": 6,
+    "total": 6,
+    "formula": "6 / 6 = 1.0",
+    "method": "byte-for-byte comparison and SHA-256 equality"
+  }
+}

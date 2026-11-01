@@ -1,0 +1,52 @@
+{
+  "devices": [
+    {
+      "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-27-2",
+      "name": "ATPlayer App Store iPhone",
+      "udid": "1FC55734-01F1-43F4-8F21-AA01C4673D6E",
+      "state": "Booted",
+      "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro-Max"
+    },
+    {
+      "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-27-2",
+      "name": "ATPlayer App Store iPad",
+      "udid": "13BB7FC1-26EF-489D-A533-4D11AF87C119",
+      "state": "Booted",
+      "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPad-Pro-13-inch-M5-12GB"
+    }
+  ],
+  "iphone_locale": {
+    "AppleLanguages": [
+      "ru"
+    ],
+    "AppleLocale": "ru_RU"
+  },
+  "iphone_app_version": "1.0.2",
+  "iphone_app_build": "1",
+  "iphone_app_id": "dev.torlopov.atplayer.ios",
+  "file_provider_group": "/Users/at/Library/Developer/CoreSimulator/Devices/1FC55734-01F1-43F4-8F21-AA01C4673D6E/data/Containers/Shared/AppGroup/6E9DC749-1C18-44AF-8445-EEE0388B32CB",
+  "demo_audio_staged": true,
+  "demo_audio_destination": "/Users/at/Library/Developer/CoreSimulator/Devices/1FC55734-01F1-43F4-8F21-AA01C4673D6E/data/Containers/Shared/AppGroup/6E9DC749-1C18-44AF-8445-EEE0388B32CB/File Provider Storage/Музыка",
+  "demo_audio_files": [
+    "/Users/at/Library/Developer/CoreSimulator/Devices/1FC55734-01F1-43F4-8F21-AA01C4673D6E/data/Containers/Shared/AppGroup/6E9DC749-1C18-44AF-8445-EEE0388B32CB/File Provider Storage/Музыка/Дорога домой.wav",
+    "/Users/at/Library/Developer/CoreSimulator/Devices/1FC55734-01F1-43F4-8F21-AA01C4673D6E/data/Containers/Shared/AppGroup/6E9DC749-1C18-44AF-8445-EEE0388B32CB/File Provider Storage/Музыка/Между облаками.wav",
+    "/Users/at/Library/Developer/CoreSimulator/Devices/1FC55734-01F1-43F4-8F21-AA01C4673D6E/data/Containers/Shared/AppGroup/6E9DC749-1C18-44AF-8445-EEE0388B32CB/File Provider Storage/Музыка/Тихий берег.wav",
+    "/Users/at/Library/Developer/CoreSimulator/Devices/1FC55734-01F1-43F4-8F21-AA01C4673D6E/data/Containers/Shared/AppGroup/6E9DC749-1C18-44AF-8445-EEE0388B32CB/File Provider Storage/Музыка/Утренний свет.wav"
+  ],
+  "ipad_locale": {
+    "AppleLanguages": [
+      "ru"
+    ],
+    "AppleLocale": "ru_RU"
+  },
+  "ipad_app_version": "1.0.2",
+  "ipad_app_build": "1",
+  "ipad_demo_audio_staged": true,
+  "ipad_demo_audio_destination": "/Users/at/Library/Developer/CoreSimulator/Devices/13BB7FC1-26EF-489D-A533-4D11AF87C119/data/Containers/Shared/AppGroup/5B02ECD6-0494-4E5C-9903-938F9B6CDC7B/File Provider Storage/Музыка",
+  "ipad_demo_audio_files": [
+    "/Users/at/Library/Developer/CoreSimulator/Devices/13BB7FC1-26EF-489D-A533-4D11AF87C119/data/Containers/Shared/AppGroup/5B02ECD6-0494-4E5C-9903-938F9B6CDC7B/File Provider Storage/Музыка/Дорога домой.wav",
+    "/Users/at/Library/Developer/CoreSimulator/Devices/13BB7FC1-26EF-489D-A533-4D11AF87C119/data/Containers/Shared/AppGroup/5B02ECD6-0494-4E5C-9903-938F9B6CDC7B/File Provider Storage/Музыка/Между облаками.wav",
+    "/Users/at/Library/Developer/CoreSimulator/Devices/13BB7FC1-26EF-489D-A533-4D11AF87C119/data/Containers/Shared/AppGroup/5B02ECD6-0494-4E5C-9903-938F9B6CDC7B/File Provider Storage/Музыка/Тихий берег.wav",
+    "/Users/at/Library/Developer/CoreSimulator/Devices/13BB7FC1-26EF-489D-A533-4D11AF87C119/data/Containers/Shared/AppGroup/5B02ECD6-0494-4E5C-9903-938F9B6CDC7B/File Provider Storage/Музыка/Утренний свет.wav"
+  ]
+}

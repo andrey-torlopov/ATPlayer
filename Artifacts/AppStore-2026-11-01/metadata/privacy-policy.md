@@ -1,12 +1,12 @@
 # Политика конфиденциальности ATPlayer / ATPlayer Privacy Policy
 
-Статус для подготовки релиза: текст основан на проверенных исходниках приложения от 1 ноября 2026 года. Имя разработчика Andrey Torlopov подтверждено в аккаунте Apple. Перед публикацией нужно добавить подтверждённый контакт для обращений и разместить политику по общедоступному HTTPS-адресу. Контакт и адрес пока не предоставлены. Эту служебную строку следует удалить из опубликованной версии после заполнения настоящих данных.
-
 ## Русский
 
 Дата обновления: 1 ноября 2026 года.
 
 Разработчик: Andrey Torlopov.
+
+Контакт по вопросам конфиденциальности: [mail@torlopov.dev](mailto:mail@torlopov.dev).
 
 ATPlayer предназначен для воспроизведения аудиофайлов, выбранных вами на устройстве. Для использования приложения не требуется аккаунт.
 
@@ -32,6 +32,16 @@ ATPlayer передаёт название трека, имя исполните
 
 Вы можете удалять треки и плейлисты в приложении. Удаление записей не удаляет исходные аудиофайлы. Удаление приложения удаляет его локальные данные в соответствии с правилами операционной системы. Системные резервные копии и исходные файлы, хранящиеся отдельно, управляются вами через настройки устройства и соответствующие сервисы.
 
+### Обращения в поддержку
+
+Если вы пишете на mail@torlopov.dev, разработчик получает ваш адрес электронной почты, имя отправителя, текст сообщения и вложения, которые вы решили отправить. Эти сведения используются для ответа и разбора обращения. Это добровольная переписка; приложение не отправляет такие сведения автоматически. Доставку и хранение писем обеспечивает сервис электронной почты.
+
+Переписка может сохраняться, пока она нужна для обработки обращения и связанной с ним поддержки. Чтобы запросить удаление переписки или задать вопрос об обработке ваших данных, напишите на тот же адрес. Необходимые для исполнения применимых требований закона сведения могут сохраняться дольше.
+
+### Публичные страницы
+
+Страницы поддержки и этой политики размещены на GitHub. При открытии этих страниц данные об обращении к сайту обрабатывает GitHub по своим правилам конфиденциальности.
+
 ### Изменения политики
 
 Если способы обработки данных изменятся, эта политика будет обновлена. Дата актуальной редакции указывается в начале документа.
@@ -41,6 +51,8 @@ ATPlayer передаёт название трека, имя исполните
 Last updated: November 1, 2026.
 
 Developer: Andrey Torlopov.
+
+Privacy contact: [mail@torlopov.dev](mailto:mail@torlopov.dev).
 
 ATPlayer plays audio files that you select on your device. No account is required to use the app.
 
@@ -66,15 +78,16 @@ Playlist export happens only when you choose to export. The JSON file contains p
 
 You can remove tracks and playlists in the app. Removing these entries does not delete the original audio files. Deleting the app removes its local data according to the operating system's rules. System backups and original audio files stored separately are managed by you through device settings and the relevant services.
 
+### Support requests
+
+If you email mail@torlopov.dev, the developer receives your email address, sender name, message, and any attachments you choose to send. This information is used to respond to and investigate your request. This is voluntary correspondence; the app does not send this information automatically. An email service handles message delivery and storage.
+
+Correspondence may be retained while needed to handle your request and related support. To request deletion of correspondence or ask about the handling of your information, write to the same address. Information required to meet applicable legal obligations may be retained longer.
+
+### Public pages
+
+The support page and this policy are hosted on GitHub. When you open these pages, GitHub handles website access data under its own privacy rules.
+
 ### Policy changes
 
 This policy will be updated if the app's data practices change. The date of the current version appears at the start of this document.
-
-## Проверка перед публикацией — не включать в публичный текст
-
-- Добавить подтверждённый контакт для вопросов о конфиденциальности.
-- Сопоставить текст с итоговой сборкой, включая любые добавленные SDK и сетевые функции.
-- Опубликовать на действующем общедоступном HTTPS-адресе и проверить открытие без авторизации.
-- Указать этот адрес в App Store Connect и обеспечить доступ к политике из приложения.
-- Декларация App Privacy «Data Not Collected» подходит текущим проверенным исходникам, если итоговый бинарник не добавляет сбор данных. Локальное хранение само по себе не означает передачу данных разработчику: [Apple App Privacy Details](https://developer.apple.com/app-store/app-privacy-details/).
-- Требования Apple к доступности политики: [App Review Guidelines, 5.1.1](https://developer.apple.com/app-store/review/guidelines/).

@@ -1,0 +1,89 @@
+{
+  "ipa": "/Volumes/DATA-R1/Dev/Projects/ATPlayer/Artifacts/AppStore-2026-11-01/export/ATPlayer.ipa",
+  "ipaSHA256": "04cb9547d4681922e7527ba100fcc560059c5a30581d9044075ce30b939249d0",
+  "bundles": [
+    {
+      "bundle": "Payload/ATPlayer.app",
+      "info": {
+        "CFBundleIdentifier": "dev.torlopov.atplayer.ios",
+        "CFBundleShortVersionString": "1.0.2",
+        "CFBundleVersion": "1",
+        "CFBundleDevelopmentRegion": "ru",
+        "CFBundleLocalizations": [
+          "ru"
+        ],
+        "MinimumOSVersion": "26.2",
+        "DTSDKName": "iphoneos27.2",
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIDeviceFamily": [
+          1,
+          2
+        ]
+      },
+      "signatureVerification": "passed (codesign --verify --deep --strict)",
+      "entitlements": {
+        "application-identifier": "79798GRSHW.dev.torlopov.atplayer.ios",
+        "beta-reports-active": true,
+        "com.apple.developer.team-identifier": "79798GRSHW",
+        "get-task-allow": false
+      },
+      "profileName": "ATPlayer iOS App Store",
+      "profileUUID": "504a2a5a-08df-4bd6-bdbb-2b15ed70e412",
+      "profileExpires": "2027-11-01T10:44:18"
+    },
+    {
+      "bundle": "Payload/ATPlayer.app/PlugIns/ATPlayerWidgetExtensionExtension.appex",
+      "info": {
+        "CFBundleIdentifier": "dev.torlopov.atplayer.ios.extension",
+        "CFBundleShortVersionString": "1.0.2",
+        "CFBundleVersion": "1",
+        "CFBundleDevelopmentRegion": "ru",
+        "CFBundleLocalizations": null,
+        "MinimumOSVersion": "26.2",
+        "DTSDKName": "iphoneos27.2",
+        "ITSAppUsesNonExemptEncryption": null,
+        "UIDeviceFamily": [
+          1,
+          2
+        ]
+      },
+      "signatureVerification": "passed (codesign --verify --deep --strict)",
+      "entitlements": {
+        "application-identifier": "79798GRSHW.dev.torlopov.atplayer.ios.extension",
+        "beta-reports-active": true,
+        "com.apple.developer.team-identifier": "79798GRSHW",
+        "get-task-allow": false
+      },
+      "profileName": "ATPlayer iOS Extension App Store",
+      "profileUUID": "8d8e3fb0-0774-44dd-9fb3-23429cb7d4ec",
+      "profileExpires": "2027-11-01T10:44:18"
+    }
+  ],
+  "exportFiles": [
+    "ATPlayer.ipa",
+    "DistributionSummary.plist",
+    "ExportOptions.plist",
+    "Packaging.log"
+  ],
+  "privacyManifest": {
+    "NSPrivacyTracking": false,
+    "NSPrivacyCollectedDataTypes": [],
+    "NSPrivacyAccessedAPITypes": [
+      {
+        "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+        "NSPrivacyAccessedAPITypeReasons": [
+          "CA92.1"
+        ]
+      },
+      {
+        "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategorySystemBootTime",
+        "NSPrivacyAccessedAPITypeReasons": [
+          "35F9.1"
+        ]
+      }
+    ]
+  },
+  "privacyManifestMatchesSource": true,
+  "exportDiagnostics": [],
+  "packagingDiagnostics": []
+}

@@ -1,0 +1,95 @@
+{
+  "checked_at": "2026-11-01T17:24:07+03:00",
+  "ready_for_upload": true,
+  "file": "header-universal.png",
+  "width": 5244,
+  "height": 2950,
+  "format": "png",
+  "bit_depth": 8,
+  "png_color_type": 2,
+  "color_model": "RGB",
+  "has_alpha": false,
+  "has_transparency_chunk": false,
+  "profile": "sRGB IEC61966-2.1",
+  "png_crc_all_valid": true,
+  "file_bytes": 13819386,
+  "sha256": "2d966fd996987e0f4ba4a90ab6c8b3fe60104edc1a500b30bd1a045504a8ef5d",
+  "svg_sha256": "d9b7bb5b17f06ae61fd78254a44cf4661d78f418b132b57e46f1677c482cc667",
+  "generator_sha256": "8b084d417281702e59a7454540463fdf83f714b47c1454d3cd107ea9d0de28aa",
+  "svg_xml_valid": true,
+  "visible_text": false,
+  "third_party_images_fonts_or_external_resources": false,
+  "visual_verdict": "pass",
+  "visual_notes": "Центральный кремово-шалфейный play-мотив, отчётливая радиальная волна, тёмный градиент forest/teal. Композиция симметрично читается, элементы не обрезаны, текст/устройства/скриншоты отсутствуют.",
+  "critical_motif_bounds_px": {
+    "left": 1690.4151987241391,
+    "top": 554.0762275426482,
+    "right": 3538.158415216566,
+    "bottom": 2408.0485164262454
+  },
+  "nominal_center_crop_checks": {
+    "header_21_9": {
+      "visible_height_formula": "(5244 * 9) / 21 = 2247.4285714285716",
+      "top_formula": "(2950 - 2247.4285714285716) / 2 = 351.2857142857142",
+      "critical_motif_fits": true
+    },
+    "search_3_2": {
+      "visible_width_formula": "(2950 * 3) / 2 = 4425.0",
+      "left_formula": "(5244 - 4425.0) / 2 = 409.5",
+      "critical_motif_fits": true
+    }
+  },
+  "placements": [
+    "Product Page Header",
+    "Search Results"
+  ],
+  "localizations": [
+    "ru-RU",
+    "en-US"
+  ],
+  "spec_source": "https://developer.apple.com/help/app-store-connect/reference/app-information/creative-assets-specifications/",
+  "downstream_preview": "Root agent visually checked Russian Device Preview Product Page and Search Results in App Store Connect: pass. English localization was observed reusing the Russian assets.",
+  "uploaded": true,
+  "upload_recorded_at": "2026-11-01T17:28:14+03:00",
+  "app_store_connect_verification": {
+    "source": "Main agent direct UI observations reported in current chat",
+    "app_id": "6829444190",
+    "version": "1.0.2",
+    "build": "1",
+    "placements": {
+      "ru-RU": {
+        "Product Page Header": {
+          "upload_mode": "direct",
+          "count": 1,
+          "capacity": 1,
+          "observed_label": "1 of 1"
+        },
+        "Search Results": {
+          "use_header": true,
+          "count": 1,
+          "capacity": 1,
+          "observed_label": "1 of 1"
+        }
+      },
+      "en-US": {
+        "Product Page Header": {
+          "upload_mode": "localized reuse",
+          "observed_label": "Using Russian header asset"
+        },
+        "Search Results": {
+          "upload_mode": "localized reuse",
+          "observed_label": "Using Russian search results asset"
+        }
+      }
+    },
+    "device_preview": {
+      "locale": "ru-RU",
+      "Product Page": "pass",
+      "Search Results": "pass"
+    },
+    "review_submission_confirmed": true,
+    "public_release_confirmed": false,
+    "review_submission_id": "1170ab45-3ddf-4da3-8883-731f7642b862",
+    "review_status": "Waiting for Review"
+  }
+}

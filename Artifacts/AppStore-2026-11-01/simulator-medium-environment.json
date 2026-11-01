@@ -1,0 +1,47 @@
+{
+  "name": "ATPlayer App Store iPhone Medium",
+  "udid": "A0EA97FA-8776-4762-96D7-CEA800200E5A",
+  "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro",
+  "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-27-2",
+  "setupStatus": "ready",
+  "locale": {
+    "AppleLanguages": [
+      "ru"
+    ],
+    "AppleLocale": "ru_RU"
+  },
+  "file_provider_group": "/Users/at/Library/Developer/CoreSimulator/Devices/A0EA97FA-8776-4762-96D7-CEA800200E5A/data/Containers/Shared/AppGroup/7FE313A3-8D8C-4DE4-90BA-E472D29D66B9",
+  "demo_audio_destination": "/Users/at/Library/Developer/CoreSimulator/Devices/A0EA97FA-8776-4762-96D7-CEA800200E5A/data/Containers/Shared/AppGroup/7FE313A3-8D8C-4DE4-90BA-E472D29D66B9/File Provider Storage/Музыка",
+  "demo_audio_files": [
+    {
+      "path": "/Users/at/Library/Developer/CoreSimulator/Devices/A0EA97FA-8776-4762-96D7-CEA800200E5A/data/Containers/Shared/AppGroup/7FE313A3-8D8C-4DE4-90BA-E472D29D66B9/File Provider Storage/Музыка/Дорога домой.wav",
+      "sha256": "2f01f7cf0b0e8f100bd02597be3aa316c30c7a47223af9d3d1b588f7dc8b5605"
+    },
+    {
+      "path": "/Users/at/Library/Developer/CoreSimulator/Devices/A0EA97FA-8776-4762-96D7-CEA800200E5A/data/Containers/Shared/AppGroup/7FE313A3-8D8C-4DE4-90BA-E472D29D66B9/File Provider Storage/Музыка/Между облаками.wav",
+      "sha256": "6834d847b8c08aaa7c99f2374ca5db2a9dad4abf534b5821da988029dec8fb3d"
+    },
+    {
+      "path": "/Users/at/Library/Developer/CoreSimulator/Devices/A0EA97FA-8776-4762-96D7-CEA800200E5A/data/Containers/Shared/AppGroup/7FE313A3-8D8C-4DE4-90BA-E472D29D66B9/File Provider Storage/Музыка/Тихий берег.wav",
+      "sha256": "ccbdc0406049299ae4dec65cfa5ab89bb429d01db0f028384e54c095047f67a0"
+    },
+    {
+      "path": "/Users/at/Library/Developer/CoreSimulator/Devices/A0EA97FA-8776-4762-96D7-CEA800200E5A/data/Containers/Shared/AppGroup/7FE313A3-8D8C-4DE4-90BA-E472D29D66B9/File Provider Storage/Музыка/Утренний свет.wav",
+      "sha256": "9a8bf30803e4f52d91efd03ea5705ad385d6e7421b10222baa99b8f06bebfe87"
+    }
+  ],
+  "appVersion": "1.0.2",
+  "appBuild": "1",
+  "appBundleID": "dev.torlopov.atplayer.ios",
+  "statusBar": "Current Status Bar Overrides:\n=============================\nTime: 09:41\nDataNetworkType: 11\nWiFi Mode: 3, WiFi Bars: 3\nCell Mode: 3, Cell Bars: 4\nOperator Name: Carrier\nBattery State: 2, Battery Level: 100, Not Charging: 0",
+  "actualAppleLanguages": "(\n    ru\n)",
+  "actualAppleLocale": "ru_RU",
+  "screenID": "1",
+  "screenName": "LCD",
+  "screenUUID": "A5E81412-00C1-4D9F-9236-D7B7DD7B5751",
+  "displayPortUUID": "0C89C6F2-34F8-4576-AD20-4E5A958070B7",
+  "pixelSize": [
+    1206,
+    2622
+  ]
+}

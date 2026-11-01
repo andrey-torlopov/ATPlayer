@@ -14,10 +14,12 @@ The app interface is in Russian. To review playback:
 
 The app saves file references, playlist metadata, and settings locally. It does not copy the selected audio into its own library. Removing a playlist or track entry does not delete the original audio file. The JSON playlist export contains names and file paths, not audio files, and is not a library restore feature.
 
+The attached ATPlayer-Review-Demo.zip contains an original CC0 WAV and review instructions. Unzip it in Files and import Morning-Light.wav; its displayed track title is “Утренний свет”.
+
 ## Release operator notes — do not paste
 
 - Confirm the final build's empty-state button wording before submission. At preparation time the source UI uses “Добавить музыку”.
 - App Review contact name, email, and phone must come from the account owner; no contact details have been invented.
 - “Sign-in required” should be off for the reviewed implementation.
 - The interface is Russian even when an English product-page localization is used.
-- A real non-DRM demo audio file should be attached to the review submission if the final App Store Connect form permits it. Do not claim an attachment exists until it has been uploaded.
+- ATPlayer-Review-Demo.zip was uploaded to App Review Information. On November 1, 2026 at 17:20 Moscow time, the main agent observed its filename without a Processing indicator in App Store Connect. The attachment paragraph above was appended to the saved review notes. This does not mean the app has been submitted for review.

@@ -1,0 +1,31 @@
+{
+  "archive": "ATPlayer-Review-Demo.zip",
+  "purpose": "Apple App Review attachment only",
+  "uploaded": true,
+  "files": [
+    "ATPlayer-Review-Demo/Morning-Light.wav",
+    "ATPlayer-Review-Demo/README.md"
+  ],
+  "zip_bytes": 8884849,
+  "limit_bytes": 20000000,
+  "size_fraction_formula": "8884849 / 20000000 = 0.44424245",
+  "size_mb_formula": "8884849 / 1000000 = 8.884849 MB",
+  "duration_formula": "5292000 / 44100 = 120.0 seconds",
+  "source_wav_sha256": "9a8bf30803e4f52d91efd03ea5705ad385d6e7421b10222baa99b8f06bebfe87",
+  "zip_sha256": "64942ae4810896dc578612cf72e7e4f2637d6b313b627c470bfe5b85a3dc6363",
+  "crc_check": "passed",
+  "source_bytes_match": "passed",
+  "license": "CC0 1.0 Universal",
+  "uploadObservedAt": "2026-11-01T17:20:00+03:00",
+  "uploadObservation": {
+    "source": "Main agent observation in App Store Connect",
+    "appID": "6829444190",
+    "section": "App Review Information",
+    "filename": "ATPlayer-Review-Demo.zip",
+    "processingIndicatorVisible": false,
+    "reviewNotesAttachmentParagraphSaved": true,
+    "submittedForReview": true
+  },
+  "submissionID": "1170ab45-3ddf-4da3-8883-731f7642b862",
+  "reviewStatus": "Waiting for Review"
+}

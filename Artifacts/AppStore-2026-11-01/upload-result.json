@@ -1,0 +1,28 @@
+{
+  "appStoreConnectAppID": "6829444190",
+  "appIDFoundInDistributionLogs": [
+    "IDEDistributionAppStoreConnect.log",
+    "ContentDelivery.log"
+  ],
+  "bundleID": "dev.torlopov.atplayer.ios",
+  "version": "1.0.2",
+  "build": "1",
+  "uploadStatus": "succeeded",
+  "xcodebuildExitCode": 0,
+  "processingStatusAtUploadCompletion": "processing",
+  "completionTime": "2026-11-01T16:39:57+03:00",
+  "submittedForReview": false,
+  "archivePath": "/Volumes/DATA-R1/Dev/Projects/ATPlayer/Artifacts/AppStore-2026-11-01/ATPlayer.xcarchive",
+  "uploadOptionsPath": "/Volumes/DATA-R1/Dev/Projects/ATPlayer/Artifacts/AppStore-2026-11-01/UploadOptions.plist",
+  "uploadLogPath": "/Volumes/DATA-R1/Dev/Projects/ATPlayer/Artifacts/AppStore-2026-11-01/upload-archive.log",
+  "authentication": "Existing Xcode account; no new credentials or API keys; no login or 2FA required",
+  "allowProvisioningUpdatesUsed": false,
+  "versionAndBuildAutoManagement": false,
+  "diagnostics": [
+    {
+      "severity": "non-fatal local diagnostic",
+      "message": "ContentDelivery reported a missing CDUploaderStateInfoResumeFilePath after confirming the uploaded package was processing; final upload result succeeded.",
+      "action": "No retry performed."
+    }
+  ]
+}
