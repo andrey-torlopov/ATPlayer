@@ -51,6 +51,31 @@ struct SettingsViewV1: View {
                         .fixedSize(horizontal: false, vertical: true)
                         .padding(.horizontal, 4)
                 }
+
+                VStack(alignment: .leading, spacing: 14) {
+                    sectionLabel("О приложении")
+                    Link(destination: URL(string: "https://github.com/andrey-torlopov/ATPlayer/blob/main/PRIVACY.md")!) {
+                        settingsRow(
+                            symbol: "hand.raised",
+                            title: "Конфиденциальность",
+                            subtitle: "Как приложение работает с данными",
+                            trailingSymbol: "arrow.up.right"
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .softPanelV1()
+
+                    Link(destination: URL(string: "mailto:mail@torlopov.dev")!) {
+                        settingsRow(
+                            symbol: "envelope",
+                            title: "Поддержка",
+                            subtitle: "mail@torlopov.dev",
+                            trailingSymbol: "arrow.up.right"
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .softPanelV1()
+                }
             }
             .padding(24)
             .frame(maxWidth: 680, alignment: .leading)
