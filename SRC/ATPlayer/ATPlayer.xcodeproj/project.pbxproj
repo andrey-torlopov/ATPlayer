@@ -204,10 +204,10 @@
 				};
 			};
 			buildConfigurationList = E4242B8E2F669E7E0028E54A /* Build configuration list for PBXProject "ATPlayer" */;
-			developmentRegion = en;
+			developmentRegion = ru;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				en,
+				ru,
 				Base,
 			);
 			mainGroup = E4242B8A2F669E7E0028E54A;

@@ -1,0 +1,66 @@
+{
+  "ru-RU": {
+    "Name": {
+      "characters": 8,
+      "limit": 30,
+      "formula": "8/30",
+      "valid": true
+    },
+    "Subtitle": {
+      "characters": 26,
+      "limit": 30,
+      "formula": "26/30",
+      "valid": true
+    },
+    "Promotional Text": {
+      "characters": 149,
+      "limit": 170,
+      "formula": "149/170",
+      "valid": true
+    },
+    "Keywords": {
+      "characters": 69,
+      "limit": 100,
+      "formula": "69/100",
+      "valid": true
+    },
+    "Description": {
+      "characters": 1183,
+      "limit": 4000,
+      "formula": "1183/4000",
+      "valid": true
+    }
+  },
+  "en-US": {
+    "Name": {
+      "characters": 8,
+      "limit": 30,
+      "formula": "8/30",
+      "valid": true
+    },
+    "Subtitle": {
+      "characters": 29,
+      "limit": 30,
+      "formula": "29/30",
+      "valid": true
+    },
+    "Promotional Text": {
+      "characters": 136,
+      "limit": 170,
+      "formula": "136/170",
+      "valid": true
+    },
+    "Keywords": {
+      "characters": 62,
+      "limit": 100,
+      "formula": "62/100",
+      "valid": true
+    },
+    "Description": {
+      "characters": 1201,
+      "limit": 4000,
+      "formula": "1201/4000",
+      "valid": true
+    }
+  }
+}

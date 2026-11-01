@@ -1,0 +1,82 @@
+[
+  {
+    "file": "Утренний свет.wav",
+    "title": "Утренний свет",
+    "artist": "ATPlayer Demo",
+    "frames": 5292000,
+    "sample_rate_hz": 44100,
+    "duration_seconds": 120.0,
+    "duration_formula": "5292000 / 44100 = 120.0",
+    "peak_pcm": 5559,
+    "peak_fraction": 0.169647216796875,
+    "peak_formula": "5559 / 32768 = 0.16964722",
+    "sha256": "9a8bf30803e4f52d91efd03ea5705ad385d6e7421b10222baa99b8f06bebfe87",
+    "verification": {
+      "channels": 1,
+      "sample_width_bytes": 2,
+      "compression": "NONE",
+      "verified_frames": 5292000,
+      "verified_peak_fraction": 0.169647216796875
+    }
+  },
+  {
+    "file": "Тихий берег.wav",
+    "title": "Тихий берег",
+    "artist": "ATPlayer Demo",
+    "frames": 5644800,
+    "sample_rate_hz": 44100,
+    "duration_seconds": 128.0,
+    "duration_formula": "5644800 / 44100 = 128.0",
+    "peak_pcm": 5556,
+    "peak_fraction": 0.1695556640625,
+    "peak_formula": "5556 / 32768 = 0.16955566",
+    "sha256": "ccbdc0406049299ae4dec65cfa5ab89bb429d01db0f028384e54c095047f67a0",
+    "verification": {
+      "channels": 1,
+      "sample_width_bytes": 2,
+      "compression": "NONE",
+      "verified_frames": 5644800,
+      "verified_peak_fraction": 0.1695556640625
+    }
+  },
+  {
+    "file": "Между облаками.wav",
+    "title": "Между облаками",
+    "artist": "ATPlayer Demo",
+    "frames": 5997600,
+    "sample_rate_hz": 44100,
+    "duration_seconds": 136.0,
+    "duration_formula": "5997600 / 44100 = 136.0",
+    "peak_pcm": 5565,
+    "peak_fraction": 0.169830322265625,
+    "peak_formula": "5565 / 32768 = 0.16983032",
+    "sha256": "6834d847b8c08aaa7c99f2374ca5db2a9dad4abf534b5821da988029dec8fb3d",
+    "verification": {
+      "channels": 1,
+      "sample_width_bytes": 2,
+      "compression": "NONE",
+      "verified_frames": 5997600,
+      "verified_peak_fraction": 0.169830322265625
+    }
+  },
+  {
+    "file": "Дорога домой.wav",
+    "title": "Дорога домой",
+    "artist": "ATPlayer Demo",
+    "frames": 6350400,
+    "sample_rate_hz": 44100,
+    "duration_seconds": 144.0,
+    "duration_formula": "6350400 / 44100 = 144.0",
+    "peak_pcm": 5559,
+    "peak_fraction": 0.169647216796875,
+    "peak_formula": "5559 / 32768 = 0.16964722",
+    "sha256": "2f01f7cf0b0e8f100bd02597be3aa316c30c7a47223af9d3d1b588f7dc8b5605",
+    "verification": {
+      "channels": 1,
+      "sample_width_bytes": 2,
+      "compression": "NONE",
+      "verified_frames": 6350400,
+      "verified_peak_fraction": 0.169647216796875
+    }
+  }
+]
