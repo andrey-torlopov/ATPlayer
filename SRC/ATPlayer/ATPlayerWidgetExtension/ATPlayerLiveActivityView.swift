@@ -1,3 +1,4 @@
+import PlaybackActivity
 import ActivityKit
 import AppIntents
 import SwiftUI

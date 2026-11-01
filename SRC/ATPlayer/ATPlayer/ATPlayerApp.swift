@@ -1,27 +1,20 @@
-import SwiftData
+import PlayerApplication
 import SwiftUI
 
 @main
 struct ATPlayerApp: App {
-    private let container: ModelContainer
-    @StateObject private var viewModel: ATPlayerViewModel
+    @StateObject private var application: PlayerApplication
 
     init() {
         do {
-            container = try ModelContainer(for: TrackItem.self, PlaylistSection.self)
-            // Construct the player at app startup, including launches for audio
-            // intents. All scenes and system controls use this one instance.
-            let player = ATPlayerViewModel(context: container.mainContext)
-            _viewModel = StateObject(wrappedValue: player)
+            let application = try PlayerApplication()
+            _application = StateObject(wrappedValue: application)
         } catch {
             fatalError("Не удалось создать ModelContainer: \(error.localizedDescription)")
         }
     }
 
     var body: some Scene {
-        WindowGroup {
-            ContentView(viewModel: viewModel)
-        }
-        .modelContainer(container)
+        WindowGroup { ContentView(application: application) }
     }
 }

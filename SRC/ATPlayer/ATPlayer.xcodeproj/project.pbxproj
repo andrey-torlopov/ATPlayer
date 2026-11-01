@@ -10,6 +10,8 @@
 		E46AAB4C2F66FE3700EEF92F /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E46AAB4B2F66FE3700EEF92F /* WidgetKit.framework */; };
 		E46AAB4E2F66FE3700EEF92F /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E46AAB4D2F66FE3700EEF92F /* SwiftUI.framework */; };
 		E46AAB5D2F66FE3800EEF92F /* ATPlayerWidgetExtensionExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E46AAB492F66FE3700EEF92F /* ATPlayerWidgetExtensionExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+        A00000000000000000000001 /* PlayerApplication in Frameworks */ = {isa = PBXBuildFile; productRef = A00000000000000000000002 /* PlayerApplication */; };
+        A00000000000000000000003 /* PlaybackActivity in Frameworks */ = {isa = PBXBuildFile; productRef = A00000000000000000000004 /* PlaybackActivity */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -58,14 +60,6 @@
 			);
 			target = E46AAB482F66FE3700EEF92F /* ATPlayerWidgetExtensionExtension */;
 		};
-		E46AAB662F66FE5000EEF92F /* Exceptions for "ATPlayer" folder in "ATPlayerWidgetExtensionExtension" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				LiveActivity/ATPlayerActivityAttributes.swift,
-				LiveActivity/ATPlayerActivityService.swift,
-			);
-			target = E46AAB482F66FE3700EEF92F /* ATPlayerWidgetExtensionExtension */;
-		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -73,7 +67,6 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				E4242C102F66A0350028E54A /* Exceptions for "ATPlayer" folder in "ATPlayer" target */,
-				E46AAB662F66FE5000EEF92F /* Exceptions for "ATPlayer" folder in "ATPlayerWidgetExtensionExtension" target */,
 			);
 			path = ATPlayer;
 			sourceTree = "<group>";
@@ -93,6 +86,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+                A00000000000000000000001 /* PlayerApplication in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -101,6 +95,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E46AAB4E2F66FE3700EEF92F /* SwiftUI.framework in Frameworks */,
+                A00000000000000000000003 /* PlaybackActivity in Frameworks */,
 				E46AAB4C2F66FE3700EEF92F /* WidgetKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -158,6 +153,7 @@
 			);
 			name = ATPlayer;
 			packageProductDependencies = (
+                A00000000000000000000002 /* PlayerApplication */,
 			);
 			productName = ATPlayer;
 			productReference = E4242B932F669E7E0028E54A /* ATPlayer.app */;
@@ -180,6 +176,7 @@
 			);
 			name = ATPlayerWidgetExtensionExtension;
 			packageProductDependencies = (
+                A00000000000000000000004 /* PlaybackActivity */,
 			);
 			productName = ATPlayerWidgetExtensionExtension;
 			productReference = E46AAB492F66FE3700EEF92F /* ATPlayerWidgetExtensionExtension.appex */;
@@ -212,6 +209,7 @@
 			);
 			mainGroup = E4242B8A2F669E7E0028E54A;
 			minimizedProjectReferenceProxies = 1;
+            packageReferences = (A00000000000000000000005 /* ATPlayerKit */,);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E4242B942F669E7E0028E54A /* Products */;
 			projectDirPath = "";
@@ -264,6 +262,23 @@
 			targetProxy = E46AAB5B2F66FE3800EEF92F /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
+
+/* Begin XCLocalSwiftPackageReference section */
+        A00000000000000000000005 /* ATPlayerKit */ = {
+            isa = XCLocalSwiftPackageReference;
+            relativePath = LocalPackages/ATPlayerKit;
+        };
+/* End XCLocalSwiftPackageReference section */
+/* Begin XCSwiftPackageProductDependency section */
+        A00000000000000000000002 /* PlayerApplication */ = {
+            isa = XCSwiftPackageProductDependency;
+            productName = PlayerApplication;
+        };
+        A00000000000000000000004 /* PlaybackActivity */ = {
+            isa = XCSwiftPackageProductDependency;
+            productName = PlaybackActivity;
+        };
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
 		E4242B9C2F669E7F0028E54A /* Debug */ = {

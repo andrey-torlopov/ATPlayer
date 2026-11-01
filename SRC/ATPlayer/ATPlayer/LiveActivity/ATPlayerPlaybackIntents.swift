@@ -1,12 +1,12 @@
 import AppIntents
+import PlayerApplication
 
 struct TogglePlaybackIntent: AudioPlaybackIntent {
     static var title: LocalizedStringResource = "Переключить воспроизведение"
 
     @MainActor
     func perform() async throws -> some IntentResult {
-        guard let player = ATPlayerViewModel.shared else { throw PlaybackIntentError.unavailable }
-        await player.performPlaybackCommand(.toggle)
+        try await PlaybackIntentBridge.perform(.toggle)
         return .result()
     }
 }
@@ -16,8 +16,7 @@ struct NextTrackIntent: AudioPlaybackIntent {
 
     @MainActor
     func perform() async throws -> some IntentResult {
-        guard let player = ATPlayerViewModel.shared else { throw PlaybackIntentError.unavailable }
-        await player.performPlaybackCommand(.next)
+        try await PlaybackIntentBridge.perform(.next)
         return .result()
     }
 }
@@ -27,16 +26,7 @@ struct PreviousTrackIntent: AudioPlaybackIntent {
 
     @MainActor
     func perform() async throws -> some IntentResult {
-        guard let player = ATPlayerViewModel.shared else { throw PlaybackIntentError.unavailable }
-        await player.performPlaybackCommand(.previous)
+        try await PlaybackIntentBridge.perform(.previous)
         return .result()
-    }
-}
-
-private nonisolated enum PlaybackIntentError: LocalizedError {
-    case unavailable
-
-    var errorDescription: String? {
-        "Плеер недоступен. Откройте ATPlayer и выберите трек."
     }
 }
