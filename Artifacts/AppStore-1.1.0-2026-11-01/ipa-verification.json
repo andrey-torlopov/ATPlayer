@@ -1,0 +1,15 @@
+{
+  "version": "1.1.0",
+  "build": "2",
+  "sha256": "4a9f3d4d0074e7959bd2d37ad681ed0811d7b60a0c94ff4866a7d9a96766ae57",
+  "bundles": [
+    {
+      "bundleID": "dev.torlopov.atplayer.ios",
+      "signatureValid": true
+    },
+    {
+      "bundleID": "dev.torlopov.atplayer.ios.extension",
+      "signatureValid": true
+    }
+  ]
+}

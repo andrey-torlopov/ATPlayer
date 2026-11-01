@@ -1,0 +1,15 @@
+{
+  "appStoreConnectAppID": "6829444190",
+  "bundleID": "dev.torlopov.atplayer.ios",
+  "version": "1.1.0",
+  "build": "2",
+  "uploadStatus": "succeeded",
+  "xcodebuildExitCode": 0,
+  "processingStatusAtUploadCompletion": "processing",
+  "completionTime": "2026-11-01T22:20:39+03:00",
+  "submittedForReview": false,
+  "archivePath": "/Volumes/DATA-R1/Dev/Projects/ATPlayer/Artifacts/AppStore-1.1.0-2026-11-01/ATPlayer.xcarchive",
+  "uploadOptionsPath": "/Volumes/DATA-R1/Dev/Projects/ATPlayer/Artifacts/AppStore-1.1.0-2026-11-01/UploadOptions.plist",
+  "authentication": "Existing Xcode account; no new credentials or API keys",
+  "versionAndBuildAutoManagement": false
+}

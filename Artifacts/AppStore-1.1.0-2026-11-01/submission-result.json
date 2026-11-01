@@ -1,0 +1,38 @@
+{
+  "appID": "6829444190",
+  "version": "1.1.0",
+  "build": "2",
+  "status": "Waiting for Review",
+  "submittedAt": "2026-11-01T22:28:00+03:00",
+  "timestampPrecision": "minute; observed in App Store Connect",
+  "submissionID": "9cc2260c-8b1f-413b-a9c0-7d3e15bdc5a8",
+  "submissionURL": "https://appstoreconnect.apple.com/apps/6829444190/distribution/reviewsubmissions/details/9cc2260c-8b1f-413b-a9c0-7d3e15bdc5a8",
+  "itemsSubmitted": 1,
+  "draftSubmissions": 0,
+  "releaseMode": "automatic after Apple approval",
+  "publiclyReleased": false,
+  "previousSubmission": {
+    "version": "1.0.2",
+    "build": "1",
+    "submissionID": "1170ab45-3ddf-4da3-8883-731f7642b862",
+    "withdrawalConfirmed": true,
+    "versionStatusObservedAfterWithdrawal": "Developer Rejected"
+  },
+  "metadata": {
+    "locales": [
+      "ru-RU",
+      "en-US"
+    ],
+    "savedFields": [
+      "Description",
+      "Promotional Text",
+      "Keywords",
+      "Subtitle"
+    ],
+    "reviewNotesUpdated": true,
+    "reviewAttachment": "ATPlayer-Review-Demo.zip",
+    "appPrivacy": "Published; Data Not Collected",
+    "whatsNew": "prepared locally; no field shown for this first public release"
+  },
+  "verification": "Native Safari UI: save, return to version, selected build, release radio, submission confirmation, submission details. Existing private review contacts preserved and omitted from report."
+}

@@ -15,21 +15,21 @@
 
 Музыка в приложение не включена. Для прослушивания нужны ваши аудиофайлы. Импорт папки в плейлист включает её вложенные каталоги.
 
-### Папки — текущие исходники, ещё не выпущено
+### Папки — кандидат 1.1.0
 
 Переключите **«Плейлисты / Папки»** в режим **«Папки»**, нажмите **«Добавить папку»** и выберите корневой каталог. Каждый открытый уровень показывает только непосредственные папки и аудиофайлы. Нажатие аудиофайла создаёт очередь этого уровня без обхода вложенных папок. Навигация и переключение режима не меняют уже играющую очередь.
 
-После перезапуска сохраняются только выбранные корни; путь, списки и очередь папки создаются заново. **«Обновить папку»** повторно читает текущий уровень. Удаление корня из ATPlayer сохраняет оригиналы, но останавливает его текущую очередь. Эта функция отсутствует в отправленной сборке **1.0.2 (1)**.
+После перезапуска сохраняются только выбранные корни; путь, списки и очередь папки создаются заново. **«Обновить папку»** обновляет список. Удаление корня из ATPlayer сохраняет оригиналы, но останавливает его текущую очередь. Функция входит в **1.1.0 (2)**, отправленную на App Review со статусом **Waiting for Review**; публичный выпуск ещё не выполнен. Актуальное состояние — в [статусе релиза](docs/ru/releases.md).
 
 ### Плейлисты и настройки
 
-Кнопка **+** рядом с заголовком «Плейлисты» создаёт новый плейлист. В меню **…** нужного плейлиста можно переименовать его, отредактировать порядок треков или удалить список. Удаление записей не удаляет исходные аудиофайлы.
+Кнопка **+** рядом с заголовком «Плейлисты» создаёт новый плейлист. В версии 1.1.0 кнопка со стрелками вверх/вниз рядом с заголовком открывает **«Порядок плейлистов»**: перетаскивайте списки за правые ручки, порядок сохраняется сразу. В меню **…** нужного плейлиста можно переименовать его, отредактировать порядок треков или удалить список. Удаление записей не удаляет исходные аудиофайлы.
 
 Кнопка с ползунками в правом верхнем углу открывает настройки. В разделе **«Эквалайзер»** доступны 10 полос и предусиление. Изменения применяются сразу и сохраняются автоматически.
 
 ### Файл не воспроизводится
 
-Проверьте, что исходный файл существует и открывается через «Файлы». Плейлисты хранят ссылки на оригиналы. В режиме «Папки» текущих исходников плеер дополнительно подготавливает аудио открытого уровня во временном локальном кеше. Если вы переместили или удалили файл, обновите папку или выберите источник заново.
+Проверьте, что исходный файл существует и открывается через «Файлы». Плейлисты хранят ссылки на оригиналы. В режиме «Папки» версии 1.1.0 плеер дополнительно подготавливает аудио открытого уровня во временном локальном кеше. Если вы переместили или удалили файл, обновите папку или выберите источник заново.
 
 Для iCloud Drive и сетевых поставщиков может потребоваться загрузка по сети. Кеш папок очищается и не гарантирует офлайн-доступ; отметка «Подготовлен» означает завершённую подготовку, а не постоянное хранение. Если файл доступен, но ошибка сохраняется, попробуйте другой аудиофайл, например MP3 или WAV без DRM.
 
@@ -62,21 +62,21 @@ Developer: Andrey Torlopov. For help with the app, email [mail@torlopov.dev](mai
 
 Music is not included. Bring your own audio files. Importing a folder into a playlist includes its subfolders.
 
-### Folders — current source, unreleased
+### Folders — 1.1.0 candidate
 
 Switch **«Плейлисты / Папки»** (Playlists / Folders) to **«Папки»**, tap **«Добавить папку»** (Add Folder), and choose a root directory. Each level shows only its immediate folders and audio files. Tapping audio creates a queue for that level without traversing subfolders. Browsing and switching modes leave the active queue playing.
 
-Only selected roots survive relaunch; the browsing path, listings, and folder queue start fresh. **«Обновить папку»** (Refresh Folder) reads the current level again. Removing a root from ATPlayer keeps the originals but stops its active queue. This feature is absent from the submitted **1.0.2 (1)** build.
+Only selected roots survive relaunch; the browsing path, listings, and folder queue start fresh. **«Обновить папку»** (Refresh Folder) refreshes the listing. Removing a root from ATPlayer keeps the originals but stops its active queue. The feature is included in **1.1.0 (2)**, submitted to App Review with **Waiting for Review** status; public release is still pending. See [release status](docs/en/releases.md) for the latest recorded state.
 
 ### Playlists and settings
 
-The **+** button beside **«Плейлисты»** (Playlists) creates a new playlist. The playlist **…** menu lets you rename it, edit the track order, or delete the list. Removing entries does not delete the original audio files.
+The **+** button beside **«Плейлисты»** (Playlists) creates a new playlist. In version 1.1.0, the up/down arrows beside the heading open **«Порядок плейлистов»** (Playlist Order): drag the handles on the right; the order saves immediately. The playlist **…** menu lets you rename it, edit the track order, or delete the list. Removing entries does not delete the original audio files.
 
 The sliders button at the top right opens settings. **«Эквалайзер»** (Equalizer) provides 10 bands and a preamp. Changes apply immediately and are saved automatically.
 
 ### A file will not play
 
-Check that the original file still exists and opens in Files. Playlists keep references to the originals. Folders mode in the current source also prepares audio from the open level in a temporary local cache. If you moved or deleted a file, refresh the folder or select the source again.
+Check that the original file still exists and opens in Files. Playlists keep references to the originals. Folders mode in version 1.1.0 also prepares audio from the open level in a temporary local cache. If you moved or deleted a file, refresh the folder or select the source again.
 
 iCloud Drive and network providers may need a connection to download files. The folder cache can be cleared and does not guarantee offline access; «Подготовлен» (Prepared) records successful preparation, not permanent storage. If the file is available but the error continues, try another audio file, such as a non-DRM MP3 or WAV.
 

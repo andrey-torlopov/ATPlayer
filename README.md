@@ -18,13 +18,13 @@ ATPlayer is a simple local audio player for iPhone and iPad. Your own files, an 
 
 ## Availability
 
-**Version 1.0.2, build 1, was submitted to App Review on November 1, 2026. Its status is Waiting for Review. Public App Store availability is still pending; automatic release is enabled after approval.**
+**Version 1.1.0, build 2, was submitted to App Review on November 1, 2026 at 22:28 Moscow time. Its status is Waiting for Review. Automatic release after approval is enabled; the app has not yet been publicly released. The earlier 1.0.2 (1) submission was withdrawn.**
 
 - iPhone and iPad with **iOS / iPadOS 26.2 or later**.
 - The app interface is currently **in Russian**; documentation is available in English and Russian.
 - The planned App Store release is **free, without in-app purchases**.
 
-Developers can [run the project from source](docs/en/development.md). A source tag does not mean that Apple has approved or published that version. **The current source also includes the unreleased Playlists / Folders switch; this feature is not part of the submitted 1.0.2 (1) build.**
+Developers can [run the project from source](docs/en/development.md). A source tag does not mean that Apple has approved or published that version. **The 1.1.0 candidate includes the Playlists / Folders switch, playback modes, and playlist reordering.** See [release status and verification](docs/en/releases.md).
 
 ## Start listening
 
@@ -32,14 +32,14 @@ Developers can [run the project from source](docs/en/development.md). A source t
 2. Choose your audio files or a folder in Files.
 3. Tap a track. Arrange the order once, then let the music play.
 
-Playlist import keeps references to your files and includes subfolders when you select a folder. In the current source, **«Папки»** (Folders) lets you save selected roots, browse one level at a time, and play only that level’s audio. Browsing and switching modes leave the active track playing. Cloud or network files are prepared in a temporary local cache; this is not a guarantee of offline availability. [Quick start →](docs/en/quick-start.md)
+Playlist import keeps references to your files and includes subfolders when you select a folder. In the 1.1.0 candidate, **«Папки»** (Folders) lets you save selected roots, browse one level at a time, and play only that level’s audio. Browsing and switching modes leave the active track playing. Cloud or network files are prepared in a temporary local cache; this is not a guarantee of offline availability. [Quick start →](docs/en/quick-start.md)
 
 ## What is included
 
 | For listening | For your collection |
 |---|---|
-| Background playback and Lock Screen controls | Files and recursive playlist import; folder browsing in current source |
-| Circular seek control and audio visualization | Named playlists and track reordering |
+| Background playback and Lock Screen controls | Files and recursive playlist import; folder browsing in 1.1.0 |
+| Circular seek control and audio visualization | Named playlists; playlist and track reordering |
 | Live Activities on supported devices | Removing entries without deleting audio |
 | 10-band equalizer and preamp | JSON export of playlist information |
 | Light and dark appearance; iPhone and iPad layouts | Local playlist storage; no app account |

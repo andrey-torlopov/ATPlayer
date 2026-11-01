@@ -1,0 +1,101 @@
+{
+  "ru-RU": {
+    "Name": {
+      "characters": 8,
+      "limit": 30,
+      "formula": "8/30",
+      "valid": true
+    },
+    "Subtitle": {
+      "characters": 25,
+      "limit": 30,
+      "formula": "25/30",
+      "valid": true
+    },
+    "Promotional Text": {
+      "characters": 134,
+      "limit": 170,
+      "formula": "134/170",
+      "valid": true
+    },
+    "Keywords": {
+      "characters": 47,
+      "limit": 100,
+      "formula": "47/100",
+      "valid": true,
+      "utf8_bytes": 81,
+      "byte_limit": 100,
+      "byte_formula": "81/100"
+    },
+    "Description": {
+      "characters": 2272,
+      "limit": 4000,
+      "formula": "2272/4000",
+      "valid": true
+    },
+    "What's New": {
+      "characters": 574,
+      "limit": 4000,
+      "formula": "574/4000",
+      "valid": true
+    }
+  },
+  "en-US": {
+    "Name": {
+      "characters": 8,
+      "limit": 30,
+      "formula": "8/30",
+      "valid": true
+    },
+    "Subtitle": {
+      "characters": 30,
+      "limit": 30,
+      "formula": "30/30",
+      "valid": true
+    },
+    "Promotional Text": {
+      "characters": 147,
+      "limit": 170,
+      "formula": "147/170",
+      "valid": true
+    },
+    "Keywords": {
+      "characters": 75,
+      "limit": 100,
+      "formula": "75/100",
+      "valid": true,
+      "utf8_bytes": 75,
+      "byte_limit": 100,
+      "byte_formula": "75/100"
+    },
+    "Description": {
+      "characters": 2285,
+      "limit": 4000,
+      "formula": "2285/4000",
+      "valid": true
+    },
+    "What's New": {
+      "characters": 504,
+      "limit": 4000,
+      "formula": "504/4000",
+      "valid": true
+    }
+  },
+  "Review Notes": {
+    "characters": 3101,
+    "utf8_bytes": 3252,
+    "byte_limit": 4000,
+    "formula": "3252/4000",
+    "valid": true
+  },
+  "Release": {
+    "version": "1.1.0",
+    "build": "2",
+    "status": "metadata prepared; publication not asserted"
+  },
+  "Sources": [
+    "https://developer.apple.com/help/app-store-connect/reference/app-information/platform-version-information",
+    "https://developer.apple.com/help/app-store-connect/reference/app-information/app-information/",
+    "https://developer.apple.com/app-store/app-privacy-details/"
+  ]
+}

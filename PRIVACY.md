@@ -8,19 +8,19 @@
 
 Контакт по вопросам конфиденциальности: [mail@torlopov.dev](mailto:mail@torlopov.dev).
 
-ATPlayer предназначен для воспроизведения аудиофайлов, выбранных вами на устройстве. Для использования приложения не требуется аккаунт. Описанный ниже режим «Папки» реализован в текущих исходниках и ещё не выпущен; в отправленной сборке 1.0.2 (1) его нет.
+ATPlayer предназначен для воспроизведения аудиофайлов, выбранных вами на устройстве. Для использования приложения не требуется аккаунт. Описанные ниже функции режима «Папки» относятся к версии 1.1.0. Их описание в этой политике не означает, что обновление уже одобрено или опубликовано в App Store.
 
 ### Какие данные использует приложение
 
-ATPlayer хранит на устройстве названия и порядок плейлистов, сведения о выбранных треках, продолжительность, доступные обложки, ссылки и разрешения доступа к исходным файлам. Приложение также сохраняет настройки эквалайзера и сведения о последнем выбранном плейлисте. В режиме «Папки» отдельно сохраняются названия, порядок и закладки доступа только выбранных корневых каталогов. Вложенные списки, путь просмотра и очередь папки между запусками не сохраняются. Эти данные нужны для работы плеера и не отправляются разработчику.
+ATPlayer хранит на устройстве названия и порядок плейлистов, сведения о выбранных треках, продолжительность, доступные обложки, ссылки и разрешения доступа к исходным файлам. Приложение также сохраняет настройки эквалайзера, выбранные режимы библиотеки и воспроизведения и сведения о последнем выбранном плейлисте. В режиме «Папки» отдельно сохраняются названия, порядок и закладки доступа только выбранных корневых каталогов. Вложенные списки, путь просмотра и очередь папки между запусками не сохраняются. Эти данные нужны для работы плеера и не отправляются разработчику.
 
-Приложение не содержит рекламных или аналитических SDK, не использует отслеживание между приложениями и не передаёт разработчику аудиозаписи, историю прослушивания или сведения о ваших файлах.
+Приложение не содержит рекламы, рекламных или аналитических SDK, не собирает для разработчика статистику использования, не использует отслеживание между приложениями и не передаёт разработчику аудиозаписи, историю прослушивания или сведения о ваших файлах.
 
 ### Доступ к аудиофайлам
 
-Вы предоставляете доступ к отдельным файлам или выбранной папке через системное приложение «Файлы». При импорте папки в плейлист ATPlayer ищет аудиофайлы также во вложенных каталогах и сохраняет ссылки на оригиналы. Режим «Папки» читает только открытый уровень. Его аудиофайлы могут загружаться заранее и копироваться во временный локальный кеш для воспроизведения. Кеш управляется автоматически, может очищаться и не является постоянной медиатекой или гарантией офлайн-доступа.
+Вы предоставляете доступ к отдельным файлам или выбранной папке через системное приложение «Файлы». При импорте папки в плейлист ATPlayer ищет аудиофайлы также во вложенных каталогах и сохраняет ссылки на оригиналы. Режим «Папки» показывает непосредственные папки и аудиофайлы открытого уровня. Чтобы скрывать ветки без поддерживаемого аудио, приложение может проверять списки и метаданные вложенных каталогов. Эта проверка не читает и не скачивает содержимое вложенных аудиофайлов. В очередь воспроизведения и предварительную подготовку входят только аудиофайлы открытого уровня: они могут загружаться заранее и копироваться во временный локальный кеш. Выбранный трек получает приоритет. Кеш управляется автоматически, может очищаться и не является постоянной медиатекой или гарантией офлайн-доступа.
 
-Если выбранный файл находится в iCloud Drive, приложение может запросить его загрузку через системные средства Apple. Другие поставщики файлов также работают по своим правилам. Их сетевое взаимодействие и обработка данных регулируются условиями соответствующего поставщика, а не этой политикой.
+Доступные локальные аудиофайлы воспроизводятся без интернета. Если выбранный источник находится в iCloud Drive, на сетевом диске или у другого поставщика файлов, чтение списков и метаданных, а также загрузка аудиофайлов могут требовать сети. ATPlayer обращается к выбранному вами источнику через системные средства доступа к файлам. Данные при этом не отправляются на сервер разработчика. Сетевое взаимодействие и обработка данных Apple и другими поставщиками регулируются также их собственными условиями и политиками конфиденциальности.
 
 ### Системные элементы управления
 
@@ -54,19 +54,19 @@ Developer: Andrey Torlopov.
 
 Privacy contact: [mail@torlopov.dev](mailto:mail@torlopov.dev).
 
-ATPlayer plays audio files that you select on your device. No account is required to use the app. The Folders mode described below is implemented in the current source and is unreleased; it is not part of the submitted 1.0.2 (1) build.
+ATPlayer plays audio files that you select on your device. No account is required to use the app. The Folders features described below apply to version 1.1.0. Describing them in this policy does not mean the update has already been approved or published on the App Store.
 
 ### Data used by the app
 
-ATPlayer stores playlist names and order, selected track information, duration, available artwork, and references and access permissions for the original files on your device. It also saves equalizer settings and the last selected playlist. Folders mode separately saves names, order, and access bookmarks for selected root directories only. Nested listings, the browsing path, and the folder queue are not saved between launches. This information supports playback and is not sent to the developer.
+ATPlayer stores playlist names and order, selected track information, duration, available artwork, and references and access permissions for the original files on your device. It also saves equalizer settings, the selected library and playback modes, and the last selected playlist. Folders mode separately saves names, order, and access bookmarks for selected root directories only. Nested listings, the browsing path, and the folder queue are not saved between launches. This information supports playback and is not sent to the developer.
 
-The app contains no advertising or analytics SDKs, does not track you across apps, and does not send the developer your audio recordings, listening history, or information about your files.
+The app contains no ads or advertising or analytics SDKs, does not collect usage statistics for the developer, does not track you across apps, and does not send the developer your audio recordings, listening history, or information about your files.
 
 ### Access to audio files
 
-You grant access to individual files or a selected folder through the system Files picker. Importing a folder into a playlist also searches subfolders and keeps references to the originals. Folders mode reads only the open level. Its audio files may be downloaded in advance and copied into a temporary local cache for playback. The cache is managed automatically, can be cleared, and is not a permanent library or a guarantee of offline access.
+You grant access to individual files or a selected folder through the system Files picker. Importing a folder into a playlist also searches subfolders and keeps references to the originals. Folders mode displays the immediate folders and audio files in the open directory. To hide branches without supported audio, the app may inspect listings and metadata in descendant directories. That check does not read or download the contents of descendant audio files. Only audio files from the open level enter the playback queue and advance preparation: they may be downloaded and copied into a temporary local cache. The selected track takes priority. The cache is managed automatically, can be cleared, and is not a permanent library or a guarantee of offline access.
 
-If a selected file is stored in iCloud Drive, the app may request its download through Apple's system services. Other file providers also operate under their own policies. Their network activity and data practices are governed by the relevant provider's terms, not this policy.
+Available local audio files play without the internet. If the selected source is in iCloud Drive, on network storage, or with another file provider, reading directory listings and metadata or downloading audio may require a network connection. ATPlayer accesses the source you selected through system file-access services. This does not send your data to a developer server. Network activity and data processing by Apple and other providers are also governed by their own terms and privacy policies.
 
 ### System playback controls
 
