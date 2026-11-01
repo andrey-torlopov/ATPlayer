@@ -1,8 +1,9 @@
 import ActivityKit
 import Foundation
 
-struct ATPlayerActivityAttributes: ActivityAttributes {
-    struct ContentState: Codable, Hashable {
+// ActivityKit exchanges these values across executors and with the widget.
+nonisolated struct ATPlayerActivityAttributes: ActivityAttributes, Sendable {
+    struct ContentState: Codable, Hashable, Sendable {
         let trackTitle: String
         let artistName: String
         let duration: TimeInterval
