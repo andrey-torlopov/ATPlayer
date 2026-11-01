@@ -1,1 +1,13 @@
 tmp/
+
+# Local macOS and Xcode state
+.DS_Store
+xcuserdata/
+*.xcuserstate
+DerivedData/
+
+# Generated distribution output
+*.xcarchive/
+*.ipa
+Artifacts/AppStore-*/export/
+Artifacts/AppStore-*/*.log

@@ -6,7 +6,7 @@ Status recorded on **November 1, 2026**.
 
 ## App Store candidate
 
-**Version 1.0.2, build 1** was uploaded successfully to App Store Connect on November 1, 2026 at 16:39 Moscow time. Apple has completed processing, and the build is attached to the prepared product page. It has not yet been submitted to App Review and is not publicly available on the App Store. Source tags and a signed archive are separate from Apple's review and public availability.
+**Version 1.0.2, build 1** was submitted to App Review on November 1, 2026 at **17:28 Moscow time**. App Store Connect shows **Waiting for Review** for the submitted app version. Automatic release after approval is enabled. The app is not yet publicly available on the App Store; submission does not mean Apple has approved it.
 
 | Item | Recorded status |
 |---|---|
@@ -20,10 +20,14 @@ Status recorded on **November 1, 2026**.
 | Upload to App Store Connect | Succeeded |
 | Apple build processing | Completed; build attached to version 1.0.2 |
 | Product-page texts | Russian and English saved |
-| Screenshots | 4 iPhone and 2 iPad JPEGs uploaded |
+| Screenshots | 4 iPhone and 2 iPad JPEGs uploaded; Russian and English localizations checked |
+| Header and Search Results assets | Uploaded for Russian; English reuses these assets; Russian device previews checked |
+| App Review attachment | Original CC0 demo audio and review instructions uploaded |
+| App Privacy | Published |
 | Availability settings | Free in 175 regions; Mac and Apple Vision availability disabled |
 | Age rating | 4+ saved |
-| App Review submission | Pending |
+| App Review submission | Submitted November 1, 2026 at 17:28 Moscow time; Waiting for Review |
+| Release mode | Automatic after approval |
 | App Store public availability | Pending |
 
 The owner has reported successful manual testing of the app. That report is not a complete device, file-format, accessibility, or audio-route test matrix. Current release preparation also verified the bundle versions, device families, privacy manifest, and distribution signatures. These checks establish packaging facts; they do not guarantee App Review approval.

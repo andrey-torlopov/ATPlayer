@@ -12,7 +12,7 @@ ATPlayer plays your own audio files on iPhone and iPad. The app interface is in 
 - [Support](../../SUPPORT.md): troubleshooting and contact.
 - [Privacy policy](../../PRIVACY.md).
 
-As of November 1, 2026, Apple has processed version 1.0.2, build 1, and it is attached to the prepared App Store product page. Review submission and public App Store availability are still pending.
+As of November 1, 2026, version 1.0.2, build 1, has been submitted to App Review and is Waiting for Review. Public App Store availability is still pending; automatic release is enabled after approval.
 
 ---
 
