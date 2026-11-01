@@ -1,3 +1,4 @@
+import FolderDomain
 import LibraryDomain
 import PlaybackDomain
 import Combine
@@ -18,6 +19,7 @@ public final class ATPlayerViewModel: ObservableObject {
     @Published var importError: String?
     @Published var importTargetSection: Playlist?
     @Published var lastPlayedSectionID: UUID?
+    @Published private(set) var preparingTrackTitle: String?
     @Published private(set) var isImporting = false
     @Published private(set) var playbackMode: PlaybackMode = .off
 
@@ -27,6 +29,7 @@ public final class ATPlayerViewModel: ObservableObject {
     let activityService: any ActivityPresenting
     private let storageService: any PlaylistStoring
     private let defaults: UserDefaults
+    private let folderAccess: (any FolderAccessing)?
     private let mediaAccess: any MediaResourceAccess
     private let nowPlayingService: any NowPlayingPresenting
     private var activeScopedURL: URL?
@@ -38,9 +41,29 @@ public final class ATPlayerViewModel: ObservableObject {
     private var importTask: Task<Void, Never>?
     private var playbackQueue = PlaybackQueue()
     private var playbackModeRevision: UInt = 0
+    private var playbackSource: PlaybackSource = .playlists
+    private var pendingFolderSourceID: UUID?
+    private var activeLease: CachedAudioLease?
+    private var preparationTask: Task<CachedAudioLease, Error>?
+
+    private struct FolderQueue {
+        let source: FolderSource
+        let entries: [FolderEntry]
+        let tracks: [PlaylistTrack]
+    }
+
+    private enum PlaybackSource {
+        case playlists
+        case folder(FolderQueue)
+
+        var folderID: UUID? {
+            if case let .folder(queue) = self { return queue.source.id }
+            return nil
+        }
+    }
 
     private enum PlaybackRequest {
-        case selection(UUID)
+        case selection(UUID, PlaybackSource)
         case adjacent(PlaybackQueue.Direction)
         case finished
     }
@@ -51,8 +74,10 @@ public final class ATPlayerViewModel: ObservableObject {
         activity: any ActivityPresenting,
         nowPlaying: any NowPlayingPresenting,
         mediaAccess: any MediaResourceAccess,
-        defaults: UserDefaults = .standard
+        defaults: UserDefaults = .standard,
+        folderAccess: (any FolderAccessing)? = nil
     ) {
+        self.folderAccess = folderAccess
         self.defaults = defaults
         self.storageService = storage
         self.playbackService = audio
@@ -95,8 +120,20 @@ public final class ATPlayerViewModel: ObservableObject {
         reloadSections()
     }
 
-    deinit {
+    isolated deinit {
+        playbackService.stop()
+        preparationTask?.cancel()
+        if let lease = activeLease, let access = folderAccess {
+            Task { await access.release(lease) }
+        }
         activeScopedURL?.stopAccessingSecurityScopedResource()
+    }
+
+    public func shutdown() {
+        cancelImport()
+        resetPlayback()
+        nowPlayingService.handleCommand = nil
+        playbackService.onTrackFinished = nil
     }
 
     func reloadSections() {
@@ -193,6 +230,13 @@ public final class ATPlayerViewModel: ObservableObject {
 
     // MARK: - Playback
 
+    var playbackModeTitle: String { modeTitle(playbackMode) }
+    var nextPlaybackModeTitle: String { modeTitle(playbackMode.next) }
+
+    private func modeTitle(_ mode: PlaybackMode) -> String {
+        mode == .repeatPlaylist && playbackSource.folderID != nil ? "Повтор папки" : mode.title
+    }
+
     func cyclePlaybackMode() {
         playbackMode = playbackMode.next
         playbackModeRevision &+= 1
@@ -201,26 +245,69 @@ public final class ATPlayerViewModel: ObservableObject {
         schedulePlaybackPresentationUpdate()
     }
 
-    private func updatePlaybackQueue(startingAt track: PlaylistTrack? = nil, restart: Bool = false) {
-        playbackQueue = makePlaybackQueue(startingAt: track, restart: restart)
+    private func sourceTracks(_ source: PlaybackSource) -> [PlaylistTrack] {
+        switch source {
+        case .playlists: allTracks
+        case let .folder(queue): queue.tracks
+        }
     }
 
-    private func makePlaybackQueue(startingAt track: PlaylistTrack? = nil, restart: Bool = false) -> PlaybackQueue {
+    private func updatePlaybackQueue(startingAt track: PlaylistTrack? = nil, restart: Bool = false) {
+        playbackQueue = makePlaybackQueue(startingAt: track, source: playbackSource, restart: restart)
+    }
+
+    private func makePlaybackQueue(
+        startingAt track: PlaylistTrack? = nil,
+        source: PlaybackSource,
+        restart: Bool = false
+    ) -> PlaybackQueue {
         let current = track ?? selectedTrack
         let queueTracks: [PlaylistTrack]
-        if playbackMode != .off, let section = current?.section {
+        if case let .folder(folder) = source {
+            queueTracks = folder.tracks
+        } else if playbackMode != .off, let section = current?.section {
             queueTracks = tracks(in: section)
         } else {
             queueTracks = allTracks
         }
         var queue = playbackQueue
         queue.update(
-            trackIDs: queueTracks.map(\.id),
-            currentID: current?.id,
-            shuffle: playbackMode == .shuffle,
-            restart: restart
+            trackIDs: queueTracks.map(\.id), currentID: current?.id,
+            shuffle: playbackMode == .shuffle, restart: restart
         )
         return queue
+    }
+
+    /// Captures a directory queue; browsing elsewhere never mutates this snapshot.
+    public func playFolder(source: FolderSource, entries: [FolderEntry], selectedID: UUID) async {
+        guard folderAccess != nil else { return }
+        let audio = entries.filter { $0.kind == .audio }
+        guard audio.contains(where: { $0.id == selectedID }) else { return }
+        let tracks = audio.enumerated().map { index, entry in
+            PlaylistTrack(
+                id: entry.id, title: URL(fileURLWithPath: entry.name).deletingPathExtension().lastPathComponent,
+                artist: "", filePath: entry.relativePath, bookmark: Data(), duration: 0, order: index
+            )
+        }
+        let queue = FolderQueue(source: source, entries: audio, tracks: tracks)
+        await playRequest(.selection(selectedID, .folder(queue)))
+    }
+
+    public func removeFolderSource(id: UUID) {
+        if playbackSource.folderID == id {
+            resetPlayback()
+        } else if pendingFolderSourceID == id {
+            invalidatePreparation()
+        }
+    }
+
+    private func invalidatePreparation() {
+        playbackRequestID = UUID()
+        pendingPlaybackRequestID = nil
+        pendingFolderSourceID = nil
+        preparingTrackTitle = nil
+        preparationTask?.cancel()
+        preparationTask = nil
     }
 
     private func handleTrackFinished() {
@@ -235,7 +322,7 @@ public final class ATPlayerViewModel: ObservableObject {
     }
 
     func togglePlayback() {
-        if playbackState.isPlaying || playbackState.isStarting {
+        if pendingPlaybackRequestID != nil || playbackState.isPlaying || playbackState.isStarting {
             pausePlayback()
         } else {
             beginResumePlayback()
@@ -248,7 +335,7 @@ public final class ATPlayerViewModel: ObservableObject {
 
     @discardableResult
     private func beginResumePlayback() -> Task<Void, Never>? {
-        guard !playbackState.isPlaying, !playbackState.isStarting else { return nil }
+        guard pendingPlaybackRequestID == nil, !playbackState.isPlaying, !playbackState.isStarting else { return nil }
         playbackRequestID = UUID()
         pendingPlaybackRequestID = nil
         if playbackState.duration > 0 {
@@ -272,8 +359,7 @@ public final class ATPlayerViewModel: ObservableObject {
 
     private func pausePlayback() {
         // Cancel a pending cloud-track switch as well as a pending audio start.
-        playbackRequestID = UUID()
-        pendingPlaybackRequestID = nil
+        invalidatePreparation()
         playbackService.pauseByUser()
         synchronizePlaybackPresentation(force: true)
     }
@@ -285,7 +371,7 @@ public final class ATPlayerViewModel: ObservableObject {
         case .pause:
             pausePlayback()
         case .toggle:
-            if playbackState.isPlaying || playbackState.isStarting {
+            if pendingPlaybackRequestID != nil || playbackState.isPlaying || playbackState.isStarting {
                 pausePlayback()
             } else {
                 await resumePlayback()
@@ -300,7 +386,7 @@ public final class ATPlayerViewModel: ObservableObject {
     }
 
     func play(track: PlaylistTrack) async {
-        await playRequest(.selection(track.id))
+        await playRequest(.selection(track.id, .playlists))
     }
 
     var canPlayPrevious: Bool {
@@ -331,20 +417,24 @@ public final class ATPlayerViewModel: ObservableObject {
 
     private func playRequest(_ request: PlaybackRequest) async {
         let candidates: [UUID]
+        let source: PlaybackSource
         switch request {
-        case let .selection(id):
-            guard let track = allTracks.first(where: { $0.id == id }) else { return }
+        case let .selection(id, selectedSource):
+            source = selectedSource
+            guard let track = sourceTracks(source).first(where: { $0.id == id }) else { return }
             // Prepare the new order without replacing the current track's queue.
             // A cloud download can suspend and then be cancelled by Pause.
-            let queue = makePlaybackQueue(startingAt: track, restart: true)
+            let queue = makePlaybackQueue(startingAt: track, source: source, restart: true)
             candidates = queue.candidates(startingAt: id, direction: .next, wrap: playbackMode == .repeatPlaylist)
         case let .adjacent(direction):
+            source = playbackSource
             guard let current = selectedTrack else { return }
             updatePlaybackQueue()
             candidates = playbackQueue.candidates(
                 after: current.id, direction: direction, wrap: playbackMode == .repeatPlaylist
             )
         case .finished:
+            source = playbackSource
             guard let selectedTrackID else { return }
             updatePlaybackQueue()
             candidates = playbackMode == .repeatOne ? [selectedTrackID] : playbackQueue.candidates(
@@ -353,17 +443,26 @@ public final class ATPlayerViewModel: ObservableObject {
             if candidates.isEmpty { activityService.endActivity() }
         }
         guard !candidates.isEmpty else { return }
-        await playCandidates(candidates, request: request)
+        await playCandidates(candidates, source: source, request: request)
     }
 
-    private func playCandidates(_ candidateIDs: [UUID], request: PlaybackRequest) async {
+    private func playCandidates(_ candidateIDs: [UUID], source: PlaybackSource, request: PlaybackRequest) async {
         let requestID = UUID()
         let modeRevision = playbackModeRevision
+        preparationTask?.cancel()
+        preparationTask = nil
         playbackRequestID = requestID
         pendingPlaybackRequestID = requestID
+        pendingFolderSourceID = source.folderID
         defer {
-            if pendingPlaybackRequestID == requestID { pendingPlaybackRequestID = nil }
+            if pendingPlaybackRequestID == requestID {
+                pendingPlaybackRequestID = nil
+                pendingFolderSourceID = nil
+                preparingTrackTitle = nil
+                preparationTask = nil
+            }
         }
+        var replacedActiveFile = false
         var failureMessage = "Нет доступных аудиофайлов для воспроизведения."
 
         for candidateID in candidateIDs {
@@ -372,40 +471,64 @@ public final class ATPlayerViewModel: ObservableObject {
                 await playRequest(request)
                 return
             }
-            guard let track = allTracks.first(where: { $0.id == candidateID }) else { continue }
+            guard let track = sourceTracks(source).first(where: { $0.id == candidateID }) else { continue }
             let title = track.title
             var scopedURL: URL?
+            var candidateLease: CachedAudioLease?
             var beganLoading = false
+            preparingTrackTitle = track.displayName
             do {
-                let resource = try resolvedResource(for: track)
-                scopedURL = resource.scopedURL
-                let downloaded = await downloadFromiCloud(
-                    resource.url, requestID: requestID, modeRevision: modeRevision
-                )
+                let resourceURL: URL
+                if case let .folder(queue) = source {
+                    guard let access = folderAccess,
+                          let entry = queue.entries.first(where: { $0.id == candidateID }) else { continue }
+                    let task = Task { try await access.prepare(source: queue.source, entry: entry, priority: .playback) }
+                    preparationTask = task
+                    let lease = try await withTaskCancellationHandler {
+                        try await task.value
+                    } onCancel: { task.cancel() }
+                    candidateLease = lease
+                    resourceURL = lease.url
+                } else {
+                    let resource = try resolvedResource(for: track)
+                    scopedURL = resource.scopedURL
+                    resourceURL = resource.url
+                    let downloaded = await downloadFromiCloud(
+                        resource.url, requestID: requestID, modeRevision: modeRevision
+                    )
+                    guard downloaded else {
+                        scopedURL?.stopAccessingSecurityScopedResource()
+                        scopedURL = nil
+                        guard playbackRequestID == requestID, !Task.isCancelled else { return }
+                        if modeRevision != playbackModeRevision { await playRequest(request); return }
+                        failureMessage = "Файл «\(title)» недоступен. Повторите импорт или дождитесь загрузки."
+                        continue
+                    }
+                }
                 guard playbackRequestID == requestID, !Task.isCancelled else {
                     scopedURL?.stopAccessingSecurityScopedResource()
+                    if let lease = candidateLease { await folderAccess?.release(lease) }
                     return
                 }
                 if modeRevision != playbackModeRevision {
                     scopedURL?.stopAccessingSecurityScopedResource()
-                    // Re-evaluate the original action against the still-playing track.
-                    // Enabling playlist repeat during a download must not leave it.
+                    if let lease = candidateLease { await folderAccess?.release(lease) }
                     await playRequest(request)
                     return
                 }
-                guard downloaded else {
+                guard let currentTrack = sourceTracks(source).first(where: { $0.id == candidateID }) else {
                     scopedURL?.stopAccessingSecurityScopedResource()
-                    failureMessage = "Файл «\(title)» недоступен. Повторите импорт или дождитесь загрузки."
-                    continue
-                }
-                guard let currentTrack = allTracks.first(where: { $0.id == candidateID }) else {
-                    scopedURL?.stopAccessingSecurityScopedResource()
+                    if let lease = candidateLease { await folderAccess?.release(lease) }
                     continue
                 }
                 // Stop the engine before revoking the old file's access grant.
                 playbackService.stop()
                 stopActiveScopedURLIfNeeded()
                 beganLoading = true
+                replacedActiveFile = true
+                playbackSource = source
+                activeLease = candidateLease
+                candidateLease = nil
                 // Own the access grant before activation suspends. A newer
                 // request can then stop this file and release its grant safely.
                 activeScopedURL = scopedURL
@@ -419,11 +542,11 @@ public final class ATPlayerViewModel: ObservableObject {
                 )
                 nowPlayingTitle = currentTrack.displayName
                 nowPlayingArtwork = currentTrack.artwork
-                try await playbackService.loadAndPlay(url: resource.url)
+                try await playbackService.loadAndPlay(url: resourceURL)
                 try Task.checkCancellation()
                 guard playbackRequestID == requestID else { return }
                 importError = nil
-                if currentTrack.isCorrupted {
+                if case .playlists = source, currentTrack.isCorrupted {
                     try? storageService.setCorrupted(false, for: currentTrack)
                 }
                 if let sectionID = currentTrack.section?.id {
@@ -434,6 +557,7 @@ public final class ATPlayerViewModel: ObservableObject {
                 return
             } catch {
                 scopedURL?.stopAccessingSecurityScopedResource()
+                if let lease = candidateLease { await folderAccess?.release(lease) }
                 guard playbackRequestID == requestID else { return }
                 // Seek/pause may supersede only the audio start while keeping
                 // the selected file. Do not stop that newer playback request.
@@ -450,15 +574,24 @@ public final class ATPlayerViewModel: ObservableObject {
                         importError = "Не удалось запустить аудиовыход. Попробуйте воспроизведение ещё раз."
                         return
                     case .invalidAudioFile:
-                        markCorrupted(track)
+                        if case .playlists = source { markCorrupted(track) }
                     }
                 }
-                failureMessage = "Не удалось воспроизвести «\(title)». Проверьте файл или повторите импорт."
+                failureMessage = source.folderID == nil
+                    ? "Не удалось воспроизвести «\(title)». Проверьте файл или повторите импорт."
+                    : (error as? FolderAccessError)?.localizedDescription
+                        ?? "Не удалось подготовить «\(title)». Проверьте сеть, свободное место и доступ к папке; затем обновите список."
             }
         }
         guard playbackRequestID == requestID, !Task.isCancelled else { return }
-        resetPlayback()
-        importError = failureMessage
+        // A failed new folder preparation must not interrupt the previous file.
+        if case .selection = request, source.folderID != nil, !replacedActiveFile,
+           playbackState.duration > 0 {
+            importError = failureMessage
+        } else {
+            resetPlayback()
+            importError = failureMessage
+        }
     }
 
     func seek(to time: TimeInterval) {
@@ -632,10 +765,10 @@ public final class ATPlayerViewModel: ObservableObject {
     }
 
     private func resetPlayback() {
-        playbackRequestID = UUID()
-        pendingPlaybackRequestID = nil
+        invalidatePreparation()
         playbackService.stop()
         stopActiveScopedURLIfNeeded()
+        playbackSource = .playlists
         selectedTrackID = nil
         updatePlaybackQueue(restart: true)
         nowPlayingTitle = "Готов к воспроизведению"
@@ -726,12 +859,17 @@ public final class ATPlayerViewModel: ObservableObject {
     }
 
     private func stopActiveScopedURLIfNeeded() {
+        if let lease = activeLease, let access = folderAccess {
+            activeLease = nil
+            Task { await access.release(lease) }
+        }
         activeScopedURL?.stopAccessingSecurityScopedResource()
         activeScopedURL = nil
     }
 
     var selectedTrack: PlaylistTrack? {
-        guard let selectedTrackID else { return allTracks.first }
-        return allTracks.first(where: { $0.id == selectedTrackID })
+        let tracks = sourceTracks(playbackSource)
+        guard let selectedTrackID else { return tracks.first }
+        return tracks.first(where: { $0.id == selectedTrackID })
     }
 }

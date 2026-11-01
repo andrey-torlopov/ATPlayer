@@ -1,0 +1,197 @@
+{
+  "date": "2026-11-01",
+  "architectureCommit": "e09052b",
+  "tests": {
+    "passed": 42,
+    "total": 42,
+    "formula": "passed / total = 42 / 42",
+    "cases": [
+      {
+        "test": "-[PlayerInfrastructureTests.AudioPlaybackTests testFolderCachePlaysAfterSourceDisappearsAndPinsUntilEngineStops]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerInfrastructureTests.AudioPlaybackTests testRealEnginePauseResumeSeekAndFinish]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerInfrastructureTests.FolderAccessTests testCacheReuseInvalidationAndPinning]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerInfrastructureTests.FolderAccessTests testCancelledRequestReturnsBeforeBlockedWorkerAndDiscardsLateResult]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerInfrastructureTests.FolderAccessTests testForgetDefersPinnedDeletionAndNeverDeletesOriginal]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerInfrastructureTests.FolderAccessTests testListingIsOneLevelNaturallySortedAndRejectsSymlinks]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerInfrastructureTests.FolderAccessTests testPrefetchBudgetAndLargeSelectedFile]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerInfrastructureTests.FolderAccessTests testTimeoutDoesNotPublishLateSuccess]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerInfrastructureTests.FolderSourceStoreTests testBookmarkRefreshPreservesOrderAndOtherRoots]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerInfrastructureTests.FolderSourceStoreTests testFailedWriteLeavesExistingSourceFileUntouched]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerInfrastructureTests.FolderSourceStoreTests testRootsPersistWithoutDirectoryStateAndRemovalDoesNotResurrect]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerInfrastructureTests.FolderSourceStoreTests testUnreadableDocumentIsNotOverwritten]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerInfrastructureTests.LegacyPlaylistCompatibilityTests testOriginalSchemaOpensAfterModuleRelocation]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerInfrastructureTests.PlaylistStorageTests testDiskRoundTripPreservesBookmarksAndOrder]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerInfrastructureTests.PlaylistStorageTests testOrderValidationAndScopedDeletion]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerInfrastructureTests.PlaylistStorageTests testStableDomainIdentityAndMetadataUpdates]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerFeatureTests.FolderPlaybackTests testAllFolderFailuresExhaustOneFiniteQueueWithoutPlaylistFallback]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerFeatureTests.FolderPlaybackTests testCurrentLevelSnapshotExcludesDirectoriesAndSurvivesFurtherBrowsing]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerFeatureTests.FolderPlaybackTests testFailedNewFolderSelectionPreservesPreviouslyPlayingPlaylist]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerFeatureTests.FolderPlaybackTests testFolderRepeatOneRestartsSameFileAndManualNextAdvances]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerFeatureTests.FolderPlaybackTests testFolderShuffleIsFiniteAndNeverUsesPlaylistOrDirectoryEntries]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerFeatureTests.FolderPlaybackTests testPauseRejectsLatePreparedFileAndReleasesItsLease]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerFeatureTests.FolderPlaybackTests testRemovingActiveRootStopsAudioAndInvalidatesPendingFile]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerFeatureTests.FolderPlaybackTests testRemovingPendingRootInvalidatesPreparationButKeepsOldPlaylistPlaying]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerFeatureTests.FolderPlaybackTests testRepeatPlaylistWrapsWithinFolderAudioOnly]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerFeatureTests.FolderPlaybackTests testSwitchingToPlaylistRejectsLateFolderResultAndReleasesAfterAudioStops]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerFeatureTests.PlaybackSessionTests testInvalidAudioIsMarkedAndSkippedWithinRepeatedPlaylist]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerFeatureTests.PlaybackSessionTests testLegacyPreferencesMigrateWithDeterministicPriority]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerFeatureTests.PlaybackSessionTests testModeChangesPreserveSelectionPositionAndPauseState]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerFeatureTests.PlaybackSessionTests testOrdinaryPlaybackCrossesPlaylistBoundaryInBothDirections]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerFeatureTests.PlaybackSessionTests testOrdinaryPlaybackStopsAtLibraryEndWithoutLosingSelection]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerFeatureTests.PlaybackSessionTests testPauseInvalidatesDelayedDownloadWithoutReplacingCurrentTrack]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerFeatureTests.PlaybackSessionTests testPlaybackPreferencesAndLastPlaylistRestoreFromInjectedDefaults]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerFeatureTests.PlaybackSessionTests testPlaylistRepeatWrapsWithoutEnteringOtherPlaylists]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerFeatureTests.PlaybackSessionTests testRepeatOneRestartsOnEOFButManualNextAdvances]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerFeatureTests.PlaybackSessionTests testShuffleIsFiniteUniqueScopedAndReversible]",
+        "passed": true
+      },
+      {
+        "test": "-[PlayerFeatureTests.PlaybackSessionTests testUnavailableSourcesExhaustFinitePlaylistAndCanRecover]",
+        "passed": true
+      },
+      {
+        "test": "-[FolderFeatureTests.FolderBrowserTests testLateListingCannotReplaceNewDirectory]",
+        "passed": true
+      },
+      {
+        "test": "-[FolderFeatureTests.FolderBrowserTests testOnlyRootsReturnWhenNewBrowserIsCreated]",
+        "passed": true
+      },
+      {
+        "test": "-[FolderFeatureTests.FolderBrowserTests testRemoveNotifiesPlaybackOnlyAfterSuccessfulStoreMutation]",
+        "passed": true
+      },
+      {
+        "test": "-[FolderFeatureTests.FolderBrowserTests testSelectionContainsOnlyVisibleAudioAndNavigationDoesNotPlay]",
+        "passed": true
+      },
+      {
+        "test": "-[FolderFeatureTests.FolderBrowserTests testSuspendReleasesLatePrefetchAndDoesNotPublishReady]",
+        "passed": true
+      }
+    ]
+  },
+  "build": "app + widget, generic iOS Simulator",
+  "runtime": "iOS 27.2 XCTest; iOS 26.5 QA UI",
+  "uiChecks": [
+    "system folder picker selects QA Audio",
+    "only audio rows displayed; playlists.json hidden",
+    "prefetch shows prepared files",
+    "playback from folder starts AVAudioEngine",
+    "switching library preserves track and elapsed time",
+    "relaunch resets browsing and active queue but preserves root bookmark",
+    "opening restored root rescans files"
+  ],
+  "notVerified": [
+    "physical device iCloud Drive",
+    "SMB and third-party File Providers",
+    "offline guarantee",
+    "device audio routes and lock-screen lifecycle"
+  ],
+  "testResultBundle": "/tmp/ATPlayerFoldersTests-final.xcresult"
+}

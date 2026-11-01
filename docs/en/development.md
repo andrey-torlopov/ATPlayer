@@ -4,7 +4,7 @@
 
 ## Open the project
 
-The repository contains a native SwiftUI application, a WidgetKit/ActivityKit extension, and no third-party package dependencies in the Xcode project. The current release preparation was built with **Xcode 27.2**. Supported deployment targets start at **iOS / iPadOS 26.2**.
+The repository contains a native SwiftUI application, a WidgetKit/ActivityKit extension, and the local **ATPlayerKit** SwiftPM package. There are no third-party package dependencies. The Feature-First refactoring and Folders mode described here are in the current source; they are not part of the submitted 1.0.2 (1) build. The current release preparation was built with **Xcode 27.2**. Supported deployment targets start at **iOS / iPadOS 26.2**.
 
 ```sh
 git clone https://github.com/andrey-torlopov/ATPlayer.git
@@ -31,39 +31,48 @@ For installation on your own device, configure your own development team and pro
 
 ## Code map
 
+The local package is at `SRC/ATPlayer/LocalPackages/ATPlayerKit/`. Its target dependencies are declared in `Package.swift`; the following package paths are relative to that directory.
+
 | Location | Responsibility |
 |---|---|
-| `SRC/ATPlayer/ATPlayer/ATPlayerApp.swift` | SwiftData container and shared view-model lifetime |
-| `SRC/ATPlayer/ATPlayer/ViewModels/ATPlayerViewModel.swift` | Import, file bookmarks, playlist actions, playback sequence, presentation coordination |
-| `SRC/ATPlayer/ATPlayer/Services/AudioPlaybackService.swift` | Audio session, AVAudioEngine playback, equalizer, spectrum |
-| `SRC/ATPlayer/ATPlayer/Services/PlaylistStorageService.swift` | SwiftData playlist and track mutations |
-| `SRC/ATPlayer/ATPlayer/Services/NowPlayingService.swift` | System media metadata and remote commands |
-| `SRC/ATPlayer/ATPlayer/LiveActivity/` | Activity state, lifecycle, and app playback intents |
-| `SRC/ATPlayer/ATPlayer/Views/Components/V1/` | Current UI, themes, playlist editor, and settings |
-| `SRC/ATPlayer/ATPlayerWidgetExtension/` | Live Activity rendering and widget extension entry point |
+| `SRC/ATPlayer/ATPlayer/ATPlayerApp.swift` | Thin executable shell and process lifetime |
+| `Sources/PlayerApplication/` | Composition root, concrete adapters, feature wiring, lifecycle and intent routing |
+| `Sources/PlayerFeature/` | Playlist UI, playback state and common playback queue integration; V1 is the current UI |
+| `Sources/FolderFeature/` | Independent folder browser state and UI, navigation and prefetch lifecycle |
+| `Sources/LibraryDomain/`, `Sources/PlaybackDomain/`, `Sources/FolderDomain/` | Domain models and contracts without concrete storage or feature UI |
+| `Sources/PlayerInfrastructure/` | SwiftData storage, file access, temporary cache, AVAudioEngine, Now Playing and Activity adapters |
+| `Sources/PlaybackActivity/` | Shared ActivityKit attributes used by the app and extension |
+| `Tests/` | Playback, folder browser, storage, file access/cache and legacy schema compatibility tests |
+| `SRC/ATPlayer/ATPlayerWidgetExtension/` | Live Activity rendering and extension entry point |
 
-`PlayerDesignVersion.current` selects V1. The V0 views remain in the tree for comparison and are not the current interface.
+`PlayerDesignVersion.current` in `Sources/PlayerFeature/Presentation/` selects V1. V0 views remain for comparison. New folder UI belongs to `FolderFeature`; neither UI feature imports the other or concrete infrastructure.
 
-## How playback fits together
+## Module boundaries and playback
 
 ```mermaid
-flowchart LR
-    Files[Files picker] --> VM[ATPlayerViewModel]
-    VM <--> Store[SwiftData playlists]
-    VM --> Audio[AudioPlaybackService]
-    Audio --> Engine[AVAudioEngine + EQ]
-    VM --> Now[NowPlayingService]
-    VM --> Live[Activity service]
-    Live --> Widget[Live Activity extension]
+flowchart TD
+    App[Executable] --> Application[PlayerApplication]
+    Application --> Player[PlayerFeature]
+    Application --> Folders[FolderFeature]
+    Application --> Infra[PlayerInfrastructure]
+    Player --> Domains[LibraryDomain / PlaybackDomain / FolderDomain]
+    Folders --> FolderDomain
+    Infra --> Domains
+    Infra --> Activity[PlaybackActivity]
+    Extension[Widget extension] --> Activity
 ```
 
-The view model owns the playback service and keeps Now Playing and Live Activities synchronized with it. Audio files are opened through stored access bookmarks. Playlist edits are saved through the storage service; the store rolls back failed mutations.
+`PlayerApplication` creates concrete services and connects the folder browser's typed selection to the shared playback owner. Dependencies are injected through domain contracts. Browsing and library mode are independent of the active audio session, so moving between folders does not replace the playing queue.
+
+Playlist records keep the original SwiftData entity names and schema. The storage adapter maps them to domain objects; failed mutations roll back. Saved folder roots use `Application Support/ATPlayer/folder-sources.json` and do not extend the playlist database. Listings, navigation and folder queues remain in memory. JSON playlist export excludes folders.
+
+In Folders mode, file I/O and coordinated copying run away from the UI actor. Playback reads a local cache lease held until the engine stops using it. Browser prefetch is sequential and cancellable; explicit playback has priority. The temporary cache uses a 512 MiB soft budget, can temporarily exceed it for pinned handoff files or an explicitly selected oversized recording, and evicts unused copies. It is not an offline guarantee. Playlist folder import retains its recursive behavior; folder browsing and playback never recurse.
 
 ## Verification boundaries
 
-The shared scheme does not currently contain an XCTest target. A successful build alone does not verify file-provider behavior, audio routes, interruptions, or background playback. For a change in these areas, exercise the relevant scenario on a device and state the device and OS used.
+The package provides `PlayerInfrastructureTests`, `PlayerFeatureTests`, and `FolderFeatureTests`, with a separate `LegacyPlaylistFixture` target. Open `Package.swift` in Xcode and select **ATPlayerKit-Package** to run these tests on an installed iOS simulator. The app scheme remains **ATPlayer**. Tests cover a legacy store opened after module relocation, queue boundaries, cancellation and late results, root persistence, and local cache/file operations. Mock-provider and local-file tests do not verify real iCloud, SMB, third-party providers, audio routes, interruptions, or background playback; exercise those scenarios on a device and record its model and OS.
 
-Before sending a change, check that adding files, relaunching, seeking, advancing tracks, editing a playlist, and leaving the app still behave as intended. Pay particular attention to unavailable files and cancelled imports. See [release verification](releases.md).
+Before sending a change, check that adding files, relaunching, seeking, advancing tracks, editing a playlist, and leaving the app still behave as intended. Also verify switching library modes during playback, a current-level folder queue, forgetting an active root, and cloud/network preparation. Pay particular attention to unavailable files and cancelled imports. See [release verification](releases.md).
 
 No repository-wide open-source license has been declared. Public source availability is not itself a license grant.
 

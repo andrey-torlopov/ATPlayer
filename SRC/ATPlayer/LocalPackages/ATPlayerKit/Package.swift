@@ -10,14 +10,17 @@ let package = Package(
     ],
     targets: [
         .target(name: "LibraryDomain"),
+        .target(name: "FolderDomain"),
+        .target(name: "FolderFeature", dependencies: ["FolderDomain"]),
         .target(name: "PlaybackDomain"),
         .target(name: "PlaybackActivity"),
-        .target(name: "PlayerInfrastructure", dependencies: ["LibraryDomain", "PlaybackDomain", "PlaybackActivity"]),
-        .target(name: "PlayerFeature", dependencies: ["LibraryDomain", "PlaybackDomain"]),
-        .target(name: "PlayerApplication", dependencies: ["PlayerFeature", "PlayerInfrastructure", "PlaybackDomain"]),
+        .target(name: "PlayerInfrastructure", dependencies: ["LibraryDomain", "PlaybackDomain", "PlaybackActivity", "FolderDomain"]),
+        .target(name: "PlayerFeature", dependencies: ["LibraryDomain", "PlaybackDomain", "FolderDomain"]),
+        .target(name: "PlayerApplication", dependencies: ["PlayerFeature", "FolderFeature", "FolderDomain", "PlayerInfrastructure", "PlaybackDomain"]),
         .target(name: "LegacyPlaylistFixture", path: "Tests/LegacyPlaylistFixture"),
-        .testTarget(name: "PlayerInfrastructureTests", dependencies: ["PlayerInfrastructure", "LibraryDomain", "LegacyPlaylistFixture"]),
-        .testTarget(name: "PlayerFeatureTests", dependencies: ["PlayerFeature", "PlaybackDomain", "LibraryDomain"])
+        .testTarget(name: "PlayerInfrastructureTests", dependencies: ["PlayerInfrastructure", "LibraryDomain", "FolderDomain", "LegacyPlaylistFixture"]),
+        .testTarget(name: "PlayerFeatureTests", dependencies: ["PlayerFeature", "PlaybackDomain", "LibraryDomain", "FolderDomain"]),
+        .testTarget(name: "FolderFeatureTests", dependencies: ["FolderFeature", "FolderDomain"])
     ],
     swiftLanguageModes: [.v5]
 )

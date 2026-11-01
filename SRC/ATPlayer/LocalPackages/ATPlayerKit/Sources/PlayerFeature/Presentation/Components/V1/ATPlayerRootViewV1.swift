@@ -4,6 +4,9 @@ import SwiftUI
 
 struct ATPlayerRootViewV1: View {
     @ObservedObject var viewModel: ATPlayerViewModel
+    let folderLibrary: AnyView
+    let onLibraryModeChange: (LibraryMode) -> Void
+    @State private var libraryMode: LibraryMode = .playlists
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var buttonFeedbackTrigger = false
@@ -80,7 +83,28 @@ struct ATPlayerRootViewV1: View {
             if let error = viewModel.importError {
                 errorMessage(error)
             }
-            PlaylistPanelV1(viewModel: viewModel)
+            Picker("Источник музыки", selection: $libraryMode) {
+                Text("Плейлисты").tag(LibraryMode.playlists)
+                Text("Папки").tag(LibraryMode.folders)
+            }
+            .pickerStyle(.segmented)
+            .accessibilityIdentifier("library-mode")
+            .onChange(of: libraryMode) { _, mode in onLibraryModeChange(mode) }
+
+            if let title = viewModel.preparingTrackTitle {
+                HStack(spacing: 10) {
+                    ProgressView()
+                    Text("Подготовка: \(title)").font(.subheadline).lineLimit(2)
+                    Spacer()
+                    Button("Отмена") { Task { await viewModel.performPlaybackCommand(.pause) } }
+                }
+                .accessibilityIdentifier("playback-preparation")
+            }
+            if libraryMode == .playlists {
+                PlaylistPanelV1(viewModel: viewModel)
+            } else {
+                folderLibrary
+            }
         }
     }
 
@@ -111,8 +135,8 @@ struct ATPlayerRootViewV1: View {
                     isProminent: viewModel.playbackMode != .off,
                     action: viewModel.cyclePlaybackMode
                 )
-                .accessibilityValue(viewModel.playbackMode.title)
-                .accessibilityHint("Следующий режим: \(viewModel.playbackMode.next.title)")
+                .accessibilityValue(viewModel.playbackModeTitle)
+                .accessibilityHint("Следующий режим: \(viewModel.nextPlaybackModeTitle)")
                 .accessibilityIdentifier("playback-mode")
             }
         }

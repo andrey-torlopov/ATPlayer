@@ -12,6 +12,8 @@ enum PlayerDesignVersion {
 
 struct ATPlayerRootView: View {
     @ObservedObject var viewModel: ATPlayerViewModel
+    let folderLibrary: AnyView
+    let onLibraryModeChange: (LibraryMode) -> Void
     var version: PlayerDesignVersion = .current
 
     var body: some View {
@@ -19,7 +21,7 @@ struct ATPlayerRootView: View {
         case .v0:
             ATPlayerRootViewV0(viewModel: viewModel)
         case .v1:
-            ATPlayerRootViewV1(viewModel: viewModel)
+            ATPlayerRootViewV1(viewModel: viewModel, folderLibrary: folderLibrary, onLibraryModeChange: onLibraryModeChange)
         }
     }
 }

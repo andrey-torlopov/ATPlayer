@@ -13,7 +13,13 @@
 3. Нажмите на трек, чтобы начать воспроизведение. Кнопка в центре ставит воспроизведение на паузу и продолжает его; кнопки по бокам переключают треки.
 4. Для перемотки проведите по круглому индикатору воспроизведения.
 
-Музыка в приложение не включена. Для прослушивания нужны ваши аудиофайлы.
+Музыка в приложение не включена. Для прослушивания нужны ваши аудиофайлы. Импорт папки в плейлист включает её вложенные каталоги.
+
+### Папки — текущие исходники, ещё не выпущено
+
+Переключите **«Плейлисты / Папки»** в режим **«Папки»**, нажмите **«Добавить папку»** и выберите корневой каталог. Каждый открытый уровень показывает только непосредственные папки и аудиофайлы. Нажатие аудиофайла создаёт очередь этого уровня без обхода вложенных папок. Навигация и переключение режима не меняют уже играющую очередь.
+
+После перезапуска сохраняются только выбранные корни; путь, списки и очередь папки создаются заново. **«Обновить папку»** повторно читает текущий уровень. Удаление корня из ATPlayer сохраняет оригиналы, но останавливает его текущую очередь. Эта функция отсутствует в отправленной сборке **1.0.2 (1)**.
 
 ### Плейлисты и настройки
 
@@ -23,9 +29,9 @@
 
 ### Файл не воспроизводится
 
-Проверьте, что исходный файл существует и открывается через «Файлы». ATPlayer хранит ссылки на выбранные файлы и не создаёт отдельные копии аудио. Если вы переместили или удалили файл, выберите его заново.
+Проверьте, что исходный файл существует и открывается через «Файлы». Плейлисты хранят ссылки на оригиналы. В режиме «Папки» текущих исходников плеер дополнительно подготавливает аудио открытого уровня во временном локальном кеше. Если вы переместили или удалили файл, обновите папку или выберите источник заново.
 
-Файл из iCloud Drive может потребоваться сначала загрузить по сети. Для прослушивания без интернета он должен оставаться доступным локально. Если файл доступен, но ошибка сохраняется, попробуйте другой аудиофайл, например MP3 или WAV без DRM.
+Для iCloud Drive и сетевых поставщиков может потребоваться загрузка по сети. Кеш папок очищается и не гарантирует офлайн-доступ; отметка «Подготовлен» означает завершённую подготовку, а не постоянное хранение. Если файл доступен, но ошибка сохраняется, попробуйте другой аудиофайл, например MP3 или WAV без DRM.
 
 ### Фоновое воспроизведение
 
@@ -33,7 +39,7 @@
 
 ### Экспорт плейлистов
 
-В настройках выберите **«Экспорт плейлистов»**. JSON-файл содержит названия плейлистов, треков, исполнителей и пути к файлам. Аудиофайлы в него не входят. Экспорт не является резервной копией музыки и не предназначен для восстановления медиатеки в приложении.
+В настройках выберите **«Экспорт плейлистов»**. JSON-файл содержит названия плейлистов, треков, исполнителей и пути к файлам. Аудиофайлы, сохранённые корни папок и временные очереди в него не входят. Экспорт не является резервной копией музыки и не предназначен для восстановления медиатеки в приложении.
 
 ### Сообщить о проблеме
 
@@ -54,7 +60,13 @@ Developer: Andrey Torlopov. For help with the app, email [mail@torlopov.dev](mai
 3. Tap a track to start playing. The central button pauses and resumes playback; the buttons on either side select the previous and next tracks.
 4. Drag around the circular playback indicator to seek.
 
-Music is not included. Bring your own audio files.
+Music is not included. Bring your own audio files. Importing a folder into a playlist includes its subfolders.
+
+### Folders — current source, unreleased
+
+Switch **«Плейлисты / Папки»** (Playlists / Folders) to **«Папки»**, tap **«Добавить папку»** (Add Folder), and choose a root directory. Each level shows only its immediate folders and audio files. Tapping audio creates a queue for that level without traversing subfolders. Browsing and switching modes leave the active queue playing.
+
+Only selected roots survive relaunch; the browsing path, listings, and folder queue start fresh. **«Обновить папку»** (Refresh Folder) reads the current level again. Removing a root from ATPlayer keeps the originals but stops its active queue. This feature is absent from the submitted **1.0.2 (1)** build.
 
 ### Playlists and settings
 
@@ -64,9 +76,9 @@ The sliders button at the top right opens settings. **«Эквалайзер»**
 
 ### A file will not play
 
-Check that the original file still exists and opens in Files. ATPlayer stores references to selected files and does not make separate copies of the audio. If you moved or deleted a file, select it again.
+Check that the original file still exists and opens in Files. Playlists keep references to the originals. Folders mode in the current source also prepares audio from the open level in a temporary local cache. If you moved or deleted a file, refresh the folder or select the source again.
 
-A file in iCloud Drive may need to be downloaded over the internet first. To listen without a connection, it must remain available locally. If the file is available but the error continues, try another audio file, such as a non-DRM MP3 or WAV.
+iCloud Drive and network providers may need a connection to download files. The folder cache can be cleared and does not guarantee offline access; «Подготовлен» (Prepared) records successful preparation, not permanent storage. If the file is available but the error continues, try another audio file, such as a non-DRM MP3 or WAV.
 
 ### Background playback
 
@@ -74,7 +86,7 @@ Start playback, then leave the app or lock your device. Playback is available th
 
 ### Playlist export
 
-In settings, choose **«Экспорт плейлистов»** (Export Playlists). The JSON file contains playlist names, track titles, artists, and file paths. It does not include the audio files. The export is not a music backup and is not intended to restore the library in the app.
+In settings, choose **«Экспорт плейлистов»** (Export Playlists). The JSON file contains playlist names, track titles, artists, and file paths. It does not include audio files, saved folder roots, or temporary queues. The export is not a music backup and is not intended to restore the library in the app.
 
 ### Report a problem
 

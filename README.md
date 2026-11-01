@@ -24,7 +24,7 @@ ATPlayer is a simple local audio player for iPhone and iPad. Your own files, an 
 - The app interface is currently **in Russian**; documentation is available in English and Russian.
 - The planned App Store release is **free, without in-app purchases**.
 
-Developers can [run the project from source](docs/en/development.md). A source tag does not mean that Apple has approved or published that version.
+Developers can [run the project from source](docs/en/development.md). A source tag does not mean that Apple has approved or published that version. **The current source also includes the unreleased Playlists / Folders switch; this feature is not part of the submitted 1.0.2 (1) build.**
 
 ## Start listening
 
@@ -32,13 +32,13 @@ Developers can [run the project from source](docs/en/development.md). A source t
 2. Choose your audio files or a folder in Files.
 3. Tap a track. Arrange the order once, then let the music play.
 
-The app keeps references to your files, so keep them accessible in their original location. Files in iCloud Drive may need to be downloaded first. [Quick start →](docs/en/quick-start.md)
+Playlist import keeps references to your files and includes subfolders when you select a folder. In the current source, **«Папки»** (Folders) lets you save selected roots, browse one level at a time, and play only that level’s audio. Browsing and switching modes leave the active track playing. Cloud or network files are prepared in a temporary local cache; this is not a guarantee of offline availability. [Quick start →](docs/en/quick-start.md)
 
 ## What is included
 
 | For listening | For your collection |
 |---|---|
-| Background playback and Lock Screen controls | Files and folder import |
+| Background playback and Lock Screen controls | Files and recursive playlist import; folder browsing in current source |
 | Circular seek control and audio visualization | Named playlists and track reordering |
 | Live Activities on supported devices | Removing entries without deleting audio |
 | 10-band equalizer and preamp | JSON export of playlist information |

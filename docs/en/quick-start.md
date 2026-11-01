@@ -8,13 +8,13 @@ These steps apply to an installed copy of ATPlayer on iOS or iPadOS 26.2 or late
 
 On first launch, ATPlayer creates a playlist named **My Music**. Tap **«Добавить музыку»** (Add Music) in the empty playlist, or open its **…** menu and select **«Добавить треки»** (Add Tracks). Select audio files or a folder through Files. Folder import also looks in subfolders.
 
-For a first check, use a local non-DRM MP3 or WAV. When selecting files from iCloud Drive, allow them to finish downloading. ATPlayer reads the original files and remembers access to them; it does not copy the audio into a separate library.
+For a first check, use a local non-DRM MP3 or WAV. When selecting files from iCloud Drive, allow them to finish downloading. Playlist import remembers access to the original files rather than creating a permanent audio library.
 
 ## 2. Press play
 
 Tap a track to begin. The large central button pauses and resumes playback. The side buttons move to the previous and next tracks. Drag around the circular progress ring to seek.
 
-Playback follows the stored track order. If you have several playlists, the playback sequence continues through them in their displayed order. It stops at the end of the full sequence.
+In normal playlist playback, the player follows the stored track order. If you have several playlists, the playback sequence continues through them in their displayed order. It stops at the end of the full sequence.
 
 ## 3. Set up a playlist once
 
@@ -27,6 +27,14 @@ Leave the app or lock the device while playback is running. Use the system playb
 The sliders button at the top right opens settings. **«Эквалайзер»** (Equalizer) adjusts the 10 frequency bands and preamp. Changes apply immediately.
 
 If a file becomes unavailable after you move it or change providers, select it again. See [data and privacy](data-and-privacy.md) and [support](../../SUPPORT.md).
+
+## Listen directly from folders — current source, unreleased
+
+This option is not in the submitted **1.0.2 (1)** build. Above the library, choose **«Папки»** (Folders), then **«Добавить папку»** (Add Folder). Select a root directory through Files. Open subfolders one at a time; each screen shows only that level’s folders and audio.
+
+Tap a file to play the audio at that level only. Subfolders are not included. Moving around the browser or switching back to Playlists keeps the active queue playing. Use the back arrow to move up and **«Обновить папку»** (Refresh Folder) after external changes.
+
+Files are prepared in a temporary local cache. iCloud and network sources may need a connection; the cache is not a permanent offline copy. Only root references are saved across launches. Removing a root from ATPlayer keeps the original files and stops playback from that root. [Cache and data details →](data-and-privacy.md)
 
 ---
 

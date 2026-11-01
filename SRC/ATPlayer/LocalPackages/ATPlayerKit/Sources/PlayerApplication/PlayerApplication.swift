@@ -1,3 +1,5 @@
+import FolderDomain
+import FolderFeature
 import Combine
 import Foundation
 import PlaybackDomain
@@ -11,22 +13,45 @@ import SwiftUI
 public final class PlayerApplication: ObservableObject {
     private let container: ModelContainer
     private let player: ATPlayerViewModel
+    private let folders: FolderBrowserViewModel
+    private var libraryMode: LibraryMode = .playlists
 
     public init() throws {
         container = try PlaylistStorageService.createContainer()
-        player = ATPlayerViewModel(
+        let folderAccess = FolderAccessService()
+        let player = ATPlayerViewModel(
             storage: PlaylistStorageService(context: container.mainContext),
             audio: AudioPlaybackService(),
             activity: ATPlayerActivityService(),
             nowPlaying: NowPlayingService(),
-            mediaAccess: PlaylistMediaAccess()
+            mediaAccess: PlaylistMediaAccess(),
+            folderAccess: folderAccess
+        )
+        self.player = player
+        folders = FolderBrowserViewModel(
+            store: FolderSourceStore(), access: folderAccess,
+            onPlay: { [weak player] selection in
+                Task { await player?.playFolder(source: selection.source, entries: selection.entries, selectedID: selection.selectedID) }
+            },
+            onRemoveSource: { [weak player] id in player?.removeFolderSource(id: id) }
         )
         PlaybackIntentBridge.application = self
     }
 
-    public func rootView() -> some View { PlayerView(viewModel: player) }
+    isolated deinit { player.shutdown() }
 
-    public func becameActive() { player.refreshPlaybackPresentation() }
+    public func rootView() -> some View {
+        PlayerView(viewModel: player, folderLibrary: AnyView(FolderBrowserView(model: folders))) { [weak self] mode in
+            guard let self else { return }
+            self.libraryMode = mode
+            if mode == .folders { self.folders.refresh() } else { self.folders.suspend() }
+        }
+    }
+
+    public func becameActive() {
+        player.refreshPlaybackPresentation()
+        if libraryMode == .folders { folders.refresh() }
+    }
 
     public func openURL(_ url: URL) {
         guard url.scheme == "atplayer" else { return }

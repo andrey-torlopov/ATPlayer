@@ -52,14 +52,14 @@ struct TransportControlsV1: View {
             .disabled(!viewModel.canPlayPrevious)
 
             CircularButtonV1(
-                symbol: isPlaying ? "pause.fill" : "play.fill",
-                label: isPlaying ? "Пауза" : "Воспроизвести",
+                symbol: isPlaying || viewModel.preparingTrackTitle != nil ? "pause.fill" : "play.fill",
+                label: isPlaying || viewModel.preparingTrackTitle != nil ? "Пауза" : "Воспроизвести",
                 size: isCompact ? 56 : 78,
                 isProminent: true
             ) {
                 viewModel.togglePlayback()
             }
-            .disabled(viewModel.selectedTrack == nil)
+            .disabled(viewModel.selectedTrack == nil && viewModel.preparingTrackTitle == nil)
             .keyboardShortcut(.space, modifiers: [])
 
             CircularButtonV1(symbol: "forward.end.fill", label: "Следующий трек", size: isCompact ? 44 : 54) {
