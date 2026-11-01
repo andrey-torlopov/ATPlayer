@@ -2,46 +2,30 @@ import SwiftData
 import SwiftUI
 
 struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Environment(\.colorScheme) private var colorScheme
-    @State private var viewModel: ATPlayerViewModel?
-    @State private var pendingDeepLink: URL?
-
-    private var theme: PlayerThemeV1 {
-        colorScheme == .dark ? .dark : .light
-    }
+    @Environment(\.scenePhase) private var scenePhase
+    @ObservedObject var viewModel: ATPlayerViewModel
 
     var body: some View {
-        Group {
-            if let viewModel {
-                ATPlayerRootView(viewModel: viewModel)
-            } else {
-                ProgressView()
-                    .tint(theme.accent)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(theme.background.ignoresSafeArea())
+        ATPlayerRootView(viewModel: viewModel)
+            .onChange(of: scenePhase) { _, phase in
+                if phase == .active {
+                    viewModel.refreshPlaybackPresentation()
+                }
             }
-        }
-        .task {
-            guard viewModel == nil else { return }
-            let model = ATPlayerViewModel(context: modelContext)
-            viewModel = model
-            if let pendingDeepLink {
-                model.handleDeepLink(pendingDeepLink)
-                self.pendingDeepLink = nil
-            }
-        }
-        .onOpenURL { url in
-            if let viewModel {
+            .onOpenURL { url in
                 viewModel.handleDeepLink(url)
-            } else {
-                pendingDeepLink = url
             }
-        }
     }
 }
 
 #Preview {
-    ContentView()
-        .modelContainer(for: [TrackItem.self, PlaylistSection.self], inMemory: true)
+    if let container = try? ModelContainer(
+        for: TrackItem.self, PlaylistSection.self,
+        configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+    ) {
+        ContentView(viewModel: ATPlayerViewModel(context: container.mainContext))
+            .modelContainer(container)
+    } else {
+        Text("Не удалось создать данные предпросмотра")
+    }
 }

@@ -4,6 +4,7 @@ import Combine
 import Foundation
 import SwiftData
 import SwiftUI
+import UIKit
 import UniformTypeIdentifiers
 
 @MainActor
@@ -26,7 +27,13 @@ public final class ATPlayerViewModel: ObservableObject {
     let activityService = ATPlayerActivityService()
     private let storageService: PlaylistStorageService
     private var activeScopedURL: URL?
-    private var activityUpdateCancellable: AnyCancellable?
+    private var playbackPresentationCancellable: AnyCancellable?
+    private var presentationUpdateScheduled = false
+    private lazy var nowPlayingService = NowPlayingService { [weak self] command in
+        Task { @MainActor [weak self] in
+            await self?.performPlaybackCommand(command)
+        }
+    }
     private var playbackErrorCancellable: AnyCancellable?
     private var playbackRequestID = UUID()
     private var pendingPlaybackRequestID: UUID?
@@ -53,13 +60,16 @@ public final class ATPlayerViewModel: ObservableObject {
         if let savedID = UserDefaults.standard.string(forKey: "lastPlayedSectionID") {
             lastPlayedSectionID = UUID(uuidString: savedID)
         }
-        // activityService.endAllStaleActivities()
+        activityService.endAllStaleActivities()
         playbackService.onTrackFinished = { [weak self] in
             guard let self, self.pendingPlaybackRequestID == nil else { return }
-            // self.activityService.endActivity()
-            self.playNext()
+            if self.canPlayNext {
+                self.playNext()
+            } else {
+                self.activityService.endActivity()
+            }
         }
-        // setupActivityUpdates()
+        setupPlaybackPresentation()
         playbackErrorCancellable = playbackService.$playbackError
             .compactMap { $0 }
             .sink { [weak self] message in
@@ -76,6 +86,7 @@ public final class ATPlayerViewModel: ObservableObject {
         do {
             _ = try storageService.ensureDefaultSection()
             sections = try storageService.fetchSections()
+            schedulePlaybackPresentationUpdate()
         } catch {
             importError = "Не удалось загрузить плейлисты. Повторите попытку."
         }
@@ -165,22 +176,67 @@ public final class ATPlayerViewModel: ObservableObject {
     // MARK: - Playback
 
     func togglePlayback() {
-        // A pause/resume command also cancels a pending cloud track switch.
+        if playbackService.isPlaying || playbackService.isStarting {
+            pausePlayback()
+        } else {
+            beginResumePlayback()
+        }
+    }
+
+    private func resumePlayback() async {
+        await beginResumePlayback()?.value
+    }
+
+    @discardableResult
+    private func beginResumePlayback() -> Task<Void, Never>? {
+        guard !playbackService.isPlaying, !playbackService.isStarting else { return nil }
         playbackRequestID = UUID()
         pendingPlaybackRequestID = nil
-        if playbackService.isPlaying || playbackService.isStarting {
-            playbackService.pause()
-            return
-        }
-
         if playbackService.duration > 0 {
-            playbackService.play()
-            return
+            // Mark the start synchronously so a second tap can cancel it.
+            let start = playbackService.play()
+            return Task {
+                do {
+                    try await start?.value
+                } catch is CancellationError {
+                    return
+                } catch {
+                    importError = playbackService.playbackError
+                        ?? "Не удалось продолжить воспроизведение. Повторите попытку."
+                }
+                synchronizePlaybackPresentation(force: true)
+            }
         }
+        guard let track = selectedTrack else { return nil }
+        return Task { await play(track: track) }
+    }
 
-        guard let track = selectedTrack else { return }
-        Task {
-            await play(track: track)
+    private func pausePlayback() {
+        // Cancel a pending cloud-track switch as well as a pending audio start.
+        playbackRequestID = UUID()
+        pendingPlaybackRequestID = nil
+        playbackService.pauseByUser()
+        synchronizePlaybackPresentation(force: true)
+    }
+
+    func performPlaybackCommand(_ command: NowPlayingService.Command) async {
+        switch command {
+        case .play:
+            await resumePlayback()
+        case .pause:
+            pausePlayback()
+        case .toggle:
+            if playbackService.isPlaying || playbackService.isStarting {
+                pausePlayback()
+            } else {
+                await resumePlayback()
+            }
+        case .previous:
+            await playAdjacent(direction: .previous)
+        case .next:
+            await playAdjacent(direction: .next)
+        case let .seek(time):
+            seek(to: time)
         }
     }
 
@@ -201,23 +257,21 @@ public final class ATPlayerViewModel: ObservableObject {
     }
 
     func playNext() {
-        playAdjacent(direction: .next)
+        Task { await playAdjacent(direction: .next) }
     }
 
     func playPrevious() {
-        playAdjacent(direction: .previous)
+        Task { await playAdjacent(direction: .previous) }
     }
 
-    private func playAdjacent(direction: PlaybackDirection) {
+    private func playAdjacent(direction: PlaybackDirection) async {
         guard let current = selectedTrack else { return }
         let tracks = allTracks
         guard let index = tracks.firstIndex(where: { $0.id == current.id }) else { return }
         let adjacentIndex = index + direction.rawValue
         guard tracks.indices.contains(adjacentIndex) else { return }
         let trackID = tracks[adjacentIndex].id
-        Task {
-            await playCandidates(startingAt: trackID, direction: direction)
-        }
+        await playCandidates(startingAt: trackID, direction: direction)
     }
 
     private func playCandidates(startingAt trackID: UUID, direction: PlaybackDirection) async {
@@ -280,6 +334,7 @@ public final class ATPlayerViewModel: ObservableObject {
                     lastPlayedSectionID = sectionID
                     UserDefaults.standard.set(sectionID.uuidString, forKey: "lastPlayedSectionID")
                 }
+                synchronizePlaybackPresentation(force: true)
                 return
             } catch {
                 scopedURL?.stopAccessingSecurityScopedResource()
@@ -312,6 +367,7 @@ public final class ATPlayerViewModel: ObservableObject {
 
     func seek(to time: TimeInterval) {
         playbackService.seek(to: time)
+        synchronizePlaybackPresentation(force: true)
     }
 
     // MARK: - Remove
@@ -375,20 +431,74 @@ public final class ATPlayerViewModel: ObservableObject {
         }
     }
 
-    private func setupActivityUpdates() {
-        activityUpdateCancellable = playbackService.$currentTime
-            .combineLatest(playbackService.$isPlaying)
-            .sink { [weak self] currentTime, isPlaying in
-                guard let self else { return }
-                guard let track = self.selectedTrack else { return }
-                self.activityService.updateActivity(
-                    trackTitle: track.title,
-                    artistName: track.artist,
-                    duration: self.playbackService.duration,
-                    currentTime: currentTime,
-                    isPlaying: isPlaying
-                )
+    private func setupPlaybackPresentation() {
+        _ = nowPlayingService
+        playbackPresentationCancellable = Publishers.CombineLatest4(
+            playbackService.$currentTime, playbackService.$duration,
+            playbackService.$isPlaying, playbackService.$isStarting
+        )
+            .sink { [weak self] _ in
+                self?.schedulePlaybackPresentationUpdate()
             }
+    }
+
+    private func schedulePlaybackPresentationUpdate() {
+        guard !presentationUpdateScheduled else { return }
+        presentationUpdateScheduled = true
+        // @Published emits before storage changes. Coalesce the synchronous
+        // stop/load/start changes, then read one committed playback snapshot.
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            self.presentationUpdateScheduled = false
+            self.synchronizePlaybackPresentation()
+        }
+    }
+
+    func refreshPlaybackPresentation() {
+        activityService.retryWhenForegrounded()
+        synchronizePlaybackPresentation(force: true)
+    }
+
+    private func synchronizePlaybackPresentation(force: Bool = false) {
+        let duration = playbackService.duration
+        guard let selectedTrackID, let track = selectedTrack,
+              duration.isFinite, duration > 0 else {
+            // Keep the current activity through a track handoff; the next
+            // successfully loaded track replaces its content in place.
+            if pendingPlaybackRequestID == nil {
+                nowPlayingService.clear()
+                activityService.endActivity()
+            }
+            return
+        }
+        let time = playbackService.currentTime.isFinite
+            ? min(duration, max(0, playbackService.currentTime)) : 0
+        let snapshot = NowPlayingService.Snapshot(
+            trackID: selectedTrackID,
+            title: track.displayName,
+            artist: track.displayArtist ?? "",
+            duration: duration,
+            currentTime: time,
+            isPlaying: playbackService.isPlaying,
+            canPlayPrevious: canPlayPrevious,
+            canPlayNext: canPlayNext
+        )
+        nowPlayingService.update(snapshot, force: force)
+        activityService.synchronize(
+            ATPlayerActivityAttributes.ContentState(
+                trackID: snapshot.trackID,
+                trackTitle: snapshot.title,
+                artistName: snapshot.artist,
+                duration: snapshot.duration,
+                currentTime: snapshot.currentTime,
+                isPlaying: snapshot.isPlaying,
+                playbackStartDate: Date.now.addingTimeInterval(-time),
+                canPlayPrevious: snapshot.canPlayPrevious,
+                canPlayNext: snapshot.canPlayNext
+            ),
+            allowStart: UIApplication.shared.applicationState == .active,
+            force: force
+        )
     }
 
     private func resetPlayback() {
@@ -399,6 +509,8 @@ public final class ATPlayerViewModel: ObservableObject {
         selectedTrackID = nil
         nowPlayingTitle = "Готов к воспроизведению"
         nowPlayingArtwork = nil
+        nowPlayingService.clear()
+        activityService.endActivity()
     }
 
     private func markCorrupted(_ track: TrackItem) {

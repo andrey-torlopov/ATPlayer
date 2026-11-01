@@ -5,7 +5,8 @@ struct TogglePlaybackIntent: AudioPlaybackIntent {
 
     @MainActor
     func perform() async throws -> some IntentResult {
-        ATPlayerViewModel.shared?.togglePlayback()
+        guard let player = ATPlayerViewModel.shared else { throw PlaybackIntentError.unavailable }
+        await player.performPlaybackCommand(.toggle)
         return .result()
     }
 }
@@ -15,7 +16,8 @@ struct NextTrackIntent: AudioPlaybackIntent {
 
     @MainActor
     func perform() async throws -> some IntentResult {
-        ATPlayerViewModel.shared?.playNext()
+        guard let player = ATPlayerViewModel.shared else { throw PlaybackIntentError.unavailable }
+        await player.performPlaybackCommand(.next)
         return .result()
     }
 }
@@ -25,7 +27,16 @@ struct PreviousTrackIntent: AudioPlaybackIntent {
 
     @MainActor
     func perform() async throws -> some IntentResult {
-        ATPlayerViewModel.shared?.playPrevious()
+        guard let player = ATPlayerViewModel.shared else { throw PlaybackIntentError.unavailable }
+        await player.performPlaybackCommand(.previous)
         return .result()
+    }
+}
+
+private nonisolated enum PlaybackIntentError: LocalizedError {
+    case unavailable
+
+    var errorDescription: String? {
+        "Плеер недоступен. Откройте ATPlayer и выберите трек."
     }
 }

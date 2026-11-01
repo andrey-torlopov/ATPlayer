@@ -141,13 +141,21 @@ final class AudioPlaybackService: ObservableObject {
         }
     }
 
-    func play() {
-        guard currentFile != nil, !isPlaying, !isStarting else { return }
+    @discardableResult
+    func play() -> Task<Void, Error>? {
+        guard currentFile != nil, !isPlaying, !isStarting else { return nil }
         // An interruption-ended notification is not guaranteed. A user request must
         // be able to reactivate the session; active interruptions still fail activation.
         isInterrupted = false
         resumeAfterInterruption = false
-        scheduleAndPlay(from: playbackOffset >= duration ? 0 : playbackOffset)
+        return scheduleAndPlay(from: playbackOffset >= duration ? 0 : playbackOffset)
+    }
+
+    func pauseByUser() {
+        // A remote Pause during an interruption must cancel automatic resume,
+        // even when the player is already paused by the audio session.
+        resumeAfterInterruption = false
+        pause()
     }
 
     func pause() {
