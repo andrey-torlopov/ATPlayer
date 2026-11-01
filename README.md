@@ -18,7 +18,7 @@ ATPlayer is a simple local audio player for iPhone and iPad. Your own files, an 
 
 ## Availability
 
-**Version 1.0.2, build 1 has been uploaded to App Store Connect. Apple's processing was in progress at upload completion; App Review submission and public release are still pending.**
+**Apple has processed version 1.0.2, build 1, and it is attached to the prepared App Store product page. App Review submission and public release are still pending.**
 
 - iPhone and iPad with **iOS / iPadOS 26.2 or later**.
 - The app interface is currently **in Russian**; documentation is available in English and Russian.

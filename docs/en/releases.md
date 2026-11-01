@@ -6,7 +6,7 @@ Status recorded on **November 1, 2026**.
 
 ## App Store candidate
 
-**Version 1.0.2, build 1** was uploaded successfully to App Store Connect on November 1, 2026 at 16:39 Moscow time. Apple was processing the build when the upload completed. It has not yet been submitted to App Review and is not publicly available on the App Store. Source tags and a signed archive are separate from Apple's review and public availability.
+**Version 1.0.2, build 1** was uploaded successfully to App Store Connect on November 1, 2026 at 16:39 Moscow time. Apple has completed processing, and the build is attached to the prepared product page. It has not yet been submitted to App Review and is not publicly available on the App Store. Source tags and a signed archive are separate from Apple's review and public availability.
 
 | Item | Recorded status |
 |---|---|
@@ -18,7 +18,11 @@ Status recorded on **November 1, 2026**.
 | Simulator build | Completed with Xcode 27.2 during release preparation |
 | Distribution archive and IPA export | Completed; app and extension signatures verified |
 | Upload to App Store Connect | Succeeded |
-| Apple build processing | In progress at upload completion |
+| Apple build processing | Completed; build attached to version 1.0.2 |
+| Product-page texts | Russian and English saved |
+| Screenshots | 4 iPhone and 2 iPad JPEGs uploaded |
+| Availability settings | Free in 175 regions; Mac and Apple Vision availability disabled |
+| Age rating | 4+ saved |
 | App Review submission | Pending |
 | App Store public availability | Pending |
 
