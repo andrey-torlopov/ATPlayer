@@ -4,6 +4,7 @@ struct ATPlayerRootViewV1: View {
     @ObservedObject var viewModel: ATPlayerViewModel
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @State private var buttonFeedbackTrigger = false
 
     private var theme: PlayerThemeV1 {
         colorScheme == .dark ? .dark : .light
@@ -24,9 +25,12 @@ struct ATPlayerRootViewV1: View {
                                     .font(.subheadline)
                                     .foregroundStyle(theme.textSecondary)
                                 Spacer()
-                                Button("Отменить", action: viewModel.cancelImport)
-                                    .font(.subheadline)
-                                    .frame(minHeight: 44)
+                                Button("Отменить") {
+                                    buttonFeedbackTrigger.toggle()
+                                    viewModel.cancelImport()
+                                }
+                                .font(.subheadline)
+                                .frame(minHeight: 44)
                             }
                         }
 
@@ -59,6 +63,7 @@ struct ATPlayerRootViewV1: View {
             }
         }
         .tint(theme.accent)
+        .playerButtonFeedbackV1(trigger: buttonFeedbackTrigger)
         .environment(\.playerThemeV1, theme)
         .fileImporter(
             isPresented: $viewModel.showImporter,
@@ -107,6 +112,7 @@ struct ATPlayerRootViewV1: View {
                 .foregroundStyle(theme.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .leading)
             Button {
+                buttonFeedbackTrigger.toggle()
                 viewModel.importError = nil
             } label: {
                 Image(systemName: "xmark")

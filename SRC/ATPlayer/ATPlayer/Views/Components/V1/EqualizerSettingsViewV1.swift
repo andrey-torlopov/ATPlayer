@@ -3,6 +3,7 @@ import SwiftUI
 struct EqualizerSettingsViewV1: View {
     @ObservedObject var playbackService: AudioPlaybackService
     @Environment(\.playerThemeV1) private var theme
+    @State private var resetFeedbackTrigger = false
 
     var body: some View {
         ScrollView {
@@ -44,6 +45,7 @@ struct EqualizerSettingsViewV1: View {
                 }
 
                 Button {
+                    resetFeedbackTrigger.toggle()
                     playbackService.preamp = 0
                     playbackService.gains = Array(repeating: 0, count: playbackService.bands.count)
                 } label: {
@@ -53,6 +55,7 @@ struct EqualizerSettingsViewV1: View {
                         .frame(maxWidth: .infinity, minHeight: 20)
                 }
                 .buttonStyle(SoftButtonStyleV1())
+                .playerButtonFeedbackV1(trigger: resetFeedbackTrigger)
 
                 Text("Настройки применяются сразу и сохраняются автоматически.")
                     .font(.system(size: 12))

@@ -385,6 +385,63 @@ public final class ATPlayerViewModel: ObservableObject {
         }
     }
 
+    @discardableResult
+    func removeTracks(withIDs trackIDs: Set<UUID>, from section: PlaylistSection) -> Bool {
+        guard !isImporting else {
+            importError = "Дождитесь завершения импорта перед редактированием плейлиста."
+            return false
+        }
+        guard let currentSection = sections.first(where: { $0.id == section.id }) else {
+            importError = "Плейлист больше не существует."
+            return false
+        }
+        let scopedIDs = Set(tracks(in: currentSection).map(\.id)).intersection(trackIDs)
+        guard !scopedIDs.isEmpty else { return true }
+        let removesSelectedTrack = selectedTrackID.map { scopedIDs.contains($0) } ?? false
+        do {
+            try storageService.removeTracks(withIDs: scopedIDs, from: currentSection)
+            if removesSelectedTrack {
+                resetPlayback()
+            }
+            reloadSections()
+            return true
+        } catch {
+            importError = "Не удалось удалить выбранные треки. Повторите попытку."
+            return false
+        }
+    }
+
+    @discardableResult
+    func moveTracks(in section: PlaylistSection, from source: IndexSet, to destination: Int) -> Bool {
+        guard !isImporting else {
+            importError = "Дождитесь завершения импорта перед редактированием плейлиста."
+            return false
+        }
+        guard let currentSection = sections.first(where: { $0.id == section.id }) else {
+            importError = "Плейлист больше не существует."
+            return false
+        }
+        var reorderedTracks = tracks(in: currentSection)
+        guard source.allSatisfy({ reorderedTracks.indices.contains($0) }),
+              (0...reorderedTracks.count).contains(destination) else {
+            importError = "Список треков изменился. Повторите перемещение."
+            return false
+        }
+        guard !source.isEmpty else { return true }
+        let previousOrder = reorderedTracks.map(\.id)
+        reorderedTracks.move(fromOffsets: source, toOffset: destination)
+        let nextOrder = reorderedTracks.map(\.id)
+        guard nextOrder != previousOrder else { return true }
+        do {
+            try storageService.setTrackOrder(nextOrder, in: currentSection)
+            reloadSections()
+            return true
+        } catch {
+            importError = "Не удалось сохранить порядок треков. Повторите попытку."
+            return false
+        }
+    }
+
     // MARK: - Export
 
     func exportPlaylistsJSON() -> Data {

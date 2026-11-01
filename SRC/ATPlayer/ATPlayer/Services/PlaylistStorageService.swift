@@ -5,6 +5,10 @@ import SwiftData
 final class PlaylistStorageService {
     private let context: ModelContext
 
+    private enum StorageError: Error {
+        case invalidTrackOrder
+    }
+
     init(context: ModelContext) {
         self.context = context
     }
@@ -91,12 +95,37 @@ final class PlaylistStorageService {
     }
 
     func removeTrack(_ track: TrackItem) throws {
-        let remaining = track.section.map { section in
-            sortedTracks(in: section).filter { $0.id != track.id }
-        } ?? []
-        context.delete(track)
+        if let section = track.section {
+            try removeTracks(withIDs: [track.id], from: section)
+        } else {
+            context.delete(track)
+            try saveChanges()
+        }
+    }
+
+    func removeTracks(withIDs trackIDs: Set<UUID>, from section: PlaylistSection) throws {
+        let tracks = sortedTracks(in: section)
+        let removed = tracks.filter { trackIDs.contains($0.id) }
+        guard !removed.isEmpty else { return }
+        let remaining = tracks.filter { !trackIDs.contains($0.id) }
+        for track in removed {
+            context.delete(track)
+        }
         for (index, remainingTrack) in remaining.enumerated() {
             remainingTrack.order = index
+        }
+        try saveChanges()
+    }
+
+    func setTrackOrder(_ trackIDs: [UUID], in section: PlaylistSection) throws {
+        let tracks = sortedTracks(in: section)
+        guard trackIDs.count == tracks.count,
+              Set(trackIDs) == Set(tracks.map(\.id)) else {
+            throw StorageError.invalidTrackOrder
+        }
+        let tracksByID = Dictionary(uniqueKeysWithValues: tracks.map { ($0.id, $0) })
+        for (index, trackID) in trackIDs.enumerated() {
+            tracksByID[trackID]?.order = index
         }
         try saveChanges()
     }

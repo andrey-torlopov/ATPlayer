@@ -7,6 +7,7 @@ struct SettingsViewV1: View {
     @State private var exportDocument = PlaylistExportDocumentV1(data: Data())
     @State private var isExporting = false
     @State private var exportError: String?
+    @State private var buttonFeedbackTrigger = false
 
     var body: some View {
         ScrollView {
@@ -30,7 +31,10 @@ struct SettingsViewV1: View {
 
                 VStack(alignment: .leading, spacing: 14) {
                     sectionLabel("Медиатека")
-                    Button(action: exportPlaylists) {
+                    Button {
+                        buttonFeedbackTrigger.toggle()
+                        exportPlaylists()
+                    } label: {
                         settingsRow(
                             symbol: "square.and.arrow.up",
                             title: "Экспорт плейлистов",
@@ -56,6 +60,7 @@ struct SettingsViewV1: View {
         .navigationTitle("Настройки")
         .navigationBarTitleDisplayMode(.inline)
         .tint(theme.accent)
+        .playerButtonFeedbackV1(trigger: buttonFeedbackTrigger)
         .fileExporter(
             isPresented: $isExporting,
             document: exportDocument,

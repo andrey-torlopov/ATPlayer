@@ -81,6 +81,10 @@ extension View {
     func softPanelV1(cornerRadius: CGFloat = 24) -> some View {
         modifier(SoftPanelV1(cornerRadius: cornerRadius))
     }
+
+    func playerButtonFeedbackV1(trigger: Bool) -> some View {
+        sensoryFeedback(.impact(weight: .light, intensity: 0.45), trigger: trigger)
+    }
 }
 
 struct SoftButtonStyleV1: ButtonStyle {
@@ -102,6 +106,7 @@ struct SoftButtonStyleV1: ButtonStyle {
 
 struct CircularButtonV1: View {
     @Environment(\.playerThemeV1) private var theme
+    @State private var feedbackTrigger = false
     let symbol: String
     let label: String
     var size: CGFloat = 48
@@ -109,13 +114,17 @@ struct CircularButtonV1: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button {
+            feedbackTrigger.toggle()
+            action()
+        } label: {
             Image(systemName: symbol)
                 .font(.system(size: size * 0.28, weight: .semibold))
                 .frame(width: size, height: size)
                 .contentShape(Circle())
         }
         .buttonStyle(CircularButtonStyleV1(isProminent: isProminent))
+        .playerButtonFeedbackV1(trigger: feedbackTrigger)
         .accessibilityLabel(label)
     }
 }

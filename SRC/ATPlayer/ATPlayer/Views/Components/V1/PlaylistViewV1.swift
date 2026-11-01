@@ -62,6 +62,8 @@ private struct PlaylistSectionV1: View {
     @State private var isConfirmingDeletion = false
     @State private var playlistName = ""
     @State private var trackToRemove: TrackItem?
+    @State private var buttonFeedbackTrigger = false
+    @State private var isEditingTracks = false
 
     init(section: PlaylistSection, viewModel: ATPlayerViewModel) {
         self.section = section
@@ -95,6 +97,11 @@ private struct PlaylistSectionV1: View {
         }
         .padding(18)
         .softPanelV1(cornerRadius: 24)
+        .playerButtonFeedbackV1(trigger: buttonFeedbackTrigger)
+        .sheet(isPresented: $isEditingTracks) {
+            PlaylistEditorV1(section: section, viewModel: viewModel)
+                .environment(\.playerThemeV1, theme)
+        }
         .alert("Переименовать плейлист", isPresented: $isRenaming) {
             TextField("Название", text: $playlistName)
             Button("Сохранить") {
@@ -137,6 +144,7 @@ private struct PlaylistSectionV1: View {
     private var header: some View {
         HStack(spacing: 8) {
             Button {
+                buttonFeedbackTrigger.toggle()
                 withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) {
                     isExpanded.toggle()
                 }
@@ -174,6 +182,13 @@ private struct PlaylistSectionV1: View {
 
             Menu {
                 Button {
+                    isEditingTracks = true
+                } label: {
+                    Label("Редактировать треки", systemImage: "list.bullet")
+                }
+                .disabled(tracks.isEmpty || viewModel.isImporting)
+
+                Button {
                     playlistName = section.name
                     isRenaming = true
                 } label: {
@@ -202,7 +217,10 @@ private struct PlaylistSectionV1: View {
             Text("Добавьте аудиофайлы или папку.")
                 .font(.system(size: 13))
                 .foregroundStyle(theme.textSecondary)
-            Button { viewModel.requestImport(to: section) } label: {
+            Button {
+                buttonFeedbackTrigger.toggle()
+                viewModel.requestImport(to: section)
+            } label: {
                 Label("Добавить музыку", systemImage: "plus")
                     .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(theme.accent)
@@ -223,12 +241,16 @@ private struct PlaylistTrackRowV1: View {
     let onPlay: () -> Void
     let onRemove: () -> Void
     @Environment(\.playerThemeV1) private var theme
+    @State private var buttonFeedbackTrigger = false
 
     private var title: String { track.displayName }
 
     var body: some View {
         HStack(spacing: 0) {
-            Button(action: onPlay) {
+            Button {
+                buttonFeedbackTrigger.toggle()
+                onPlay()
+            } label: {
                 HStack(spacing: 12) {
                     Group {
                         if isSelected {
@@ -282,6 +304,7 @@ private struct PlaylistTrackRowV1: View {
             }
             .accessibilityLabel("Действия с треком \(title)")
         }
+        .playerButtonFeedbackV1(trigger: buttonFeedbackTrigger)
         .padding(.leading, 10)
         .background {
             RoundedRectangle(cornerRadius: 15, style: .continuous)
