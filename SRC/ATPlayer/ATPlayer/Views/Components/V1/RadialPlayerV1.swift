@@ -6,7 +6,13 @@ struct RadialPlayerV1: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @GestureState private var seekPreview: TimeInterval?
+    @State private var seekFeedbackTrigger = false
+    @State private var lastSeekFeedbackStep: Int?
+    @State private var lastSeekFeedbackTime: ContinuousClock.Instant?
     let onSeek: (TimeInterval) -> Void
+
+    private static let seekFeedbackSteps = 60.0
+    private static let minimumSeekFeedbackInterval: Duration = .milliseconds(80)
 
     private var duration: TimeInterval {
         playback.duration.isFinite ? max(0, playback.duration) : 0
@@ -97,6 +103,10 @@ struct RadialPlayerV1: View {
             .frame(width: geometry.size.width, height: geometry.size.height)
         }
         .aspectRatio(1, contentMode: .fit)
+        .onChange(of: seekPreview) { _, preview in
+            updateSeekFeedback(for: preview)
+        }
+        .sensoryFeedback(.selection, trigger: seekFeedbackTrigger)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Позиция воспроизведения")
         .accessibilityValue("\(PlaybackTimeV1.string(displayedTime)) из \(PlaybackTimeV1.string(duration))")
@@ -109,6 +119,28 @@ struct RadialPlayerV1: View {
             @unknown default: break
             }
         }
+    }
+
+    private func updateSeekFeedback(for preview: TimeInterval?) {
+        guard let preview, preview.isFinite, duration > 0 else {
+            lastSeekFeedbackStep = nil
+            lastSeekFeedbackTime = nil
+            return
+        }
+
+        let fraction = min(1, max(0, preview / duration))
+        let step = Int(fraction * Self.seekFeedbackSteps)
+        guard step != lastSeekFeedbackStep else { return }
+        lastSeekFeedbackStep = step
+
+        let now = ContinuousClock.now
+        if let lastSeekFeedbackTime,
+           lastSeekFeedbackTime.duration(to: now) < Self.minimumSeekFeedbackInterval {
+            return
+        }
+
+        lastSeekFeedbackTime = now
+        seekFeedbackTrigger.toggle()
     }
 
     private func seekGesture(diameter: CGFloat) -> some Gesture {
