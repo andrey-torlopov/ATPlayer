@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="480" viewBox="0 0 1920 480" role="img" aria-labelledby="title desc">
+<title id="title">ATPlayer — Press play. Just listen.</title>
+<desc id="desc">Original conceptual artwork: a circular audio player and a short playlist, beside the ATPlayer name. This is an illustration, not an app screenshot.</desc>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0b1411"/><stop offset="1" stop-color="#1b2d24"/></linearGradient>
+  <radialGradient id="glow"><stop stop-color="#537f66" stop-opacity=".23"/><stop offset="1" stop-color="#537f66" stop-opacity="0"/></radialGradient>
+  <linearGradient id="dial" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#243b2f"/><stop offset="1" stop-color="#132019"/></linearGradient>
+</defs>
+<rect x="1" y="1" width="1918" height="478" rx="28" fill="url(#bg)" stroke="#31453a" stroke-width="2"/>
+<g stroke="#b6dcc4" opacity=".045"><path d="M1020 0v480M1210 0v480M1400 0v480M1590 0v480M1780 0v480M990 96h930M990 192h930M990 288h930M990 384h930"/></g>
+<ellipse cx="1340" cy="238" rx="470" ry="248" fill="url(#glow)"/>
+<g font-family="Arial, Helvetica, sans-serif">
+  <rect x="96" y="61" width="68" height="68" rx="21" fill="#1a3025" stroke="#456551" stroke-width="2"/>
+  <g stroke="#a9ccba" stroke-width="5" stroke-linecap="round"><path d="M110 89.5v11"/><path d="M120 83.0v24"/><path d="M130 76.5v37"/><path d="M140 84.0v22"/><path d="M150 88.0v14"/></g>
+  <text x="191" y="104" fill="#9eb8a9" font-size="22" font-weight="700" letter-spacing="4">LOCAL AUDIO PLAYER</text>
+  <text x="89" y="265" font-size="130" font-weight="700" letter-spacing="-7" fill="#edf4ef">AT<tspan fill="#a9ccba">Player</tspan></text>
+  <path d="M100 297h72" stroke="#a9ccba" stroke-width="4" stroke-linecap="round"/><path d="M190 297h25" stroke="#4d6b59" stroke-width="4" stroke-linecap="round"/>
+  <text x="96" y="358" font-size="39" fill="#cfddd4">Press play. Just listen.</text>
+  <text x="98" y="424" font-size="21" font-weight="700" letter-spacing="3" fill="#7e9c89">YOUR FILES  /  YOUR PLAYLIST</text>
+  <path d="M965 58v364" stroke="#405b4a" opacity=".35"/>
+  <g fill="none" stroke="#8ebaa0" stroke-width="4" stroke-linecap="round" opacity=".68"><path d="M1245.00 96.00L1245.00 76.00"/><path d="M1258.43 96.66L1261.22 68.31"/><path d="M1271.73 98.63L1279.19 61.10"/><path d="M1284.77 101.90L1293.42 73.39"/><path d="M1297.43 106.43L1302.94 93.12"/><path d="M1309.58 112.18L1316.91 98.47"/><path d="M1321.11 119.09L1337.20 95.02"/><path d="M1331.91 127.10L1351.40 103.36"/><path d="M1341.87 136.13L1355.32 122.68"/><path d="M1350.90 146.09L1364.02 135.33"/><path d="M1358.91 156.89L1385.17 139.34"/><path d="M1365.82 168.42L1401.67 149.26"/><path d="M1371.57 180.57L1399.66 168.94"/><path d="M1376.10 193.23L1394.21 187.74"/><path d="M1379.37 206.27L1403.50 201.47"/><path d="M1381.34 219.57L1415.78 216.18"/><path d="M1382.00 233.00L1410.05 233.00"/><path d="M1381.34 246.43L1394.57 247.73"/><path d="M1379.37 259.73L1393.38 262.51"/><path d="M1376.10 272.77L1404.22 281.30"/><path d="M1371.57 285.43L1403.18 298.52"/><path d="M1365.82 297.58L1386.53 308.65"/><path d="M1358.91 309.11L1375.00 319.86"/><path d="M1350.90 319.91L1375.52 340.12"/><path d="M1341.87 329.87L1370.62 358.62"/><path d="M1331.91 338.90L1350.96 362.11"/><path d="M1321.11 346.91L1330.16 360.45"/><path d="M1309.58 353.82L1319.05 371.53"/><path d="M1297.43 359.57L1309.43 388.55"/><path d="M1284.77 364.10L1292.86 390.77"/><path d="M1271.73 367.37L1274.57 381.67"/><path d="M1258.43 369.34L1259.94 384.65"/><path d="M1245.00 370.00L1245.00 401.29"/><path d="M1231.57 369.34L1227.85 407.16"/><path d="M1218.27 367.37L1212.96 394.06"/><path d="M1205.23 364.10L1199.40 383.32"/><path d="M1192.57 359.57L1181.18 387.08"/><path d="M1180.42 353.82L1162.35 387.63"/><path d="M1168.89 346.91L1153.20 370.38"/><path d="M1158.09 338.90L1149.46 349.41"/><path d="M1148.13 329.87L1136.37 341.63"/><path d="M1139.10 319.91L1115.98 338.88"/><path d="M1131.09 309.11L1106.21 325.73"/><path d="M1124.18 297.58L1108.25 306.10"/><path d="M1118.43 285.43L1101.97 292.25"/><path d="M1113.90 272.77L1082.23 282.37"/><path d="M1110.63 259.73L1070.97 267.62"/><path d="M1108.66 246.43L1079.86 249.27"/><path d="M1108.00 233.00L1089.32 233.00"/><path d="M1108.66 219.57L1083.02 217.05"/><path d="M1110.63 206.27L1076.46 199.48"/><path d="M1113.90 193.23L1088.42 185.50"/><path d="M1118.43 180.57L1106.91 175.80"/><path d="M1124.18 168.42L1110.58 161.15"/><path d="M1131.09 156.89L1105.63 139.88"/><path d="M1139.10 146.09L1113.09 124.75"/><path d="M1148.13 136.13L1132.27 120.27"/><path d="M1158.09 127.10L1145.44 111.68"/><path d="M1168.89 119.09L1150.41 91.44"/><path d="M1180.42 112.18L1161.34 76.49"/><path d="M1192.57 106.43L1181.69 80.17"/><path d="M1205.23 101.90L1200.65 86.79"/><path d="M1218.27 98.63L1214.13 77.82"/><path d="M1231.57 96.66L1228.45 64.95"/></g>
+  <circle cx="1245" cy="233" r="116" fill="url(#dial)" stroke="#3c5948" stroke-width="2"/>
+  <circle cx="1245" cy="233" r="97" fill="none" stroke="#314c3c" stroke-width="4"/>
+  <circle cx="1245" cy="233" r="97" fill="none" stroke="#b4d8bf" stroke-width="4" stroke-dasharray="405 610" transform="rotate(-90 1245 233)"/>
+  <path d="M1222 199L1282 233L1222 267Z" fill="#b7d8c2" stroke-linejoin="round"/>
+  <circle cx="1245" cy="412" r="23" fill="#2a4435" stroke="#52715c"/>
+  <path d="M1238 400v24M1252 400v24" stroke="#c5dfcd" stroke-width="6" stroke-linecap="round"/>
+  <path d="M1175 403v18M1194 403L1180 412L1194 421Z M1315 403L1329 412L1315 421Z M1334 403v18" fill="#9fb9a9" stroke="#9fb9a9" stroke-width="2"/>
+  <rect x="1456" y="102" width="380" height="267" rx="26" fill="#15251d" stroke="#435d4c" stroke-width="2"/>
+  <text x="1485" y="145" fill="#8daf9b" font-size="17" letter-spacing="3" font-weight="700">MY MUSIC</text>
+  <path d="M1786 133h16M1794 125v16" stroke="#98b5a2" stroke-width="2" stroke-linecap="round"/>
+  <rect x="1476" y="166" width="338" height="55" rx="12" fill="#284338"/><text x="1494" y="201" fill="#b6e0c6" font-size="18">01</text><text x="1540" y="201" fill="#ecf5ef" font-size="22">Morning Light</text><text x="1494" y="262" fill="#6d877a" font-size="18">02</text><text x="1540" y="262" fill="#a8b9b0" font-size="22">Quiet Shore</text><text x="1494" y="323" fill="#6d877a" font-size="18">03</text><text x="1540" y="323" fill="#a8b9b0" font-size="22">The Way Home</text>
+  <path d="M1456 399h380" stroke="#415d4b" opacity=".55"/>
+  <text x="1479" y="433" fill="#8ba594" font-size="19" letter-spacing="2">iPhone  /  iPad</text>
+</g>
+</svg>

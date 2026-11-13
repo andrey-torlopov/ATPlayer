@@ -1,0 +1,46 @@
+# Local macOS and Xcode state
+.DS_Store
+xcuserdata/
+*.xcuserstate
+*.xccheckout
+*.xcscmblueprint
+
+# Build products and dependency caches
+.build/
+build/
+DerivedData/
+.swiftpm/
+*.xcarchive/
+*.ipa
+*.dSYM/
+*.xcresult/
+*.profraw
+*.profdata
+
+# Local release evidence, scratch files and original design exports
+/Artifacts/
+/tmp/
+/Source/
+/LocalPackages/
+
+# Private reproduction media and generated test fixtures
+/Test/
+*.mp3
+*.flac
+*.wav
+*.wave
+*.aif
+*.aiff
+*.caf
+*.aac
+*.m4a
+*.mp4
+*.mov
+*.zip
+
+# Local credentials
+.env
+.env.*
+*.p12
+*.p8
+*.mobileprovision
