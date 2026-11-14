@@ -23,7 +23,14 @@ final class AmbientIdleTimerController {
         setRequested(false, for: owner)
     }
 
-    isolated deinit {
-        if requests.isRequested { setIdleTimerDisabled(false) }
+    deinit {
+        let wasRequested = requests.isRequested
+        let setter = setIdleTimerDisabled
+        guard wasRequested else { return }
+        if Thread.isMainThread {
+            MainActor.assumeIsolated { setter(false) }
+        } else {
+            Task { @MainActor [setter] in setter(false) }
+        }
     }
 }

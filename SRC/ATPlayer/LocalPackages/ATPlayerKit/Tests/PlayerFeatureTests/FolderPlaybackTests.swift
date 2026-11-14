@@ -386,6 +386,7 @@ private final class FolderAudioDouble: AudioPlaying {
         state.duration = 0
     }
     func seek(to time: TimeInterval) { state.currentTime = time }
+    func reconcilePlaybackState() {}
     func finish() {
         state.currentTime = state.duration
         state.isPlaying = false

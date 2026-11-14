@@ -233,6 +233,7 @@ private final class ImportAudioDouble: AudioPlaying {
     func pause() { state.isPlaying = false }
     func stop() { state.isPlaying = false }
     func seek(to time: TimeInterval) { state.currentTime = time }
+    func reconcilePlaybackState() {}
 }
 
 @MainActor

@@ -37,6 +37,7 @@ public final class ATPlayerViewModel: ObservableObject {
     private let nowPlayingService: any NowPlayingPresenting
     private var activeScopedURL: URL?
     private var playbackPresentationCancellable: AnyCancellable?
+    private var playbackStatusCancellable: AnyCancellable?
     private var presentationUpdateScheduled = false
     private var playbackErrorCancellable: AnyCancellable?
     private var playbackRequestID = UUID()
@@ -123,13 +124,22 @@ public final class ATPlayerViewModel: ObservableObject {
         reloadSections()
     }
 
-    isolated deinit {
-        playbackService.stop()
+    deinit {
         preparationTask?.cancel()
-        if let lease = activeLease, let access = folderAccess {
-            Task { await access.release(lease) }
+        // Avoid isolated-deinit backdeployment on iOS 26.0–26.3. Capture resources,
+        // never self, while still releasing audio and its grants on the UI actor.
+        let cleanup: @MainActor @Sendable () -> Void = { [playbackService, activeLease, folderAccess, activeScopedURL] in
+            playbackService.stop()
+            if let lease = activeLease, let access = folderAccess {
+                Task { await access.release(lease) }
+            }
+            activeScopedURL?.stopAccessingSecurityScopedResource()
         }
-        activeScopedURL?.stopAccessingSecurityScopedResource()
+        if Thread.isMainThread {
+            MainActor.assumeIsolated { cleanup() }
+        } else {
+            Task { @MainActor in cleanup() }
+        }
     }
 
     public func shutdown() {
@@ -354,6 +364,7 @@ public final class ATPlayerViewModel: ObservableObject {
     }
 
     func togglePlayback() {
+        playbackService.reconcilePlaybackState()
         if pendingPlaybackRequestID != nil || playbackState.isPlaying || playbackState.isStarting {
             pausePlayback()
         } else {
@@ -367,6 +378,7 @@ public final class ATPlayerViewModel: ObservableObject {
 
     @discardableResult
     private func beginResumePlayback() -> Task<Void, Never>? {
+        playbackService.reconcilePlaybackState()
         guard pendingPlaybackRequestID == nil, !playbackState.isPlaying, !playbackState.isStarting else { return nil }
         playbackRequestID = UUID()
         pendingPlaybackRequestID = nil
@@ -397,6 +409,7 @@ public final class ATPlayerViewModel: ObservableObject {
     }
 
     public func performPlaybackCommand(_ command: PlaybackCommand) async {
+        playbackService.reconcilePlaybackState()
         switch command {
         case .play:
             await resumePlayback()
@@ -737,6 +750,15 @@ public final class ATPlayerViewModel: ObservableObject {
 
     private func setupPlaybackPresentation() {
         _ = nowPlayingService
+        // Publish a transport transition before stopping audio can suspend the app.
+        // @Published sends in willSet, so use its value instead of reading storage.
+        playbackStatusCancellable = playbackState.$isPlaying
+            .removeDuplicates()
+            .dropFirst()
+            .sink { [weak self] isPlaying in
+                guard let self else { return }
+                self.synchronizePlaybackPresentation(force: true, isPlaying: isPlaying)
+            }
         playbackPresentationCancellable = Publishers.CombineLatest4(
             playbackState.$currentTime, playbackState.$duration,
             playbackState.$isPlaying, playbackState.$isStarting
@@ -759,11 +781,12 @@ public final class ATPlayerViewModel: ObservableObject {
     }
 
     public func refreshPlaybackPresentation() {
+        playbackService.reconcilePlaybackState()
         activityService.retryWhenForegrounded()
         synchronizePlaybackPresentation(force: true)
     }
 
-    private func synchronizePlaybackPresentation(force: Bool = false) {
+    private func synchronizePlaybackPresentation(force: Bool = false, isPlaying: Bool? = nil) {
         let duration = playbackState.duration
         guard let selectedTrackID, let track = selectedTrack,
               duration.isFinite, duration > 0 else {
@@ -783,7 +806,7 @@ public final class ATPlayerViewModel: ObservableObject {
             artist: track.displayArtist ?? "",
             duration: duration,
             currentTime: time,
-            isPlaying: playbackState.isPlaying,
+            isPlaying: isPlaying ?? playbackState.isPlaying,
             canPlayPrevious: canPlayPrevious,
             canPlayNext: canPlayNext
         )

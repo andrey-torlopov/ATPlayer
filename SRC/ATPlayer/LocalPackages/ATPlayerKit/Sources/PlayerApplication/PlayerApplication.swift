@@ -40,7 +40,15 @@ public final class PlayerApplication: ObservableObject {
         PlaybackIntentBridge.application = self
     }
 
-    isolated deinit { player.shutdown() }
+    deinit {
+        // Capture only the dependency; the deinitializing application must not escape.
+        let cleanup: @MainActor @Sendable () -> Void = { [player] in player.shutdown() }
+        if Thread.isMainThread {
+            MainActor.assumeIsolated { cleanup() }
+        } else {
+            Task { @MainActor in cleanup() }
+        }
+    }
 
     public func rootView() -> some View {
         PlayerView(

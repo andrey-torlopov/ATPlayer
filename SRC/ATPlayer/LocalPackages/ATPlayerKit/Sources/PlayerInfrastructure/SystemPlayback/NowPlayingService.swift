@@ -23,7 +23,7 @@ public final class NowPlayingService: NowPlayingPresenting {
         updateCommandAvailability(nil)
     }
 
-    isolated deinit {
+    deinit {
         // Remove only this service's handlers, without clearing a newer owner's state.
         for registration in registrations {
             registration.command.removeTarget(registration.target)

@@ -47,7 +47,7 @@ final class AmbientEnvironmentState: ObservableObject {
         snapshot = current
     }
 
-    isolated deinit {
+    deinit {
         subscriptions.forEach { $0.cancel() }
     }
 }

@@ -161,6 +161,75 @@ final class PlaybackSessionTests: XCTestCase {
         }
     }
 
+    func testExternalPauseImmediatelyUpdatesSystemPresentationWithoutForegroundRefresh() async throws {
+        let fixture = try Fixture()
+        defer { fixture.cleanup() }
+        await fixture.model.play(track: fixture.first[1])
+        fixture.audio.state.currentTime = 4
+
+        // An interruption stops audio independently of a UI or remote command.
+        // Deliver the pause before another actor turn or a foreground refresh.
+        fixture.audio.state.isPlaying = false
+
+        XCTAssertEqual(fixture.activity.snapshot?.isPlaying, false)
+        XCTAssertEqual(fixture.activity.snapshot?.currentTime, 4)
+        XCTAssertEqual(fixture.activity.snapshot?.trackID, fixture.first[1].id)
+        XCTAssertEqual(fixture.nowPlaying.snapshot, fixture.activity.snapshot)
+    }
+
+    func testRemotePlayAndToggleReconcileStoppedOutputBeforeCheckingCachedState() async throws {
+        for command in [PlaybackCommand.play, .toggle] {
+            let fixture = try Fixture()
+            defer { fixture.cleanup() }
+            await fixture.model.play(track: fixture.first[1])
+            let loadedURLs = fixture.audio.loadedURLs
+            fixture.audio.isStoppedExternally = true
+
+            await fixture.model.performPlaybackCommand(command)
+
+            XCTAssertEqual(fixture.audio.resumeCalls, 1,
+                           "An explicit resume must inspect the output before trusting cached isPlaying.")
+            XCTAssertFalse(fixture.audio.isStoppedExternally)
+            XCTAssertTrue(fixture.audio.state.isPlaying)
+            XCTAssertEqual(fixture.audio.loadedURLs, loadedURLs)
+            XCTAssertEqual(fixture.activity.snapshot?.isPlaying, true)
+            XCTAssertEqual(fixture.nowPlaying.snapshot, fixture.activity.snapshot)
+        }
+    }
+
+    func testExternalPauseDuringDelayedTrackPreparationImmediatelyUpdatesCurrentTrackPresentation() async throws {
+        let fixture = try Fixture()
+        defer { fixture.cleanup() }
+        await fixture.model.play(track: fixture.first[0])
+        fixture.audio.state.currentTime = 4
+        fixture.media.delayedPath = fixture.first[1].filePath
+        let downloading = expectation(description: "Replacement waits while the current track plays")
+        fixture.media.onDownloadStarted = { downloading.fulfill() }
+        let request = Task { await fixture.model.play(track: fixture.first[1]) }
+        defer {
+            request.cancel()
+            fixture.media.releaseDownload()
+        }
+
+        await fulfillment(of: [downloading], timeout: eventTimeout)
+        XCTAssertTrue(fixture.audio.state.isPlaying)
+        XCTAssertEqual(fixture.model.preparingTrackTitle, fixture.first[1].displayName)
+
+        // A phone call interrupts the old track even while another file downloads.
+        fixture.audio.state.isPlaying = false
+
+        XCTAssertEqual(fixture.activity.snapshot?.isPlaying, false)
+        XCTAssertEqual(fixture.activity.snapshot?.currentTime, 4)
+        XCTAssertEqual(fixture.activity.snapshot?.trackID, fixture.first[0].id)
+        XCTAssertEqual(fixture.nowPlaying.snapshot, fixture.activity.snapshot)
+
+        request.cancel()
+        fixture.media.releaseDownload()
+        await request.value
+        XCTAssertEqual(fixture.audio.loadedURLs.map(\.path), [fixture.first[0].filePath])
+        XCTAssertNil(fixture.model.preparingTrackTitle)
+    }
+
     func testPauseInvalidatesDelayedDownloadWithoutReplacingCurrentTrack() async throws {
         let fixture = try Fixture()
         defer { fixture.cleanup() }
@@ -407,6 +476,8 @@ private final class AudioDouble: AudioPlaying {
     var onLoad: ((URL) -> Void)?
     var loadedURLs: [URL] = []
     var invalidPaths: Set<String> = []
+    var isStoppedExternally = false
+    private(set) var resumeCalls = 0
 
     func loadAndPlay(url: URL) async throws {
         if invalidPaths.contains(url.path) { throw PlaybackError.invalidAudioFile }
@@ -419,12 +490,20 @@ private final class AudioDouble: AudioPlaying {
     }
 
     func play() -> Task<Void, Error>? {
+        resumeCalls += 1
         state.isPlaying = state.duration > 0
         state.isStarting = false
         return nil
     }
 
     func pauseByUser() { pause() }
+
+    func reconcilePlaybackState() {
+        guard isStoppedExternally else { return }
+        isStoppedExternally = false
+        pause()
+    }
+
     func pause() {
         state.isPlaying = false
         state.isStarting = false

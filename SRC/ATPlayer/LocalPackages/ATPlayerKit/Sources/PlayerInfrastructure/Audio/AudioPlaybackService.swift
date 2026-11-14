@@ -82,8 +82,9 @@ public final class AudioPlaybackService: AudioPlaying {
     }
     private var bands: [Float] { state.bands }
 
-    private var engine = AVAudioEngine()
-    private var playerNode = AVAudioPlayerNode()
+    private var engine: AVAudioEngine
+    private var playerNode: AVAudioPlayerNode
+    private let notificationCenter: NotificationCenter
     private var equalizer = AVAudioUnitEQ(numberOfBands: 10)
     private var currentFile: AVAudioFile?
     private var playbackOffset: TimeInterval = 0
@@ -96,8 +97,16 @@ public final class AudioPlaybackService: AudioPlaying {
     private var observers: [NSObjectProtocol] = []
     private var isInterrupted = false
     private var resumeAfterInterruption = false
+    private var resumeAfterOutputStop = false
 
-    public init() {
+    public convenience init() {
+        self.init(engine: AVAudioEngine(), playerNode: AVAudioPlayerNode(), notificationCenter: .default)
+    }
+
+    init(engine: AVAudioEngine, playerNode: AVAudioPlayerNode, notificationCenter: NotificationCenter) {
+        self.engine = engine
+        self.playerNode = playerNode
+        self.notificationCenter = notificationCenter
         state.onPreampChange = { [weak self] value in
             self?.equalizer.globalGain = value
             UserDefaults.standard.set(value, forKey: "eq_preamp")
@@ -114,7 +123,7 @@ public final class AudioPlaybackService: AudioPlaying {
     deinit {
         pendingStart?.cancel()
         progressTimer?.invalidate()
-        observers.forEach { NotificationCenter.default.removeObserver($0) }
+        observers.forEach { notificationCenter.removeObserver($0) }
         engine.stop()
     }
 
@@ -149,11 +158,13 @@ public final class AudioPlaybackService: AudioPlaying {
 
     @discardableResult
     public func play() -> Task<Void, Error>? {
+        reconcilePlaybackState()
         guard currentFile != nil, !isPlaying, !isStarting else { return nil }
         // An interruption-ended notification is not guaranteed. A user request must
         // be able to reactivate the session; active interruptions still fail activation.
         isInterrupted = false
         resumeAfterInterruption = false
+        resumeAfterOutputStop = false
         return scheduleAndPlay(from: playbackOffset >= duration ? 0 : playbackOffset)
     }
 
@@ -165,10 +176,22 @@ public final class AudioPlaybackService: AudioPlaying {
     }
 
     public func pause() {
+        resumeAfterOutputStop = false
         guard isPlaying || isStarting else { return }
         if isPlaying { updateProgressValue() }
         playbackOffset = currentTime
         cancelPlayback()
+    }
+
+    public func reconcilePlaybackState() {
+        // A system stop can precede its notification. Never let a stale UI flag
+        // reject an explicit Play or make Toggle pause an already stopped output.
+        guard isPlaying, !isStarting, !engine.isRunning || !playerNode.isPlaying else { return }
+        Self.logger.notice("Reconciling playback after the audio output stopped")
+        pause()
+        // The timer may see a hardware stop before the corresponding notification.
+        // Retain intent so that notification can still recover active playback.
+        resumeAfterOutputStop = true
     }
 
     /// Unloads the file, including its duration. Pause preserves a resumable file.
@@ -179,6 +202,7 @@ public final class AudioPlaybackService: AudioPlaying {
         currentTime = 0
         duration = 0
         resumeAfterInterruption = false
+        resumeAfterOutputStop = false
     }
 
     public func seek(to time: TimeInterval) {
@@ -216,7 +240,11 @@ public final class AudioPlaybackService: AudioPlaying {
         cancelPlayback()
         let generation = scheduleGeneration
         isStarting = true
+        // A headphone command can wake a paused app only briefly. Keep execution
+        // through asynchronous session activation and the engine's actual start.
+        let backgroundTask = PlaybackBackgroundTask(name: "Start audio playback")
         let start = Task { @MainActor [weak self] in
+            defer { backgroundTask.finish() }
             guard let self else { throw CancellationError() }
             do {
                 try Task.checkCancellation()
@@ -267,7 +295,8 @@ public final class AudioPlaybackService: AudioPlaying {
             ) { [weak self] _ in
                 guard isLastSegment else { return }
                 Task { @MainActor [weak self] in
-                    guard let self, self.scheduleGeneration == generation, self.isPlaying else { return }
+                    guard let self, self.scheduleGeneration == generation,
+                          self.isPlaying, self.engine.isRunning, !self.isInterrupted else { return }
                     self.finishPlayback()
                 }
             }
@@ -276,6 +305,7 @@ public final class AudioPlaybackService: AudioPlaying {
         playbackError = nil
         spectrumGeneration = spectrumAnalyzer?.reset(enabled: true) ?? 0
         playerNode.play()
+        resumeAfterOutputStop = false
         isPlaying = true
         startProgressUpdates()
     }
@@ -334,17 +364,22 @@ public final class AudioPlaybackService: AudioPlaying {
     }
 
     private func observeAudioChanges() {
-        let center = NotificationCenter.default
+        let center = notificationCenter
         observers.append(center.addObserver(forName: AVAudioSession.interruptionNotification, object: nil, queue: .main) { [weak self] notification in
             let type = (notification.userInfo?[AVAudioSessionInterruptionTypeKey] as? NSNumber)?.uintValue
             let options = (notification.userInfo?[AVAudioSessionInterruptionOptionKey] as? NSNumber)?.uintValue ?? 0
-            Task { @MainActor [weak self] in
+            // NotificationCenter delivers this observer on the main queue. Handle
+            // it before returning, while the app still has execution time.
+            MainActor.assumeIsolated {
                 guard let self, let type, let interruption = AVAudioSession.InterruptionType(rawValue: type) else { return }
                 if interruption == .began {
-                    self.resumeAfterInterruption = self.isPlaying || self.isStarting
-                    self.pause()
+                    if !self.isInterrupted {
+                        self.resumeAfterInterruption = self.isPlaying || self.isStarting || self.resumeAfterOutputStop
+                    }
                     self.isInterrupted = true
+                    self.pause()
                 } else {
+                    guard self.isInterrupted else { return }
                     self.isInterrupted = false
                     let shouldResume = self.resumeAfterInterruption && AVAudioSession.InterruptionOptions(rawValue: options).contains(.shouldResume)
                     self.resumeAfterInterruption = false
@@ -354,7 +389,7 @@ public final class AudioPlaybackService: AudioPlaying {
         })
         observers.append(center.addObserver(forName: AVAudioSession.routeChangeNotification, object: nil, queue: .main) { [weak self] notification in
             let reason = (notification.userInfo?[AVAudioSessionRouteChangeReasonKey] as? NSNumber)?.uintValue
-            Task { @MainActor [weak self] in
+            MainActor.assumeIsolated {
                 guard reason == AVAudioSession.RouteChangeReason.oldDeviceUnavailable.rawValue else { return }
                 self?.resumeAfterInterruption = false
                 self?.pause()
@@ -362,14 +397,15 @@ public final class AudioPlaybackService: AudioPlaying {
         })
         observers.append(center.addObserver(forName: .AVAudioEngineConfigurationChange, object: nil, queue: .main) { [weak self] notification in
             let changedEngine = notification.object as? AVAudioEngine
-            Task { @MainActor [weak self] in
-                guard let self, changedEngine === self.engine, self.isPlaying, !self.engine.isRunning else { return }
+            MainActor.assumeIsolated {
+                guard let self, changedEngine === self.engine, self.isPlaying || self.resumeAfterOutputStop,
+                      !self.isInterrupted, !self.engine.isRunning else { return }
                 self.pause()
                 self.play()
             }
         })
         observers.append(center.addObserver(forName: AVAudioSession.mediaServicesWereResetNotification, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor [weak self] in
+            MainActor.assumeIsolated {
                 guard let self else { return }
                 self.pause()
                 self.engine.stop()
@@ -404,7 +440,10 @@ public final class AudioPlaybackService: AudioPlaying {
 
     private func startProgressUpdates() {
         let timer = Timer(timeInterval: 0.1, repeats: true) { [weak self] _ in
-            Task { @MainActor [weak self] in self?.updateProgressValue() }
+            MainActor.assumeIsolated {
+                self?.reconcilePlaybackState()
+                self?.updateProgressValue()
+            }
         }
         progressTimer = timer
         RunLoop.main.add(timer, forMode: .common)

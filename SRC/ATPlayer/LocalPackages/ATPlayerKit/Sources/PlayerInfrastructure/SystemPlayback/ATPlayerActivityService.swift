@@ -23,7 +23,10 @@ public final class ATPlayerActivityService: ActivityPresenting {
         // Capture only activities from the previous process, never a newly
         // requested activity from the current playback session.
         let previousActivities = Activity<ATPlayerActivityAttributes>.activities
+        guard !previousActivities.isEmpty else { return }
+        let backgroundTask = PlaybackBackgroundTask(name: "End stale playback activities")
         operation = Task {
+            defer { backgroundTask.finish() }
             for activity in previousActivities {
                 await activity.end(nil, dismissalPolicy: .immediate)
             }
@@ -75,7 +78,9 @@ public final class ATPlayerActivityService: ActivityPresenting {
             revision &+= 1
             let requestedRevision = revision
             let previousOperation = operation
+            let backgroundTask = PlaybackBackgroundTask(name: "Update playback activity")
             operation = Task { [weak self] in
+                defer { backgroundTask.finish() }
                 await previousOperation?.value
                 guard let self, self.revision == requestedRevision else { return }
                 await activity.update(content)
@@ -113,7 +118,9 @@ public final class ATPlayerActivityService: ActivityPresenting {
         lastUpdateDate = .distantPast
         guard let activity else { return }
         let previousOperation = operation
+        let backgroundTask = PlaybackBackgroundTask(name: "End playback activity")
         operation = Task {
+            defer { backgroundTask.finish() }
             await previousOperation?.value
             await activity.end(nil, dismissalPolicy: .immediate)
         }

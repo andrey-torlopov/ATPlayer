@@ -31,14 +31,17 @@ struct PlayerPanelV1: View {
                     .font(.system(isCompact ? .body : .title3, design: .rounded, weight: .medium))
                     .foregroundStyle(theme.textPrimary)
                     .multilineTextAlignment(.center)
-                    .lineLimit(isCompact ? 2 : 3)
+                    .lineLimit(isCompact ? 2 : 3, reservesSpace: true)
                     .fixedSize(horizontal: false, vertical: true)
 
-                if !isCompact, let track = viewModel.selectedTrack, viewModel.selectedTrackID != nil {
-                    Text(track.fileExtensionLabel)
+                if !isCompact {
+                    Text(viewModel.selectedTrack?.fileExtensionLabel ?? "")
                         .font(.system(size: 11, weight: .medium))
                         .tracking(1.5)
                         .foregroundStyle(theme.textSecondary)
+                        .lineLimit(1, reservesSpace: true)
+                        .opacity(viewModel.selectedTrackID == nil ? 0 : 1)
+                        .accessibilityHidden(viewModel.selectedTrackID == nil)
                 }
             }
             .frame(maxWidth: .infinity)

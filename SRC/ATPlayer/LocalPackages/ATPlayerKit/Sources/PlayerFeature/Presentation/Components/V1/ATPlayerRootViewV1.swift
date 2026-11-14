@@ -175,6 +175,14 @@ struct ATPlayerRootViewV1: View {
         .coordinateSpace(name: "player-library-viewport")
         .scrollIndicators(.hidden)
         .background(theme.background.ignoresSafeArea())
+        .overlay(alignment: .bottom) {
+            if isInteractive, let title = viewModel.preparingTrackTitle {
+                preparationBanner(title)
+                    .frame(maxWidth: 520)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 12)
+            }
+        }
     }
 
     private var playlistContent: some View {
@@ -188,21 +196,36 @@ struct ATPlayerRootViewV1: View {
             .accessibilityIdentifier("library-mode")
             .onChange(of: libraryMode) { _, mode in onLibraryModeChange(mode) }
 
-            if let title = viewModel.preparingTrackTitle {
-                HStack(spacing: 10) {
-                    ProgressView()
-                    Text(L10n.format("Подготовка: %@", title)).font(.subheadline).lineLimit(2)
-                    Spacer()
-                    Button(L10n.text("Отмена")) { Task { await viewModel.performPlaybackCommand(.pause) } }
-                }
-                .accessibilityIdentifier("playback-preparation")
-            }
             if libraryMode == .playlists {
                 PlaylistPanelV1(viewModel: viewModel)
             } else {
                 folderLibrary
             }
         }
+    }
+
+    private func preparationBanner(_ title: String) -> some View {
+        HStack(spacing: 10) {
+            ProgressView()
+                .tint(theme.accent)
+                .accessibilityHidden(true)
+            Text(L10n.format("Подготовка: %@", title))
+                .font(.subheadline)
+                .foregroundStyle(theme.textPrimary)
+                .lineLimit(2)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Button(L10n.text("Отмена")) {
+                Task { await viewModel.performPlaybackCommand(.pause) }
+            }
+            .font(.subheadline)
+            .fixedSize(horizontal: true, vertical: false)
+            .frame(minHeight: 44)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+        .softPanelV1(cornerRadius: 18)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("playback-preparation")
     }
 
     private var header: some View {

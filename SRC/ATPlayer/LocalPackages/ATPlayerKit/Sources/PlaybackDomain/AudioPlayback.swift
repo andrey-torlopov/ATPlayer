@@ -63,4 +63,6 @@ public protocol AudioPlaying: AnyObject {
     func pause()
     func stop()
     func seek(to time: TimeInterval)
+    /// Repairs published state after the system stops the audio output.
+    func reconcilePlaybackState()
 }

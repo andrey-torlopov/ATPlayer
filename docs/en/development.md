@@ -4,7 +4,7 @@
 
 ## Open the project
 
-The repository contains a native SwiftUI application, a WidgetKit/ActivityKit extension, and the local **ATPlayerKit** SwiftPM package. There are no third-party package dependencies. The source includes the Feature-First modules and Folders mode. Use an Xcode release that provides the project’s configured SDK. Supported deployment targets start at **iOS / iPadOS 26.2**.
+The repository contains a native SwiftUI application, a WidgetKit/ActivityKit extension, and the local **ATPlayerKit** SwiftPM package. There are no third-party package dependencies. The source includes the Feature-First modules and Folders mode. Use an Xcode release that provides the project’s configured SDK. Supported deployment targets start at **iOS / iPadOS 26.0**.
 
 ```sh
 git clone https://github.com/andrey-torlopov/ATPlayer.git

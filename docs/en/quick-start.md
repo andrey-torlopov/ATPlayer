@@ -2,7 +2,7 @@
 
 *[Русский](../ru/quick-start.md)*
 
-These steps apply to an installed copy of ATPlayer on iOS or iPadOS 26.2 or later. The App Store release is still in preparation; developers can use the [source setup](development.md).
+These steps apply to an installed copy of ATPlayer on iOS or iPadOS 26.0 or later. The App Store release is still in preparation; developers can use the [source setup](development.md).
 
 ## 1. Add your files
 

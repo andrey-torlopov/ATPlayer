@@ -2,7 +2,11 @@
 
 *[Русский](../ru/releases.md)*
 
-The source is being prepared for **1.3.0** with Russian/English localization, manual language selection, appearance settings, and the author section in Settings. Release verification and App Store Connect submission are separate steps; the source alone does not establish publication status.
+A local **1.3.1 (5)** candidate is prepared for **iOS / iPadOS 26.0 or later**. The changes stabilize layout when starting the first track, reconcile actual audio-output state before Play/Toggle, and immediately publish pauses to system controls. Short background tasks protect asynchronous audio startup and Live Activity updates. Resource cleanup avoids the isolated-deinit runtime path that crashes on early iOS 26 releases.
+
+Full XCTest on the iOS 26.3 simulator: **passed / total = 132 / 137**, **0** failures and **5** skipped tests requiring an unavailable optional user-supplied MP3. A local Release archive was created. Physical AirPods, incoming calls while locked, and execution on iOS 26.0 itself remain separate checks. This version has not been uploaded to App Store Connect or submitted for review.
+
+The candidate retains Russian/English localization, language selection, and appearance settings from the 1.3.0 preparation. Local verification does not establish public release status.
 
 The records below are historical snapshots from **November 1, 2026**.
 
