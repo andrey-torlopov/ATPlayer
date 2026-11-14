@@ -2,15 +2,34 @@
 
 *[Русский](../ru/releases.md)*
 
-## Preparation for 1.4.0 (6) — November 14, 2026
+## 1.5.0 — November 14, 2026
 
-The radio effect uses supplied recording12. Its playback texture omits near-silent passages and smooths level changes and isolated peaks; the original WAV is retained. Two linked controls set maximum noise and background: raising the floor above the maximum raises both, and lowering the maximum below the floor lowers both. Background0 permits quiet intervals; equal levels hold steady noise with modest natural variation. The new maximum10 equals the former level7, including its music/noise balance.
+**Status: Waiting for Review.** Version **1.5.0**, build **7**, was submitted to App Review on **November 14, 2026, around 22:19 Moscow time**. App Store Connect showed **1 Item Submitted** and **1.5.0 Waiting for Review**. [View the submission](https://appstoreconnect.apple.com/apps/6829444190/distribution/reviewsubmissions/details/0ee7de22-7e33-4ca0-b67f-18220a22b53f) (account access required).
 
-FM/AM buttons and station-search transitions are removed. Tracks change through ordinary prepared playback without tuning noise; the interference sequence continues across the boundary. Settings persist, while legacy station-search/profile preferences no longer affect playback. Processing is local, without microphone input or a network radio catalog.
+App and widget require **iOS / iPadOS 26.0 or later**. Upload succeeded at **22:15 Moscow time**, and processing completed before submission. Automatic release after approval remains enabled. Version 1.5.0 is not yet publicly released; the preceding **1.2.0** version is marked **Ready for Distribution** in App Store Connect.
 
-The standalone **RadioNoiseKit** Swift package includes the core, sampler and **RadioNoiseAssets** product. **NoiseDemo** for iOS/iPadOS18 provides recording, experimental synthesis and imported-music comparison. Current verification, audio previews and limitations are retained locally in `Artifacts/Radio-1.4.0/Reference12Sample/README.md`.
+### What changed
 
-App and widget remain **1.4.0 (6)**, requiring **iOS/iPadOS26.0**. The earlier signed archive and IPA do not contain this refinement. This iteration did not create a new archive, upload to App Store Connect or publish. Physical-device acceptance, extended playback and realtime timing remain separate checks. The known first200ms peak limitation when enabling processing on already-overloaded EQ input remains.
+- Optional radio texture, with noise rising and falling smoothly as the music becomes quieter.
+- **Radio is off on first launch:** both controls start at 0. Previously saved choices are preserved.
+- Separate **Radio effect** and **Radio effect background** sliders, each from 0 to 10. The background cannot exceed the maximum: adjusting beyond the other control moves both together.
+- Background 0 allows quiet intervals. A positive background maintains radio texture during playback; equal levels keep the noise near one level with natural variation.
+- A reduced maximum: level 10 corresponds to level 7 from the earlier development build. The recorded texture is balanced to soften sharp peaks and avoid abrupt silent gaps.
+- Ordinary track transitions without station-search sounds or FM/AM selection. Pause, Stop and the end of playback silence the effect.
+
+Radio processing is local. It does not use the microphone or connect to radio stations. See [radio controls](features.md#radio-effect-in-150).
+
+### Development and verification
+
+The standalone **RadioNoiseKit** Swift package contains the processing core and recorded-noise assets. **NoiseDemo** for iOS / iPadOS 18 or later supports comparing the recording, experimental synthesis and imported music; it is a separate development project.
+
+Fresh checks for 1.5.0 passed: **196 of 196** ATPlayerKit tests on the iOS 26.3.1 simulator and **37 of 37** RadioNoiseKit/assets tests, with no failures. A new Release archive and App Store Connect IPA export succeeded. Both app and widget signatures, version **1.5.0 (7)**, minimum OS **26.0**, provisioning and the bundled noise resource were verified. The upload completed successfully, server processing finished, and build 7 was selected and submitted with version 1.5.0.
+
+NoiseDemo’s **12 of 12** passing tests belong to the preceding audio iteration and were not rerun for this release. Logs, test results, signature checks and the upload receipt are retained locally in `Artifacts/Release-1.5.0/`.
+
+[Radio effect announcement on Boosty (Russian)](https://boosty.to/andreytorlopov/posts/e2ab562c-5d8e-4d6b-82f8-65ebf96bf9e7).
+
+Physical audio-route acceptance, extended playback and realtime timing remain separate checks. The known first 200 ms peak limitation when enabling processing on already-overloaded EQ input remains. No playlist database migration is required.
 
 ## Previous local candidate — 1.3.1 (5)
 
@@ -85,7 +104,7 @@ For file-provider changes, test a downloaded local file and an iCloud file separ
 
 ## Updating documentation
 
-When Apple makes the app publicly available, replace the preparation status with the verified App Store link and release date. Do not add a download badge while the listing is only a draft, in review, or available to private testers.
+After each new version becomes publicly available, update its status with the verified App Store link and release date. Keep the existing download link for the currently available version; do not describe an update as released while it is still a draft, in review, or available only to private testers.
 
 Keep [privacy](../../PRIVACY.md) and [support](../../SUPPORT.md) current with the shipped app. Update the data policy before adding a data collection SDK, account, backend, or synchronization feature.
 

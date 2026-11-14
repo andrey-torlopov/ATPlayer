@@ -20,11 +20,11 @@ ATPlayer is a simple local audio player for iPhone and iPad. Your own files, an 
 
 ## Availability
 
-**Version 1.4.0 (build 6) is in preparation with linked radio maximum/background controls and balanced noise from recording 12. Track changes use ordinary playback without station-search sounds. See the release record for current checks and limitations; the earlier signed archive does not include the latest changes.**
+**Version 1.5.0 (build 7) was submitted to App Review on November 14, 2026 and is Waiting for Review. It adds an optional radio effect with separate maximum and background levels. Radio is off on first launch. See [release status and verification](docs/en/releases.md) for the current submission status.**
 
 - iPhone and iPad with **iOS / iPadOS 26.0 or later**.
 - The app interface and documentation are available **in Russian and English**. Select **RU / EN** in Settings.
-- The planned App Store release is **free, without in-app purchases**.
+- [Download on the App Store](https://apps.apple.com/app/id6829444190). The app is **free, without in-app purchases**.
 
 Developers can [run the project from source](docs/en/development.md). A source tag does not mean that Apple has approved or published that version. See [release status and verification](docs/en/releases.md).
 
@@ -45,8 +45,17 @@ Playlist import keeps references to your files and includes subfolders when you 
 | Live Activities on supported devices | Removing entries without deleting audio |
 | 10-band equalizer and preamp | JSON export of playlist information |
 | Light and dark appearance; iPhone and iPad layouts | Local playlist storage; no app account |
+| Optional radio effect with adjustable background in 1.5.0 | Your existing files and playlists |
 
 Music is not included. Playback depends on the selected file being accessible and supported by the system audio decoder. The JSON export contains names and paths, not music or a restorable library backup. [Features and limits →](docs/en/features.md)
+
+## Radio effect in 1.5.0
+
+Open Settings → **Radio** to add the texture of radio reception to your music. **Radio effect** controls the strongest interference; **Radio effect background** sets the noise that remains between rises. Both use a 0–10 scale. Noise rises and falls smoothly while the music becomes quieter.
+
+Both controls start at **0**, so first playback is clean. A background of **0** allows quiet gaps; matching the background to the main level keeps a steady radio texture with natural variation. Raising the background above the main level raises both; lowering the main level below the background lowers both. Set the main level to **0** to turn radio off. Track changes have no additional tuning effect.
+
+[Read about the radio effect on Boosty (Russian)](https://boosty.to/andreytorlopov/posts/e2ab562c-5d8e-4d6b-82f8-65ebf96bf9e7).
 
 ## Documentation
 

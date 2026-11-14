@@ -8,11 +8,11 @@ Create and rename playlists, add files or folders, change track order, and remov
 
 The player reads titles, artist names, duration, and available artwork from audio metadata. When a title is missing, it uses the file name. Folder import includes subfolders and sorts discovered file paths naturally before adding them.
 
-The current source also supports reordering playlists themselves. Tap the up/down arrows beside **«Плейлисты»** (Playlists) to open **«Порядок плейлистов»** (Playlist Order), then drag the handles on the right. Order saves automatically and survives relaunch; the current track keeps playing. This change is unreleased.
+You can also reorder playlists themselves. Tap the up/down arrows beside **«Плейлисты»** (Playlists) to open **«Порядок плейлистов»** (Playlist Order), then drag the handles on the right. Order saves automatically and survives relaunch; the current track keeps playing.
 
-## Folders in the current source
+## Folders
 
-**Unreleased; not included in the submitted 1.0.2 (1) build.** The **«Плейлисты / Папки»** switch changes the library area. In **«Папки»**, add a root through Files and open it to see only its immediate subfolders and supported audio files. Folders appear first; names use natural sorting. Refresh checks the listing again.
+The **«Плейлисты / Папки»** switch changes the library area. In **«Папки»**, add a root through Files and open it to see only its immediate subfolders and supported audio files. Folders appear first; names use natural sorting. Refresh checks the listing again.
 
 Empty subfolders and directories without supported audio anywhere in their subtree are hidden. Parents of nested albums remain visible. Adding a root without music does not save it. Discovery reads metadata without downloading descendant audio; directories with inaccessible contents remain visible until they can be checked. Previously saved roots are not removed automatically.
 
@@ -26,14 +26,14 @@ Audio at the open level is prepared sequentially in a temporary local cache, inc
 
 The main screen has play/pause, previous/next, and circular seeking. The radial visualization reacts to the audio. In Playlists mode, default playback proceeds through tracks and then through subsequent playlists in the displayed order. Unavailable files can be skipped while the player looks for the next playable track.
 
-**The working version, not yet submitted to the App Store**, adds one mode button directly below Settings. Each tap changes its icon and advances through **playlist repeat → shuffle → repeat one → normal playback**, then starts the cycle again. Only one mode is active at a time.
+One mode button sits directly below Settings. Each tap changes its icon and advances through **playlist repeat → shuffle → repeat one → normal playback**, then starts the cycle again. Only one mode is active at a time.
 
 - **Playlist repeat** loops the current playlist in its saved order.
 - **Shuffle** mixes the current playlist without changing its saved order. Tracks do not repeat within a pass, and Previous follows the same queue backwards. Playback stops at the end of that queue.
 - **Repeat one** restarts the current track when it ends; manual Previous and Next still change tracks within the current playlist.
 - **Normal playback** is shown by a right arrow. It plays tracks and subsequent playlists sequentially, with shuffle and repeat disabled.
 
-The selected mode persists between launches. Selecting a track from another playlist changes the playback scope; shuffle starts a new queue with that track. The mode button does not change the saved playlist or track order. The submitted **1.0.2 (1)** build does not contain this button.
+The selected mode persists between launches. Selecting a track from another playlist changes the playback scope; shuffle starts a new queue with that track. The mode button does not change the saved playlist or track order.
 
 Background playback uses the system audio session. Track information and controls appear through Now Playing. Live Activities provide another system surface on supported devices when enabled. The app is not a general-purpose Home Screen widget collection.
 
@@ -41,7 +41,18 @@ Background playback uses the system audio session. Track information and control
 
 The equalizer provides 10 frequency bands and preamp controls. Each gain is adjustable from −12 to +12 dB. Changes apply immediately and persist between launches; **«Сбросить настройки»** resets the equalizer.
 
-The interface follows the system's light or dark appearance and adapts to iPhone, iPad, orientation, and larger text sizes. Controls include VoiceOver labels and accessible seeking. This is implemented behavior, not a claim of a completed accessibility certification.
+Settings offers Light, Dark and System appearance, with System selected by default, plus a manual RU / EN language switch. The interface adapts to iPhone, iPad, orientation, and larger text sizes. Controls include VoiceOver labels and accessible seeking. This is implemented behavior, not a claim of a completed accessibility certification.
+
+## Radio effect in 1.5.0
+
+Radio adds the texture of radio reception to your files. **It is off on first launch**, with both sliders at 0. Open Settings → **Radio** to adjust it:
+
+- **Radio effect** sets the strongest noise level, from 0 to 10. At 0 the effect is off.
+- **Radio effect background** sets the persistent noise between rises, also from 0 to 10. At 0 the noise may fade away; a positive value keeps a background during playback.
+
+The background cannot exceed the main level. Raising the background above it raises both controls; lowering the main level below the background lowers both. Matching the levels keeps a steady radio texture with natural variation. With a lower background, noise smoothly rises toward the maximum and returns, while the music becomes quieter and recovers. These are relative levels, not percentages of output volume.
+
+The texture has been balanced to soften sharp peaks. Track changes add no separate tuning sound, and there is no FM/AM selector. Pause, Stop and the end of playback silence the effect. Your choices persist between launches. Radio works locally and does not use the microphone or receive radio stations.
 
 ## Files and export
 
@@ -51,7 +62,7 @@ JSON export saves playlist names and each track's artist, title, and file path. 
 
 ## Scope
 
-ATPlayer has no account, recommendations, streaming catalog, music downloader, or in-app purchase flow. The interface is Russian. There is no English UI localization, cross-device playlist synchronization, sleep timer, or CarPlay-specific interface in this version.
+ATPlayer has no account, recommendations, streaming catalog, music downloader, or in-app purchase flow. The interface supports Russian and English. There is no cross-device playlist synchronization, sleep timer, or CarPlay-specific interface in this version.
 
 For reliable offline listening, keep the original files available locally; temporary folder caching does not guarantee offline access. [Data and privacy](data-and-privacy.md) explains the difference between a playlist reference and a copy of the audio.
 

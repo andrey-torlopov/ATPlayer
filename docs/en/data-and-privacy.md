@@ -8,9 +8,9 @@ When you select audio, ATPlayer stores track metadata and file-access bookmarks.
 
 This keeps the app's role simple, but access to the original file matters. Moving it, deleting it, changing its provider, or making it unavailable can stop playback. Select it again through Files if access needs to be restored.
 
-## Folder roots and temporary audio — current source, unreleased
+## Folder roots and temporary audio
 
-The current source adds Folders mode; it is not in the submitted **1.0.2 (1)** build. It saves only the roots you select. Opening a root or subfolder scans its immediate children. Browsing paths, listings, and folder playback queues stay in memory and start fresh after relaunch. Playlist folder import remains recursive.
+Folders mode saves only the roots you select. Opening a root or subfolder scans its immediate children. Browsing paths, listings, and folder playback queues stay in memory and start fresh after relaunch. Playlist folder import remains recursive.
 
 Audio files at the open level are prepared sequentially in a temporary local cache, including provider-backed files that need downloading. The cache has a **512 MiB soft budget**. Unused copies can be evicted; files currently used by playback are retained until released. Explicitly selected oversized recordings and playback handoffs may temporarily exceed the budget, subject to available disk space. Cache state is not restored after relaunch, and generated temporary files are cleared when the cache starts again.
 
@@ -23,9 +23,9 @@ The cache is not a permanent library or an offline guarantee. A «Подгото
 | Playlist names, order, and track membership | Reopen your collection in the chosen order |
 | Titles, artists, duration, available artwork | Present the selected audio |
 | Original paths and access bookmarks | Locate and read the files you chose |
-| Equalizer settings, playback mode, and last played playlist | Preserve sound preferences and playlist presentation |
-| Selected root names, order, and access bookmarks (current source) | Reopen the roots without persisting their trees |
-| Temporary audio copies from folder playback (current source) | Prepare local playback; copies can be evicted |
+| Equalizer and radio settings, appearance, language, playback mode, and last played playlist | Preserve sound preferences and playlist presentation |
+| Selected root names, order, and access bookmarks | Reopen the roots without persisting their trees |
+| Temporary audio copies from folder playback | Prepare local playback; copies can be evicted |
 
 Playlist data uses SwiftData; settings use UserDefaults. Folder roots use a separate local JSON file, and audio copies use the app’s temporary directory. The app does not provide its own cloud synchronization or server. System backups are governed by your device and account settings.
 
@@ -34,6 +34,8 @@ Playlist data uses SwiftData; settings use UserDefaults. Folder roots use a sepa
 Available local files can play without an internet connection. iCloud Drive files may need downloading, and other file providers may use their own networks. ATPlayer's file references do not guarantee that a provider will keep a file downloaded forever.
 
 Opening the privacy policy takes you to its public GitHub page. Choosing support opens an email link. GitHub, your email provider, and any file provider have their own data practices.
+
+Radio processing runs on the device using bundled noise. It does not record microphone audio or send your music to a server.
 
 ## Playback information
 

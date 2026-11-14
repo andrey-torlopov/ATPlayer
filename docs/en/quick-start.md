@@ -2,7 +2,7 @@
 
 *[Русский](../ru/quick-start.md)*
 
-These steps apply to an installed copy of ATPlayer on iOS or iPadOS 26.0 or later. The App Store release is still in preparation; developers can use the [source setup](development.md).
+These steps apply to an installed copy of ATPlayer on iOS or iPadOS 26.0 or later. For version availability, see [release status](releases.md). Developers can use the [source setup](development.md).
 
 ## 1. Add your files
 
@@ -20,7 +20,7 @@ In normal playlist playback, the player follows the stored track order. If you h
 
 Use **+** beside **«Плейлисты»** (Playlists) to create another playlist. Open its **…** menu and select **«Редактировать треки»** (Edit Tracks). Drag the handles on the right to reorder tracks; the order saves automatically. Select several tracks to remove them together. Removing entries leaves the original files intact.
 
-In the current source (unreleased), the up/down arrows beside **«Плейлисты»** open playlist reordering. Drag a playlist by its right-hand handle and tap **«Готово»** (Done); order saves automatically.
+The up/down arrows beside **«Плейлисты»** open playlist reordering. Drag a playlist by its right-hand handle and tap **«Готово»** (Done); order saves automatically.
 
 ## 4. Keep listening
 
@@ -30,9 +30,13 @@ The sliders button at the top right opens settings. **«Эквалайзер»**
 
 If a file becomes unavailable after you move it or change providers, select it again. See [data and privacy](data-and-privacy.md) and [support](../../SUPPORT.md).
 
-## Listen directly from folders — current source, unreleased
+## Try radio in 1.5.0
 
-This option is not in the submitted **1.0.2 (1)** build. Above the library, choose **«Папки»** (Folders), then **«Добавить папку»** (Add Folder). Select a root directory through Files. Open subfolders one at a time; each screen shows only that level’s folders and audio.
+Radio is off by default. In Settings → **Radio**, raise **Radio effect** to add interference. Use **Radio effect background** for a continuous background, or leave it at 0 to allow quiet intervals. The background is linked to the main level and cannot exceed it. Set the main level to 0 for clean playback. [Control behavior →](features.md#radio-effect-in-150)
+
+## Listen directly from folders
+
+Above the library, choose **«Папки»** (Folders), then **«Добавить папку»** (Add Folder). Select a root directory through Files. Open subfolders one at a time; each screen shows only that level’s folders and audio.
 
 Folders without supported music are hidden; paths to music deeper in the tree remain visible. Selecting an empty root does not add it. Checking a large network tree can take time.
 

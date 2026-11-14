@@ -4,7 +4,7 @@
 
 ## Open the project
 
-The repository contains a native SwiftUI application, a WidgetKit/ActivityKit extension, and the local **ATPlayerKit** SwiftPM package. There are no third-party package dependencies. The source includes the Feature-First modules and Folders mode. Use an Xcode release that provides the project’s configured SDK. Supported deployment targets start at **iOS / iPadOS 26.0**.
+The repository contains a native SwiftUI application, a WidgetKit/ActivityKit extension, and the local **ATPlayerKit** and **RadioNoiseKit** SwiftPM packages. There are no third-party package dependencies. The source includes the Feature-First modules and Folders mode. Use an Xcode release that provides the project’s configured SDK. Supported deployment targets start at **iOS / iPadOS 26.0**.
 
 ```sh
 git clone https://github.com/andrey-torlopov/ATPlayer.git
@@ -41,6 +41,9 @@ The local package is at `SRC/ATPlayer/LocalPackages/ATPlayerKit/`. Its target de
 | `Sources/FolderFeature/` | Independent folder browser state and UI, navigation and prefetch lifecycle |
 | `Sources/LibraryDomain/`, `Sources/PlaybackDomain/`, `Sources/FolderDomain/` | Domain models and contracts without concrete storage or feature UI |
 | `Sources/PlayerInfrastructure/` | SwiftData storage, file access, temporary cache, AVAudioEngine, Now Playing and Activity adapters |
+| `Sources/RadioDSP/` | App-side C++ radio processing, source gates and mixing |
+| `SRC/ATPlayer/LocalPackages/RadioNoiseKit/` | Standalone C++ noise core and sampler; Swift `RadioNoiseAssets` resource loading |
+| `SRC/NoiseDemo/` | Separate iOS / iPadOS noise playground and audio tests |
 | `Sources/PlaybackActivity/` | Shared ActivityKit attributes used by the app and extension |
 | `Tests/` | Playback, folder browser, storage, file access/cache and legacy schema compatibility tests |
 | `SRC/ATPlayer/ATPlayerWidgetExtension/` | Live Activity rendering and extension entry point |
@@ -59,6 +62,9 @@ flowchart TD
     Folders --> FolderDomain
     Infra --> Domains
     Infra --> Activity[PlaybackActivity]
+    Infra --> DSP[RadioDSP]
+    DSP --> Noise[RadioNoiseKit]
+    Infra --> Assets[RadioNoiseAssets]
     Extension[Widget extension] --> Activity
 ```
 
@@ -67,6 +73,24 @@ flowchart TD
 Playlist records keep the original SwiftData entity names and schema. The storage adapter maps them to domain objects; failed mutations roll back. Saved folder roots use `Application Support/ATPlayer/folder-sources.json` and do not extend the playlist database. Listings, navigation and folder queues remain in memory. JSON playlist export excludes folders.
 
 In Folders mode, file I/O and coordinated copying run away from the UI actor. Playback reads a local cache lease held until the engine stops using it. Browser prefetch is sequential and cancellable; explicit playback has priority. The temporary cache uses a 512 MiB soft budget, can temporarily exceed it for pinned handoff files or an explicitly selected oversized recording, and evicts unused copies. It is not an offline guarantee. Playlist folder import retains its recursive behavior; folder browsing and playback never recurse.
+
+## RadioNoiseKit and NoiseDemo
+
+[RadioNoiseKit](../../SRC/ATPlayer/LocalPackages/RadioNoiseKit/README.md) separates the C++17 core and sampler from the Swift resource loader. The app uses a balanced texture prepared from the bundled recording; experimental procedural profiles remain available in the separate demo. Asset preparation and sample installation run before rendering. The render path does not perform file I/O or allocate memory. Radio settings start at 0/0 and persist independently of playback transport.
+
+[NoiseDemo](../../SRC/NoiseDemo/README.md) is an independent **iOS / iPadOS 18 or later** project, not a target shipped with ATPlayer. Open it with:
+
+```sh
+open SRC/NoiseDemo/NoiseDemo.xcodeproj
+```
+
+Choose the **NoiseDemo** scheme. Its recording, synthesis and imported-music modes help compare noise character and mixing. Its experiment defaults are separate from ATPlayer’s first-launch defaults.
+
+Run the standalone package tests from the repository root:
+
+```sh
+swift test --package-path SRC/ATPlayer/LocalPackages/RadioNoiseKit
+```
 
 ## Local test audio
 
@@ -80,7 +104,7 @@ This creates short synthetic sine waves, not recorded music. See the [fixture pr
 
 ## Verification boundaries
 
-The package provides `PlayerInfrastructureTests`, `PlayerFeatureTests`, and `FolderFeatureTests`, with a separate `LegacyPlaylistFixture` target. Open `Package.swift` in Xcode and select **ATPlayerKit-Package** to run these tests on an installed iOS simulator. The app scheme remains **ATPlayer**. Tests cover a legacy store opened after module relocation, queue boundaries, cancellation and late results, root persistence, and local cache/file operations. Mock-provider and local-file tests do not verify real iCloud, SMB, third-party providers, audio routes, interruptions, or background playback; exercise those scenarios on a device and record its model and OS.
+The package provides `PlayerInfrastructureTests`, `PlayerFeatureTests`, and `FolderFeatureTests`, with a separate `LegacyPlaylistFixture` target. Open `Package.swift` in Xcode and select **ATPlayerKit-Package** to run these tests on an installed iOS simulator. The app scheme remains **ATPlayer**. Tests cover a legacy store opened after module relocation, queue boundaries, cancellation and late results, root persistence, local cache/file operations, radio preferences and audio processing. Mock-provider and local-file tests do not verify real iCloud, SMB, third-party providers, audio routes, interruptions, or background playback; exercise those scenarios on a device and record its model and OS.
 
 Before sending a change, check that adding files, relaunching, seeking, advancing tracks, editing a playlist, and leaving the app still behave as intended. Also verify switching library modes during playback, a current-level folder queue, forgetting an active root, and cloud/network preparation. Pay particular attention to unavailable files and cancelled imports. See [release verification](releases.md).
 
