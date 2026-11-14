@@ -10,6 +10,9 @@ let package = Package(
         .library(name: "PlaybackActivity", targets: ["PlaybackActivity"]),
         .library(name: "AppLocalization", targets: ["AppLocalization"])
     ],
+    dependencies: [
+        .package(path: "../RadioNoiseKit")
+    ],
     targets: [
         .target(name: "AppLocalization", resources: [.process("Resources")]),
         .target(name: "LibraryDomain"),
@@ -17,16 +20,23 @@ let package = Package(
         .target(name: "FolderFeature", dependencies: ["AppLocalization", "FolderDomain"]),
         .target(name: "PlaybackDomain", dependencies: ["AppLocalization"]),
         .target(name: "PlaybackActivity"),
-        .target(name: "PlayerInfrastructure", dependencies: ["AppLocalization", "LibraryDomain", "PlaybackDomain", "PlaybackActivity", "FolderDomain"]),
+        .target(name: "RadioDSP", dependencies: [
+            .product(name: "RadioNoiseKit", package: "RadioNoiseKit")
+        ], publicHeadersPath: "include"),
+        .target(name: "PlayerInfrastructure", dependencies: [
+            "AppLocalization", "LibraryDomain", "PlaybackDomain", "PlaybackActivity", "FolderDomain", "RadioDSP",
+            .product(name: "RadioNoiseAssets", package: "RadioNoiseKit")
+        ]),
         .target(name: "PlayerFeature", dependencies: ["AppLocalization", "LibraryDomain", "PlaybackDomain", "FolderDomain"],
                 resources: [.process("Resources")]),
         .target(name: "PlayerApplication", dependencies: ["AppLocalization", "PlayerFeature", "FolderFeature", "FolderDomain", "PlayerInfrastructure", "PlaybackDomain"]),
         .target(name: "LegacyPlaylistFixture", path: "Tests/LegacyPlaylistFixture"),
         .testTarget(name: "AppLocalizationTests", dependencies: ["AppLocalization"]),
         .testTarget(name: "PlaybackActivityTests", dependencies: ["PlaybackActivity"]),
-        .testTarget(name: "PlayerInfrastructureTests", dependencies: ["PlayerInfrastructure", "PlayerFeature", "LibraryDomain", "FolderDomain", "LegacyPlaylistFixture"], resources: [.copy("Fixtures")]),
+        .testTarget(name: "PlayerInfrastructureTests", dependencies: ["PlayerInfrastructure", "PlayerFeature", "LibraryDomain", "FolderDomain", "LegacyPlaylistFixture", "RadioDSP"], resources: [.copy("Fixtures")]),
         .testTarget(name: "PlayerFeatureTests", dependencies: ["PlayerFeature", "PlaybackDomain", "LibraryDomain", "FolderDomain"]),
         .testTarget(name: "FolderFeatureTests", dependencies: ["FolderFeature", "FolderDomain"])
     ],
-    swiftLanguageModes: [.v5]
+    swiftLanguageModes: [.v5],
+    cxxLanguageStandard: .cxx17
 )

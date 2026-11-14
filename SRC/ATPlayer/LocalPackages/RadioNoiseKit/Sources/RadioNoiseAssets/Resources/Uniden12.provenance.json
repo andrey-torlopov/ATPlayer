@@ -1,0 +1,16 @@
+{
+  "sourcePath": "Source/Radio/12-Uniden-radio-static-bursts.wav",
+  "sourceSHA256": "2aae0c3f3e1e2c79357f59cd4cf9643ae4b206b6a217feced57ddd1be77541ee",
+  "resourceFile": "Uniden12.mono.wav",
+  "resourceSHA256": "4c2f92a2d3a2db56e715786cb7fef28a43d45dcab400e62f5238885a2c0dc1ba",
+  "provenance": "Recording supplied by the user as the requested sound reference and authorized as the basis of the effect. No additional license is asserted.",
+  "conversion": "Lossless extraction of channel 1 after byte-for-byte verification that channels 1 and 2 are identical. No filtering, normalization, trimming, or resampling.",
+  "sampleRate": 48000,
+  "bitsPerSample": 24,
+  "channels": 1,
+  "frameCount": 2706726,
+  "durationSeconds": 56.390125,
+  "rmsFormula": "sqrt(sum((signedPCM24 / 8388608)^2) / frameCount)",
+  "rms": 0.03620129838839525,
+  "samplePeak": 0.31603574752807617
+}

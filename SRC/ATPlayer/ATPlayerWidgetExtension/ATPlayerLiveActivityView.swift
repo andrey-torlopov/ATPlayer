@@ -30,7 +30,7 @@ struct ATPlayerLiveActivityView: Widget {
                     }
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    if context.state.isPlaying {
+                    if context.state.advancesTrackTime ?? context.state.isPlaying {
                         Text(
                             timerInterval: context.state.playbackStartDate...context.state.playbackStartDate.addingTimeInterval(context.state.duration),
                             countsDown: false
@@ -74,7 +74,7 @@ struct ATPlayerLiveActivityView: Widget {
                 Image(systemName: context.state.isPlaying ? "music.note" : "pause.fill")
                     .foregroundStyle(.cyan)
             } compactTrailing: {
-                if context.state.isPlaying {
+                if context.state.advancesTrackTime ?? context.state.isPlaying {
                     Text(
                         timerInterval: context.state.playbackStartDate...context.state.playbackStartDate.addingTimeInterval(context.state.duration),
                         countsDown: false
@@ -116,7 +116,7 @@ struct ATPlayerLiveActivityView: Widget {
                 Spacer()
             }
 
-            if context.state.isPlaying {
+            if context.state.advancesTrackTime ?? context.state.isPlaying {
                 ProgressView(
                     timerInterval: startDate...endDate,
                     countsDown: false

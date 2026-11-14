@@ -1,57 +1,93 @@
 {
-  "sourceLanguage": "ru",
-  "strings": {
-    "Переключить воспроизведение": {
-      "extractionState": "manual",
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Переключить воспроизведение"
+  "sourceLanguage" : "ru",
+  "strings" : {
+    "−" : {
+
+    },
+    "A an example control that runs a timer." : {
+
+    },
+    "Emoji:" : {
+
+    },
+    "My Widget" : {
+
+    },
+    "Off" : {
+
+    },
+    "On" : {
+
+    },
+    "Start a timer" : {
+
+    },
+    "Start Timer" : {
+
+    },
+    "This is an example widget." : {
+
+    },
+    "Time:" : {
+
+    },
+    "Timer" : {
+
+    },
+    "Timer is running" : {
+
+    },
+    "Переключить воспроизведение" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toggle Playback"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Toggle Playback"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Переключить воспроизведение"
           }
         }
       }
     },
-    "Следующий трек": {
-      "extractionState": "manual",
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Следующий трек"
+    "Предыдущий трек" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Previous Track"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Next Track"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Предыдущий трек"
           }
         }
       }
     },
-    "Предыдущий трек": {
-      "extractionState": "manual",
-      "localizations": {
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Предыдущий трек"
+    "Следующий трек" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next Track"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Previous Track"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Следующий трек"
           }
         }
       }
     }
   },
-  "version": "1.0"
+  "version" : "1.0"
 }

@@ -407,6 +407,482 @@ final class PlaybackSessionTests: XCTestCase {
         XCTAssertEqual(fixture.makeModel().playbackMode, .off,
                        "An explicit current preference takes priority over retained legacy keys")
     }
+
+    func testRadioPreferenceRestoresWithoutStartingPlayback() throws {
+        let fixture = try Fixture()
+        defer { fixture.cleanup() }
+        fixture.defaults.set(7, forKey: RadioPreferences.effectIntensityKey)
+        fixture.defaults.set(4, forKey: RadioPreferences.legacyTransitionIntensityKey)
+        fixture.defaults.set("unsupported-profile", forKey: RadioPreferences.legacyProfileIDKey)
+
+        XCTAssertEqual(fixture.model.radioSettings, RadioSettings(effectIntensity: 7))
+        XCTAssertEqual(fixture.audio.appliedRadioSettings.last, fixture.model.radioSettings)
+        XCTAssertTrue(fixture.audio.loadedURLs.isEmpty)
+        XCTAssertEqual(fixture.audio.resumeCalls, 0)
+        XCTAssertFalse(fixture.audio.state.isPlaying)
+
+        fixture.model.setRadioEffectIntensity(0)
+        XCTAssertEqual(fixture.model.radioSettings, RadioSettings(effectIntensity: 0))
+        fixture.model.setRadioEffectIntensity(9)
+        XCTAssertEqual(fixture.model.radioSettings, RadioSettings(effectIntensity: 9, backgroundIntensity: 0))
+        XCTAssertEqual(RadioPreferences(defaults: fixture.defaults).load(), fixture.model.radioSettings)
+        XCTAssertTrue(fixture.audio.loadedURLs.isEmpty)
+        XCTAssertEqual(fixture.audio.resumeCalls, 0)
+    }
+
+    func testPreparedPrefetchDoesNotCommitSelectionOrStartAnotherFile() async throws {
+        let fixture = try Fixture()
+        defer { fixture.cleanup() }
+        fixture.audio.supportsPreparedTransitions = true
+        let prepared = expectation(description: "Automatic next is prepared")
+        fixture.audio.onSchedule = { _, atEnd in
+            XCTAssertTrue(atEnd)
+            fixture.audio.onSchedule = nil
+            prepared.fulfill()
+        }
+
+        await fixture.model.play(track: fixture.first[0])
+        await fulfillment(of: [prepared], timeout: eventTimeout)
+
+        XCTAssertEqual(fixture.model.selectedTrackID, fixture.first[0].id)
+        XCTAssertEqual(fixture.audio.loadedURLs.map(\.path), [fixture.first[0].filePath])
+        XCTAssertEqual(fixture.audio.scheduledURL?.path, fixture.first[1].filePath)
+        XCTAssertNil(fixture.model.preparingTrackTitle)
+        XCTAssertTrue(fixture.audio.state.isPlaying)
+    }
+
+    func testPreparedAutomaticAdvanceUsesTheSameRouteWithRadioOffAndOn() async throws {
+        for level in [0, 10] {
+            let fixture = try Fixture()
+            defer { fixture.cleanup() }
+            fixture.audio.supportsPreparedTransitions = true
+            fixture.model.setRadioEffectIntensity(level)
+            // An interference burst must not postpone ordinary queue preparation.
+            fixture.audio.onLoad = { _ in
+                fixture.audio.state.radioPhase = level == 0 ? .bypassed : .interference
+            }
+            let prepared = expectation(description: "Ordinary successor is ready at radio level \(level)")
+            fixture.audio.onSchedule = { _, atEnd in
+                XCTAssertTrue(atEnd)
+                fixture.audio.onSchedule = nil
+                prepared.fulfill()
+            }
+            await fixture.model.play(track: fixture.first[0])
+            await fulfillment(of: [prepared], timeout: eventTimeout)
+            XCTAssertEqual(fixture.audio.scheduledURL?.path, fixture.first[1].filePath)
+
+            fixture.audio.finishTrack()
+
+            XCTAssertEqual(fixture.model.selectedTrackID, fixture.first[1].id)
+            XCTAssertEqual(fixture.audio.loadedURLs.map(\.path), [fixture.first[0].filePath, fixture.first[1].filePath])
+            XCTAssertEqual(fixture.audio.state.currentTime, 0)
+            XCTAssertTrue(fixture.audio.state.isPlaying)
+            XCTAssertNil(fixture.model.preparingTrackTitle)
+        }
+    }
+
+    func testPreparedManualHandoffCommitsOnlyOnceTheNewTrackStarts() async throws {
+        let fixture = try Fixture()
+        defer { fixture.cleanup() }
+        await fixture.model.play(track: fixture.first[0])
+        fixture.audio.state.currentTime = 4
+        fixture.audio.supportsPreparedTransitions = true
+
+        await fixture.model.performPlaybackCommand(.next)
+        let pending = try XCTUnwrap(fixture.audio.scheduledHandle)
+        XCTAssertEqual(fixture.model.selectedTrackID, fixture.first[0].id)
+        XCTAssertEqual(fixture.audio.state.currentTime, 4)
+        XCTAssertEqual(fixture.audio.scheduledURL?.path, fixture.first[1].filePath)
+        XCTAssertFalse(try XCTUnwrap(fixture.audio.scheduledAtEnd))
+
+        fixture.audio.commitScheduledTrack()
+        XCTAssertEqual(fixture.model.selectedTrackID, fixture.first[1].id)
+        XCTAssertEqual(fixture.audio.state.currentTime, 0)
+        XCTAssertEqual(fixture.audio.loadedURLs.count, 2)
+        fixture.audio.onTrackStarted?(pending)
+        XCTAssertEqual(fixture.model.selectedTrackID, fixture.first[1].id)
+        XCTAssertEqual(fixture.audio.loadedURLs.count, 2)
+    }
+
+    func testPreparedRapidNextAndPreviousResolveFromLastRequestedTarget() async throws {
+        let fixture = try Fixture()
+        defer { fixture.cleanup() }
+        fixture.setMode(.repeatPlaylist)
+        await fixture.model.play(track: fixture.first[0])
+        fixture.audio.supportsPreparedTransitions = true
+        var superseded: [AudioPreparedTrack] = []
+
+        for index in 1...10 {
+            await fixture.model.performPlaybackCommand(.next)
+            superseded.append(try XCTUnwrap(fixture.audio.scheduledHandle))
+            XCTAssertEqual(fixture.audio.scheduledURL?.path, fixture.first[index % fixture.first.count].filePath)
+            XCTAssertEqual(fixture.model.selectedTrackID, fixture.first[0].id)
+        }
+        await fixture.model.performPlaybackCommand(.previous)
+        XCTAssertEqual(fixture.audio.scheduledURL?.path, fixture.first[0].filePath)
+        for handle in superseded {
+            fixture.audio.onTrackStarted?(handle)
+            fixture.audio.onTrackReleased?(handle)
+        }
+        XCTAssertEqual(fixture.model.selectedTrackID, fixture.first[0].id)
+        XCTAssertEqual(fixture.audio.loadedURLs.count, 1, "Intermediate targets must never start")
+        fixture.audio.commitScheduledTrack()
+        XCTAssertEqual(fixture.model.selectedTrackID, fixture.first[0].id)
+        XCTAssertEqual(fixture.audio.loadedURLs.count, 2)
+    }
+
+    func testPreparedShufflePreviousReturnsTheLastHeardTrackAfterUnheardTargetsAreSkipped() async throws {
+        let fixture = try Fixture()
+        defer { fixture.cleanup() }
+        fixture.setMode(.shuffle)
+        await fixture.model.play(track: fixture.first[0])
+        fixture.audio.supportsPreparedTransitions = true
+
+        await fixture.model.performPlaybackCommand(.next)
+        let unheardURL = try XCTUnwrap(fixture.audio.scheduledURL)
+        await fixture.model.performPlaybackCommand(.next)
+        let heardURL = try XCTUnwrap(fixture.audio.scheduledURL)
+        XCTAssertNotEqual(unheardURL, heardURL)
+        fixture.audio.commitScheduledTrack()
+        XCTAssertEqual(fixture.audio.loadedURLs.map(\.path), [fixture.first[0].filePath, heardURL.path])
+
+        await fixture.model.performPlaybackCommand(.previous)
+
+        XCTAssertEqual(fixture.audio.scheduledURL?.path, fixture.first[0].filePath,
+                       "An intermediate requested track that never played is not playback history")
+        XCTAssertNotEqual(fixture.audio.scheduledURL, unheardURL)
+        fixture.audio.commitScheduledTrack()
+        await fixture.model.performPlaybackCommand(.next)
+        XCTAssertEqual(fixture.audio.scheduledURL, heardURL,
+                       "Forward navigation after history Previous must return to the track actually heard")
+    }
+
+    func testPreparedPendingSelectionUsesItsPlaylistForSubsequentNavigation() async throws {
+        let fixture = try Fixture()
+        defer { fixture.cleanup() }
+        fixture.setMode(.repeatPlaylist)
+        await fixture.model.play(track: fixture.first[0])
+        fixture.audio.supportsPreparedTransitions = true
+
+        await fixture.model.play(track: fixture.second[0])
+        XCTAssertEqual(fixture.audio.scheduledURL?.path, fixture.second[0].filePath)
+        await fixture.model.performPlaybackCommand(.next)
+        XCTAssertEqual(fixture.audio.scheduledURL?.path, fixture.second[1].filePath)
+        await fixture.model.performPlaybackCommand(.previous)
+
+        XCTAssertEqual(fixture.audio.scheduledURL?.path, fixture.second[0].filePath)
+        XCTAssertEqual(fixture.model.selectedTrackID, fixture.first[0].id)
+        XCTAssertEqual(fixture.audio.loadedURLs.count, 1)
+    }
+
+    func testPreparedPauseBeforeCommitKeepsAAndRejectsStaleStart() async throws {
+        for level in [0, 10] {
+            let fixture = try Fixture()
+            defer { fixture.cleanup() }
+            await fixture.model.play(track: fixture.first[0])
+            fixture.audio.state.currentTime = 4
+            fixture.model.setRadioEffectIntensity(level)
+            fixture.audio.supportsPreparedTransitions = true
+            await fixture.model.performPlaybackCommand(.next)
+            let stale = try XCTUnwrap(fixture.audio.scheduledHandle)
+
+            await fixture.model.performPlaybackCommand(.pause)
+            fixture.audio.onTrackStarted?(stale)
+
+            XCTAssertEqual(fixture.model.selectedTrackID, fixture.first[0].id)
+            XCTAssertEqual(fixture.audio.state.currentTime, 4)
+            XCTAssertFalse(fixture.audio.state.isPlaying)
+            XCTAssertNil(fixture.audio.scheduledHandle)
+            await fixture.model.performPlaybackCommand(.play)
+            XCTAssertEqual(fixture.model.selectedTrackID, fixture.first[0].id)
+            XCTAssertEqual(fixture.audio.state.currentTime, 4)
+            XCTAssertEqual(fixture.audio.resumeCalls, 1)
+        }
+    }
+
+    func testPreparedPauseAfterCommitResumesB() async throws {
+        let fixture = try Fixture()
+        defer { fixture.cleanup() }
+        await fixture.model.play(track: fixture.first[0])
+        fixture.audio.supportsPreparedTransitions = true
+        await fixture.model.performPlaybackCommand(.next)
+        fixture.audio.commitScheduledTrack()
+        fixture.audio.state.currentTime = 0.2
+
+        await fixture.model.performPlaybackCommand(.pause)
+        await fixture.model.performPlaybackCommand(.play)
+
+        XCTAssertEqual(fixture.model.selectedTrackID, fixture.first[1].id)
+        XCTAssertEqual(fixture.audio.state.currentTime, 0.2)
+        XCTAssertEqual(fixture.audio.loadedURLs.count, 2)
+    }
+
+    func testPreparedSeekCancelsPendingAndIgnoresItsStaleCallback() async throws {
+        let fixture = try Fixture()
+        defer { fixture.cleanup() }
+        await fixture.model.play(track: fixture.first[0])
+        fixture.audio.supportsPreparedTransitions = true
+        await fixture.model.performPlaybackCommand(.next)
+        let stale = try XCTUnwrap(fixture.audio.scheduledHandle)
+
+        fixture.model.seek(to: 6)
+        fixture.audio.onTrackStarted?(stale)
+        fixture.audio.onTrackReleased?(stale)
+
+        XCTAssertEqual(fixture.model.selectedTrackID, fixture.first[0].id)
+        XCTAssertEqual(fixture.audio.state.currentTime, 6)
+        XCTAssertTrue(fixture.audio.cancelledHandles.contains(stale))
+        XCTAssertEqual(fixture.audio.loadedURLs.count, 1)
+    }
+
+    func testPreparedExternalTransportCancellationStopsPendingCloudPreparation() async throws {
+        let fixture = try Fixture()
+        defer { fixture.cleanup() }
+        await fixture.model.play(track: fixture.first[0])
+        fixture.audio.supportsPreparedTransitions = true
+        fixture.media.delayedPath = fixture.first[1].filePath
+        let downloading = expectation(description: "Requested file download is pending")
+        fixture.media.onDownloadStarted = { downloading.fulfill() }
+        let request = Task { await fixture.model.performPlaybackCommand(.next) }
+        await fulfillment(of: [downloading], timeout: eventTimeout)
+
+        fixture.audio.cancelTransportExternally()
+        fixture.media.releaseDownload()
+        await request.value
+
+        XCTAssertFalse(fixture.audio.state.isPlaying)
+        XCTAssertNil(fixture.audio.scheduledHandle)
+        XCTAssertNil(fixture.model.preparingTrackTitle)
+        XCTAssertEqual(fixture.model.selectedTrackID, fixture.first[0].id)
+        XCTAssertEqual(fixture.audio.loadedURLs.count, 1)
+    }
+
+    func testPreparedModeChangeCancelsOldGenerationWithoutRestartingA() async throws {
+        let fixture = try Fixture()
+        defer { fixture.cleanup() }
+        await fixture.model.play(track: fixture.first[0])
+        fixture.audio.state.currentTime = 3
+        fixture.audio.supportsPreparedTransitions = true
+        await fixture.model.performPlaybackCommand(.next)
+        let stale = try XCTUnwrap(fixture.audio.scheduledHandle)
+        let replanned = expectation(description: "Mode change replans pending target")
+        fixture.audio.onSchedule = { _, _ in
+            fixture.audio.onSchedule = nil
+            replanned.fulfill()
+        }
+
+        fixture.model.cyclePlaybackMode()
+        await fulfillment(of: [replanned], timeout: eventTimeout)
+        fixture.audio.onTrackStarted?(stale)
+
+        XCTAssertTrue(fixture.audio.cancelledHandles.contains(stale))
+        XCTAssertNotEqual(fixture.audio.scheduledHandle, stale)
+        XCTAssertEqual(fixture.model.selectedTrackID, fixture.first[0].id)
+        XCTAssertEqual(fixture.audio.state.currentTime, 3)
+        XCTAssertEqual(fixture.audio.loadedURLs.count, 1)
+    }
+
+    func testPreparedPauseInvalidatesAModeReplanBeforeItStarts() async throws {
+        let fixture = try Fixture()
+        defer { fixture.cleanup() }
+        await fixture.model.play(track: fixture.first[0])
+        fixture.audio.supportsPreparedTransitions = true
+        await fixture.model.performPlaybackCommand(.next)
+        let stale = try XCTUnwrap(fixture.audio.scheduledHandle)
+
+        // These synchronous actions run before the queued mode-replan task.
+        fixture.model.cyclePlaybackMode()
+        fixture.model.togglePlayback()
+        let drained = expectation(description: "Main actor reaches the task after replan")
+        Task { @MainActor in drained.fulfill() }
+        await fulfillment(of: [drained], timeout: eventTimeout)
+        fixture.audio.onTrackStarted?(stale)
+
+        XCTAssertFalse(fixture.audio.state.isPlaying)
+        XCTAssertNil(fixture.audio.scheduledHandle)
+        XCTAssertNil(fixture.model.preparingTrackTitle)
+        XCTAssertEqual(fixture.model.selectedTrackID, fixture.first[0].id)
+        XCTAssertEqual(fixture.audio.loadedURLs.count, 1)
+    }
+
+    func testPreparedExternalCancellationInvalidatesAModeReplanBeforeItStarts() async throws {
+        let fixture = try Fixture()
+        defer { fixture.cleanup() }
+        await fixture.model.play(track: fixture.first[0])
+        fixture.audio.supportsPreparedTransitions = true
+        await fixture.model.performPlaybackCommand(.next)
+
+        fixture.model.cyclePlaybackMode()
+        fixture.audio.cancelTransportExternally()
+        let drained = expectation(description: "Main actor processes the invalidated replan")
+        Task { @MainActor in drained.fulfill() }
+        await fulfillment(of: [drained], timeout: eventTimeout)
+
+        XCTAssertFalse(fixture.audio.state.isPlaying)
+        XCTAssertNil(fixture.audio.scheduledHandle)
+        XCTAssertNil(fixture.model.preparingTrackTitle)
+        XCTAssertEqual(fixture.model.selectedTrackID, fixture.first[0].id)
+        XCTAssertEqual(fixture.audio.loadedURLs.count, 1)
+    }
+
+    func testRadioLevelChangesPreserveOrdinaryPrefetchAndPendingManualHandoff() async throws {
+        let fixture = try Fixture()
+        defer { fixture.cleanup() }
+        fixture.audio.supportsPreparedTransitions = true
+        let prefetched = expectation(description: "Automatic successor is prepared")
+        fixture.audio.onSchedule = { _, _ in
+            fixture.audio.onSchedule = nil
+            prefetched.fulfill()
+        }
+        await fixture.model.play(track: fixture.first[0])
+        await fulfillment(of: [prefetched], timeout: eventTimeout)
+
+        let automatic = try XCTUnwrap(fixture.audio.scheduledHandle)
+        for level in [10, 1, 0] {
+            fixture.model.setRadioEffectIntensity(level)
+            XCTAssertEqual(fixture.audio.scheduledHandle, automatic)
+            XCTAssertEqual(fixture.model.selectedTrackID, fixture.first[0].id)
+            XCTAssertEqual(fixture.audio.loadedURLs.count, 1)
+            XCTAssertFalse(fixture.audio.cancelledHandles.contains(automatic))
+        }
+
+        await fixture.model.performPlaybackCommand(.next)
+        let manual = try XCTUnwrap(fixture.audio.scheduledHandle)
+        for level in [1, 10, 0] {
+            fixture.model.setRadioEffectIntensity(level)
+            XCTAssertEqual(fixture.audio.scheduledHandle, manual)
+            XCTAssertEqual(fixture.model.selectedTrackID, fixture.first[0].id)
+            XCTAssertEqual(fixture.audio.loadedURLs.count, 1)
+            XCTAssertFalse(fixture.audio.cancelledHandles.contains(manual))
+        }
+        fixture.audio.commitScheduledTrack()
+        XCTAssertEqual(fixture.model.selectedTrackID, fixture.first[1].id)
+        XCTAssertEqual(fixture.audio.loadedURLs.count, 2)
+        XCTAssertNil(fixture.audio.scheduledHandle)
+    }
+
+    func testPauseReconcilesAudiblePreparedTrackBeforeCancellingPendingWork() async throws {
+        let fixture = try Fixture()
+        defer { fixture.cleanup() }
+        await fixture.model.play(track: fixture.first[0])
+        fixture.audio.supportsPreparedTransitions = true
+        await fixture.model.performPlaybackCommand(.next)
+
+        // The audio clock reached B before the periodic presentation update.
+        fixture.audio.audibleScheduledTime = 0.35
+        await fixture.model.performPlaybackCommand(.pause)
+
+        XCTAssertEqual(fixture.model.selectedTrackID, fixture.first[1].id)
+        XCTAssertEqual(fixture.audio.state.currentTime, 0.35)
+        XCTAssertFalse(fixture.audio.state.isPlaying)
+        XCTAssertNil(fixture.audio.scheduledHandle)
+        XCTAssertNil(fixture.model.preparingTrackTitle)
+        XCTAssertEqual(fixture.audio.loadedURLs.map(\.path),
+                       [fixture.first[0].filePath, fixture.first[1].filePath])
+    }
+
+    func testRadioLevelChangesAfterEOFPreserveTheDelayedOrdinarySuccessor() async throws {
+        let fixture = try Fixture()
+        defer { fixture.cleanup() }
+        fixture.audio.supportsPreparedTransitions = true
+        fixture.media.delayedPath = fixture.first[1].filePath
+        let downloading = expectation(description: "Speculative next is downloading")
+        fixture.media.onDownloadStarted = { downloading.fulfill() }
+        await fixture.model.play(track: fixture.first[0])
+        await fulfillment(of: [downloading], timeout: eventTimeout)
+        fixture.audio.finishTrack()
+
+        fixture.model.setRadioEffectIntensity(10)
+        fixture.model.setRadioEffectIntensity(0)
+        XCTAssertNotNil(fixture.model.preparingTrackTitle,
+                        "EOF turns speculative prefetch into the actual pending target")
+        let ready = expectation(description: "Delayed next remains requested after changing the noise level")
+        fixture.audio.onSchedule = { _, _ in
+            fixture.audio.onSchedule = nil
+            ready.fulfill()
+        }
+        fixture.media.releaseDownload()
+        await fulfillment(of: [ready], timeout: eventTimeout)
+
+        XCTAssertEqual(fixture.model.selectedTrackID, fixture.first[1].id)
+        XCTAssertEqual(fixture.audio.loadedURLs.count, 2)
+        XCTAssertNil(fixture.model.preparingTrackTitle)
+    }
+
+    func testRadioSliderChangesProcessingWithoutReloadingOrSeekingMusic() async throws {
+        let fixture = try Fixture()
+        defer { fixture.cleanup() }
+        await fixture.model.play(track: fixture.first[0])
+        fixture.audio.state.currentTime = 5
+        let loaded = fixture.audio.loadedURLs
+
+        for level in [1, 5, 10, 0] {
+            fixture.model.setRadioEffectIntensity(level)
+            XCTAssertEqual(fixture.model.selectedTrackID, fixture.first[0].id)
+            XCTAssertEqual(fixture.audio.state.currentTime, 5)
+            XCTAssertEqual(fixture.audio.loadedURLs, loaded)
+            XCTAssertTrue(fixture.audio.state.isPlaying)
+            XCTAssertEqual(fixture.audio.appliedRadioSettings.last, fixture.model.radioSettings)
+        }
+    }
+
+    func testLinkedRadioControlsPersistWithoutReloadingOrMovingPlayback() async throws {
+        let fixture = try Fixture()
+        defer { fixture.cleanup() }
+        await fixture.model.play(track: fixture.first[0])
+        fixture.audio.state.currentTime = 5
+        let loaded = fixture.audio.loadedURLs
+
+        func assertState(main: Int, background: Int) {
+            let expected = RadioSettings(effectIntensity: main, backgroundIntensity: background)
+            XCTAssertEqual(fixture.model.radioSettings, expected)
+            XCTAssertEqual(fixture.audio.appliedRadioSettings.last, expected)
+            XCTAssertEqual(RadioPreferences(defaults: fixture.defaults).load(), expected)
+            XCTAssertEqual(fixture.model.selectedTrackID, fixture.first[0].id)
+            XCTAssertEqual(fixture.audio.state.currentTime, 5)
+            XCTAssertEqual(fixture.audio.loadedURLs, loaded)
+            XCTAssertTrue(fixture.audio.state.isPlaying)
+        }
+
+        fixture.model.setRadioBackgroundIntensity(7)
+        assertState(main: 7, background: 7)
+        fixture.model.setRadioEffectIntensity(4)
+        assertState(main: 4, background: 4)
+        fixture.model.setRadioBackgroundIntensity(8)
+        assertState(main: 8, background: 8)
+        fixture.model.setRadioBackgroundIntensity(0)
+        assertState(main: 8, background: 0)
+        fixture.model.setRadioEffectIntensity(0)
+        assertState(main: 0, background: 0)
+    }
+
+    func testRadioLevelChangesDuringDownloadDoNotReplaceThePendingPlaybackRequest() async throws {
+        let fixture = try Fixture()
+        defer { fixture.cleanup() }
+        await fixture.model.play(track: fixture.first[0])
+        fixture.audio.supportsPreparedTransitions = true
+        fixture.media.delayedPath = fixture.first[1].filePath
+        let downloading = expectation(description: "Next is waiting for its audio file")
+        fixture.media.onDownloadStarted = { downloading.fulfill() }
+        let request = Task { await fixture.model.performPlaybackCommand(.next) }
+        await fulfillment(of: [downloading], timeout: eventTimeout)
+
+        fixture.model.setRadioEffectIntensity(10)
+        fixture.model.setRadioEffectIntensity(0)
+        fixture.model.setRadioEffectIntensity(10)
+        fixture.media.releaseDownload()
+        await request.value
+
+        XCTAssertEqual(fixture.audio.scheduledURL?.path, fixture.first[1].filePath)
+        XCTAssertFalse(try XCTUnwrap(fixture.audio.scheduledAtEnd))
+        XCTAssertEqual(fixture.model.selectedTrackID, fixture.first[0].id)
+        XCTAssertEqual(fixture.audio.loadedURLs.count, 1)
+        XCTAssertEqual(fixture.media.resolvedPaths.filter { $0 == fixture.first[1].filePath }.count, 1)
+        fixture.audio.commitScheduledTrack()
+        XCTAssertEqual(fixture.model.selectedTrackID, fixture.first[1].id)
+        XCTAssertEqual(fixture.model.radioSettings.effectIntensity, 10)
+        XCTAssertEqual(fixture.audio.loadedURLs.count, 2)
+    }
 }
 
 @MainActor
@@ -454,7 +930,9 @@ private final class Fixture {
         media.releaseDownload()
         audio.onTrackFinished = nil
         audio.onLoad = nil
+        audio.onSchedule = nil
         activity.onEnd = nil
+        model.shutdown()
         audio.stop()
         defaults.removePersistentDomain(forName: suiteName)
     }
@@ -473,17 +951,86 @@ private final class Fixture {
 private final class AudioDouble: AudioPlaying {
     let state = AudioPlaybackState()
     var onTrackFinished: (() -> Void)?
+    var supportsPreparedTransitions = false
+    var onTrackStarted: ((AudioPreparedTrack) -> Void)?
+    var onTrackReleased: ((AudioPreparedTrack) -> Void)?
+    var onTransportCancelled: (() -> Void)?
     var onLoad: ((URL) -> Void)?
+    var onSchedule: ((AudioPreparedTrack, Bool) -> Void)?
     var loadedURLs: [URL] = []
     var invalidPaths: Set<String> = []
     var isStoppedExternally = false
+    var audibleScheduledTime: TimeInterval?
     private(set) var resumeCalls = 0
+    private(set) var appliedRadioSettings: [RadioSettings] = []
+    private(set) var scheduledHandle: AudioPreparedTrack?
+    private(set) var scheduledAtEnd: Bool?
+    private(set) var cancelledHandles: [AudioPreparedTrack] = []
+    private var preparedURLs: [AudioPreparedTrack: URL] = [:]
+
+    var scheduledURL: URL? { scheduledHandle.flatMap { preparedURLs[$0] } }
+
+    func applyRadioSettings(_ settings: RadioSettings) {
+        appliedRadioSettings.append(settings)
+    }
+
+    func prepareTrack(url: URL, requestID: UUID) async throws -> AudioPreparedTrack {
+        guard supportsPreparedTransitions else { throw AudioPreparationError.unsupported }
+        if invalidPaths.contains(url.path) { throw PlaybackError.invalidAudioFile }
+        let handle = AudioPreparedTrack(requestID: requestID)
+        preparedURLs[handle] = url
+        return handle
+    }
+
+    func scheduleReplacement(_ handle: AudioPreparedTrack, atEnd: Bool) throws {
+        guard preparedURLs[handle] != nil else { throw AudioPreparationError.staleHandle }
+        scheduledHandle = handle
+        scheduledAtEnd = atEnd
+        onSchedule?(handle, atEnd)
+        if atEnd && state.currentTime >= state.duration {
+            commitScheduledTrack()
+        }
+    }
+
+    func cancelPreparedTrack(_ handle: AudioPreparedTrack) {
+        guard preparedURLs.removeValue(forKey: handle) != nil else { return }
+        cancelledHandles.append(handle)
+        if scheduledHandle == handle {
+            scheduledHandle = nil
+            scheduledAtEnd = nil
+        }
+        onTrackReleased?(handle)
+    }
+
+    func cancelReplacement() {
+        if let handle = scheduledHandle { cancelPreparedTrack(handle) }
+        state.radioPhase = .bypassed
+    }
+
+    func commitScheduledTrack(at time: TimeInterval = 0) {
+        guard let handle = scheduledHandle, let url = preparedURLs.removeValue(forKey: handle) else { return }
+        scheduledHandle = nil
+        scheduledAtEnd = nil
+        loadedURLs.append(url)
+        state.duration = 10
+        state.currentTime = time
+        state.radioPhase = appliedRadioSettings.last?.effectIntensity == 0 ? .bypassed : .receiving
+        state.advancesTrackTime = true
+        state.isStarting = false
+        state.isPlaying = true
+        onTrackStarted?(handle)
+    }
+
+    func cancelTransportExternally() {
+        pause()
+    }
 
     func loadAndPlay(url: URL) async throws {
         if invalidPaths.contains(url.path) { throw PlaybackError.invalidAudioFile }
         loadedURLs.append(url)
         state.duration = 10
         state.currentTime = 0
+        state.advancesTrackTime = true
         state.isStarting = false
         state.isPlaying = true
         onLoad?(url)
@@ -492,6 +1039,7 @@ private final class AudioDouble: AudioPlaying {
     func play() -> Task<Void, Error>? {
         resumeCalls += 1
         state.isPlaying = state.duration > 0
+        state.advancesTrackTime = state.isPlaying
         state.isStarting = false
         return nil
     }
@@ -499,30 +1047,43 @@ private final class AudioDouble: AudioPlaying {
     func pauseByUser() { pause() }
 
     func reconcilePlaybackState() {
+        if let time = audibleScheduledTime {
+            audibleScheduledTime = nil
+            commitScheduledTrack(at: time)
+        }
         guard isStoppedExternally else { return }
         isStoppedExternally = false
         pause()
     }
 
     func pause() {
+        onTransportCancelled?()
         state.isPlaying = false
+        state.advancesTrackTime = false
         state.isStarting = false
     }
 
     func stop() {
+        cancelReplacement()
         pause()
         state.currentTime = 0
         state.duration = 0
     }
 
     func seek(to time: TimeInterval) {
+        onTransportCancelled?()
         state.currentTime = min(state.duration, max(0, time))
         if state.duration > 0, state.currentTime == state.duration { finishTrack() }
     }
 
     func finishTrack() {
         state.currentTime = state.duration
+        if scheduledHandle != nil, scheduledAtEnd == true {
+            commitScheduledTrack()
+            return
+        }
         state.isPlaying = false
+        state.advancesTrackTime = false
         onTrackFinished?()
     }
 }

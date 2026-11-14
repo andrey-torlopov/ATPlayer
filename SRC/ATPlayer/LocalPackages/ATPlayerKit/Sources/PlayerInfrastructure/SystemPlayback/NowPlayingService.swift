@@ -41,7 +41,8 @@ public final class NowPlayingService: NowPlayingPresenting {
             currentTime: elapsed,
             isPlaying: snapshot.isPlaying,
             canPlayPrevious: snapshot.canPlayPrevious,
-            canPlayNext: snapshot.canPlayNext
+            canPlayNext: snapshot.canPlayNext,
+            advancesTrackTime: snapshot.advancesTrackTime
         )
 
         if latestSnapshot == nil
@@ -58,11 +59,12 @@ public final class NowPlayingService: NowPlayingPresenting {
            previous.title == state.title,
            previous.artist == state.artist,
            previous.duration == state.duration,
-           previous.isPlaying == state.isPlaying {
+           previous.isPlaying == state.isPlaying,
+           previous.advancesTrackTime == state.advancesTrackTime {
             let timeSinceUpdate = max(0, now - publishedAt)
             let predictedElapsed = min(
                 duration,
-                previous.currentTime + (previous.isPlaying ? timeSinceUpdate : 0)
+                previous.currentTime + (previous.advancesTrackTime ? timeSinceUpdate : 0)
             )
             // MediaPlayer extrapolates elapsed time from this anchor and playback rate.
             // Explicit seeks use force; drift also repairs the anchor after a stall.
@@ -76,7 +78,7 @@ public final class NowPlayingService: NowPlayingPresenting {
             MPMediaItemPropertyTitle: state.title,
             MPMediaItemPropertyPlaybackDuration: state.duration,
             MPNowPlayingInfoPropertyElapsedPlaybackTime: state.currentTime,
-            MPNowPlayingInfoPropertyPlaybackRate: state.isPlaying ? 1.0 : 0.0,
+            MPNowPlayingInfoPropertyPlaybackRate: state.advancesTrackTime ? 1.0 : 0.0,
             MPNowPlayingInfoPropertyDefaultPlaybackRate: 1.0,
             MPNowPlayingInfoPropertyMediaType: MPNowPlayingInfoMediaType.audio.rawValue,
             MPNowPlayingInfoPropertyExternalContentIdentifier: state.trackID.uuidString,

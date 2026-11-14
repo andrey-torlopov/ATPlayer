@@ -20,7 +20,7 @@ ATPlayer is a simple local audio player for iPhone and iPad. Your own files, an 
 
 ## Availability
 
-**Version 1.3.1 (build 5) is being prepared with playback-state and layout fixes. See the release record for verification and publication status.**
+**Version 1.4.0 (build 6) is in preparation with linked radio maximum/background controls and balanced noise from recording 12. Track changes use ordinary playback without station-search sounds. See the release record for current checks and limitations; the earlier signed archive does not include the latest changes.**
 
 - iPhone and iPad with **iOS / iPadOS 26.0 or later**.
 - The app interface and documentation are available **in Russian and English**. Select **RU / EN** in Settings.
@@ -54,6 +54,8 @@ Music is not included. Playback depends on the selected file being accessible an
 - [Features and playback behavior](docs/en/features.md)
 - **[Where data lives and when a connection is needed](docs/en/data-and-privacy.md)**
 - [Development and architecture](docs/en/development.md)
+- [RadioNoiseKit — standalone radio noise package](SRC/ATPlayer/LocalPackages/RadioNoiseKit/README.md)
+- [NoiseDemo — generator playground for iPhone and iPad](SRC/NoiseDemo/README.md)
 - [Release status and verification](docs/en/releases.md)
 - [All documentation](docs/en/index.md)
 

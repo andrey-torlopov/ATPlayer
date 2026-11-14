@@ -24,6 +24,8 @@ public final class ATPlayerViewModel: ObservableObject {
     @Published private(set) var preparingTrackTitle: String?
     @Published private(set) var isImporting = false
     @Published private(set) var playbackMode: PlaybackMode = .off
+    @Published var radioSettings = RadioSettings()
+    let radioPreferences: RadioPreferences
 
     let supportedTypes: [UTType] = SupportedAudioFormats.fileExtensions.sorted()
         .compactMap { UTType(filenameExtension: $0) } + [.folder]
@@ -49,6 +51,29 @@ public final class ATPlayerViewModel: ObservableObject {
     private var pendingFolderSourceID: UUID?
     private var activeLease: CachedAudioLease?
     private var preparationTask: Task<CachedAudioLease, Error>?
+    private var radioPreparationTask: Task<Void, Never>?
+    private var radioRequestID: UUID?
+    private var radioTargetID: UUID?
+    private var radioRequest: PlaybackRequest?
+    private var radioRequestSource: PlaybackSource?
+    private var radioRequestQueue: PlaybackQueue?
+    private var radioIsPrefetch = false
+    private var radioPending: PendingRadioTrack?
+    private var activeRadioHandle: AudioPreparedTrack?
+    private var radioTimeCancellable: AnyCancellable?
+    private var isCancellingRadioPreparation = false
+    private var radioControlRevision: UInt = 0
+    private var radioHistory: [UUID] = []
+    private var radioHistoryPosition = 0
+
+    private struct PendingRadioTrack {
+        let handle: AudioPreparedTrack
+        let track: PlaylistTrack
+        let source: PlaybackSource
+        let request: PlaybackRequest
+        let scopedURL: URL?
+        let lease: CachedAudioLease?
+    }
 
     private struct FolderQueue {
         let source: FolderSource
@@ -83,11 +108,14 @@ public final class ATPlayerViewModel: ObservableObject {
     ) {
         self.folderAccess = folderAccess
         self.defaults = defaults
+        self.radioPreferences = RadioPreferences(defaults: defaults)
         self.storageService = storage
         self.playbackService = audio
         self.activityService = activity
         self.nowPlayingService = nowPlaying
         self.mediaAccess = mediaAccess
+        radioSettings = radioPreferences.load()
+        audio.applyRadioSettings(radioSettings)
         nowPlaying.handleCommand = { [weak self] command in
             Task { @MainActor [weak self] in
                 await self?.performPlaybackCommand(command)
@@ -115,6 +143,15 @@ public final class ATPlayerViewModel: ObservableObject {
         playbackService.onTrackFinished = { [weak self] in
             self?.handleTrackFinished()
         }
+        playbackService.onTrackStarted = { [weak self] handle in
+            self?.commitRadioTrack(handle)
+        }
+        playbackService.onTrackReleased = { [weak self] handle in
+            self?.releaseRadioTrack(handle)
+        }
+        playbackService.onTransportCancelled = { [weak self] in
+            self?.cancelRadioPreparation()
+        }
         setupPlaybackPresentation()
         playbackErrorCancellable = playbackState.$playbackError
             .compactMap { $0 }
@@ -126,14 +163,22 @@ public final class ATPlayerViewModel: ObservableObject {
 
     deinit {
         preparationTask?.cancel()
+        radioPreparationTask?.cancel()
         // Avoid isolated-deinit backdeployment on iOS 26.0–26.3. Capture resources,
         // never self, while still releasing audio and its grants on the UI actor.
-        let cleanup: @MainActor @Sendable () -> Void = { [playbackService, activeLease, folderAccess, activeScopedURL] in
+        let cleanup: @MainActor @Sendable () -> Void = { [playbackService, activeLease, folderAccess, activeScopedURL, radioPending] in
+            playbackService.onTrackStarted = nil
+            playbackService.onTrackReleased = nil
+            playbackService.onTransportCancelled = nil
             playbackService.stop()
             if let lease = activeLease, let access = folderAccess {
                 Task { await access.release(lease) }
             }
             activeScopedURL?.stopAccessingSecurityScopedResource()
+            if let lease = radioPending?.lease, let access = folderAccess {
+                Task { await access.release(lease) }
+            }
+            radioPending?.scopedURL?.stopAccessingSecurityScopedResource()
         }
         if Thread.isMainThread {
             MainActor.assumeIsolated { cleanup() }
@@ -147,6 +192,9 @@ public final class ATPlayerViewModel: ObservableObject {
         resetPlayback()
         nowPlayingService.handleCommand = nil
         playbackService.onTrackFinished = nil
+        playbackService.onTrackStarted = nil
+        playbackService.onTrackReleased = nil
+        playbackService.onTransportCancelled = nil
     }
 
     func reloadSections() {
@@ -154,6 +202,7 @@ public final class ATPlayerViewModel: ObservableObject {
             _ = try storageService.ensureDefaultSection()
             sections = try storageService.fetchSections()
             updatePlaybackQueue()
+            refreshRadioQueue()
             schedulePlaybackPresentationUpdate()
         } catch {
             importError = L10n.text("Не удалось загрузить плейлисты. Повторите попытку.")
@@ -284,6 +333,9 @@ public final class ATPlayerViewModel: ObservableObject {
         playbackModeRevision &+= 1
         defaults.set(playbackMode.rawValue, forKey: "playbackMode")
         updatePlaybackQueue(restart: true)
+        radioHistory = selectedTrackID.map { [$0] } ?? []
+        radioHistoryPosition = 0
+        refreshRadioQueue(force: true)
         schedulePlaybackPresentationUpdate()
     }
 
@@ -344,6 +396,7 @@ public final class ATPlayerViewModel: ObservableObject {
     }
 
     private func invalidatePreparation() {
+        cancelRadioPreparation()
         playbackRequestID = UUID()
         pendingPlaybackRequestID = nil
         pendingFolderSourceID = nil
@@ -353,6 +406,14 @@ public final class ATPlayerViewModel: ObservableObject {
     }
 
     private func handleTrackFinished() {
+        if radioRequestID != nil {
+            // The already prepared transaction owns EOF. A delayed candidate
+            // keeps the committed selection and exposes preparation after EOF.
+            if let id = radioTargetID, let source = radioRequestSource {
+                preparingTrackTitle = sourceTracks(source).first { $0.id == id }?.displayName
+            }
+            return
+        }
         guard pendingPlaybackRequestID == nil, let selectedTrackID else { return }
         let finishedRequestID = playbackRequestID
         Task { [weak self] in
@@ -383,6 +444,10 @@ public final class ATPlayerViewModel: ObservableObject {
         playbackRequestID = UUID()
         pendingPlaybackRequestID = nil
         if playbackState.duration > 0 {
+            if playbackService.supportsPreparedTransitions,
+               playbackState.currentTime >= playbackState.duration {
+                return Task { await playRequest(.finished) }
+            }
             // Mark the start synchronously so a second tap can cancel it.
             let start = playbackService.play()
             return Task {
@@ -395,6 +460,7 @@ public final class ATPlayerViewModel: ObservableObject {
                         ?? L10n.text("Не удалось продолжить воспроизведение. Повторите попытку.")
                 }
                 synchronizePlaybackPresentation(force: true)
+                beginRadioPrefetch()
             }
         }
         guard let track = selectedTrack else { return nil }
@@ -435,17 +501,33 @@ public final class ATPlayerViewModel: ObservableObject {
     }
 
     var canPlayPrevious: Bool {
-        guard let current = selectedTrack else { return false }
-        return !playbackQueue.candidates(
-            after: current.id, direction: .previous, wrap: playbackMode == .repeatPlaylist
-        ).isEmpty
+        !navigationCandidates(direction: .previous).isEmpty
     }
 
     var canPlayNext: Bool {
-        guard let current = selectedTrack else { return false }
-        return !playbackQueue.candidates(
-            after: current.id, direction: .next, wrap: playbackMode == .repeatPlaylist
-        ).isEmpty
+        !navigationCandidates(direction: .next).isEmpty
+    }
+
+    private func navigationCandidates(direction: PlaybackQueue.Direction) -> [UUID] {
+        guard let current = selectedTrack else { return [] }
+        let hasManualTarget = radioRequestID != nil && !radioIsPrefetch
+        if !hasManualTarget, playbackMode == .shuffle,
+           playbackService.supportsPreparedTransitions,
+           radioHistory.contains(current.id) {
+            if case .previous = direction {
+                return Array(radioHistory.prefix(radioHistoryPosition).reversed())
+            }
+            if radioHistoryPosition + 1 < radioHistory.count {
+                return Array(radioHistory.suffix(from: radioHistoryPosition + 1))
+            }
+        }
+        let source = hasManualTarget ? (radioRequestSource ?? playbackSource) : playbackSource
+        let anchor = hasManualTarget ? (radioTargetID ?? current.id) : current.id
+        let track = sourceTracks(source).first { $0.id == anchor } ?? current
+        let queue = hasManualTarget
+            ? (radioRequestQueue ?? makePlaybackQueue(startingAt: track, source: source))
+            : makePlaybackQueue(startingAt: track, source: source)
+        return queue.candidates(after: anchor, direction: direction, wrap: playbackMode == .repeatPlaylist)
     }
 
     func playNext() {
@@ -463,6 +545,7 @@ public final class ATPlayerViewModel: ObservableObject {
     private func playRequest(_ request: PlaybackRequest) async {
         let candidates: [UUID]
         let source: PlaybackSource
+        let requestQueue: PlaybackQueue
         switch request {
         case let .selection(id, selectedSource):
             source = selectedSource
@@ -470,24 +553,31 @@ public final class ATPlayerViewModel: ObservableObject {
             // Prepare the new order without replacing the current track's queue.
             // A cloud download can suspend and then be cancelled by Pause.
             let queue = makePlaybackQueue(startingAt: track, source: source, restart: true)
+            requestQueue = queue
             candidates = queue.candidates(startingAt: id, direction: .next, wrap: playbackMode == .repeatPlaylist)
         case let .adjacent(direction):
-            source = playbackSource
-            guard let current = selectedTrack else { return }
+            source = radioIsPrefetch ? playbackSource : (radioRequestSource ?? playbackSource)
+            guard selectedTrack != nil else { return }
             updatePlaybackQueue()
-            candidates = playbackQueue.candidates(
-                after: current.id, direction: direction, wrap: playbackMode == .repeatPlaylist
-            )
+            requestQueue = radioRequestQueue ?? playbackQueue
+            candidates = navigationCandidates(direction: direction)
         case .finished:
             source = playbackSource
             guard let selectedTrackID else { return }
             updatePlaybackQueue()
+            requestQueue = playbackQueue
             candidates = playbackMode == .repeatOne ? [selectedTrackID] : playbackQueue.candidates(
                 after: selectedTrackID, direction: .next, wrap: playbackMode == .repeatPlaylist
             )
             if candidates.isEmpty { activityService.endActivity() }
         }
         guard !candidates.isEmpty else { return }
+        if playbackService.supportsPreparedTransitions, playbackState.duration > 0 {
+            await startRadioRequest(candidates, source: source, request: request,
+                                    queue: requestQueue, prefetch: false)
+            return
+        }
+        cancelRadioPreparation()
         await playCandidates(candidates, source: source, request: request)
     }
 
@@ -591,6 +681,7 @@ public final class ATPlayerViewModel: ObservableObject {
                 try Task.checkCancellation()
                 guard playbackRequestID == requestID else { return }
                 importError = nil
+                recordRadioHistory(currentTrack.id, explicit: isExplicitSelection)
                 if case .playlists = source, currentTrack.isCorrupted {
                     try? storageService.setCorrupted(false, for: currentTrack)
                 }
@@ -599,6 +690,7 @@ public final class ATPlayerViewModel: ObservableObject {
                     defaults.set(sectionID.uuidString, forKey: "lastPlayedSectionID")
                 }
                 synchronizePlaybackPresentation(force: true)
+                beginRadioPrefetch()
                 return
             } catch {
                 scopedURL?.stopAccessingSecurityScopedResource()
@@ -640,8 +732,284 @@ public final class ATPlayerViewModel: ObservableObject {
     }
 
     func seek(to time: TimeInterval) {
+        invalidatePreparation()
         playbackService.seek(to: time)
         synchronizePlaybackPresentation(force: true)
+        if time < playbackState.duration { beginRadioPrefetch() }
+    }
+
+    // MARK: - Prepared track handoffs
+
+    private func beginRadioPrefetch() {
+        guard playbackService.supportsPreparedTransitions,
+              radioRequestID == nil,
+              playbackState.isPlaying, let selectedTrackID else { return }
+        updatePlaybackQueue()
+        let candidates = playbackMode == .repeatOne ? [selectedTrackID] : playbackQueue.candidates(
+            after: selectedTrackID, direction: .next, wrap: playbackMode == .repeatPlaylist
+        )
+        guard !candidates.isEmpty else { return }
+        launchRadioRequest(candidates, source: playbackSource, request: .finished,
+                           queue: playbackQueue, prefetch: true)
+    }
+
+    private func refreshRadioQueue(force: Bool = false) {
+        guard playbackService.supportsPreparedTransitions else { return }
+        let request = radioRequest
+        let isManual = radioRequestID != nil && !radioIsPrefetch
+        let targetExists = radioTargetID.map { id in
+            sourceTracks(radioRequestSource ?? playbackSource).contains { $0.id == id }
+        } ?? true
+        guard force || !targetExists || radioIsPrefetch else { return }
+        cancelRadioPreparation()
+        if isManual, let request {
+            let generation = playbackRequestID
+            let controlRevision = radioControlRevision
+            Task { [weak self] in
+                guard let self, self.playbackRequestID == generation,
+                      self.radioControlRevision == controlRevision else { return }
+                await self.playRequest(request)
+            }
+        } else {
+            beginRadioPrefetch()
+        }
+    }
+
+    private func startRadioRequest(
+        _ candidates: [UUID], source: PlaybackSource, request: PlaybackRequest,
+        queue: PlaybackQueue, prefetch: Bool
+    ) async {
+        launchRadioRequest(candidates, source: source, request: request, queue: queue, prefetch: prefetch)
+        let task = radioPreparationTask
+        await withTaskCancellationHandler {
+            await task?.value
+        } onCancel: {
+            task?.cancel()
+        }
+    }
+
+    private func launchRadioRequest(
+        _ candidates: [UUID], source: PlaybackSource, request: PlaybackRequest,
+        queue: PlaybackQueue, prefetch: Bool
+    ) {
+        cancelRadioPreparation()
+        let id = UUID()
+        radioRequestID = id
+        radioTargetID = candidates.first
+        radioRequest = request
+        radioRequestSource = source
+        radioRequestQueue = queue
+        radioIsPrefetch = prefetch
+        if !prefetch {
+            preparationTask?.cancel()
+            preparationTask = nil
+            playbackRequestID = id
+            pendingPlaybackRequestID = id
+            pendingFolderSourceID = source.folderID
+        }
+        radioPreparationTask = Task { [weak self] in
+            await self?.prepareRadioCandidates(candidates, source: source, request: request, id: id)
+        }
+    }
+
+    private func prepareRadioCandidates(
+        _ candidates: [UUID], source: PlaybackSource, request: PlaybackRequest, id: UUID
+    ) async {
+        var failureMessage = L10n.text("Нет доступных аудиофайлов для воспроизведения.")
+        for candidateID in candidates {
+            guard radioRequestID == id, !Task.isCancelled else { return }
+            guard let track = sourceTracks(source).first(where: { $0.id == candidateID }) else { continue }
+            radioTargetID = candidateID
+            if !radioIsPrefetch || !playbackState.isPlaying { preparingTrackTitle = track.displayName }
+            var scopedURL: URL?
+            var lease: CachedAudioLease?
+            var handle: AudioPreparedTrack?
+            do {
+                let url: URL
+                if case let .folder(queue) = source {
+                    guard let access = folderAccess,
+                          let entry = queue.entries.first(where: { $0.id == candidateID }) else { continue }
+                    // FolderAccess owns coalescing with its browser prefetch and
+                    // returns an independent pin for this prepared player.
+                    let prepared = try await access.prepare(
+                        source: queue.source, entry: entry, priority: .playback
+                    )
+                    lease = prepared
+                    url = prepared.url
+                } else {
+                    let resource = try resolvedResource(for: track)
+                    scopedURL = resource.scopedURL
+                    url = resource.url
+                    let downloaded = try await mediaAccess.ensureDownloaded(url) { [weak self] in
+                        self?.radioRequestID == id && !Task.isCancelled
+                    }
+                    guard downloaded else { throw PlaybackError.invalidAudioFile }
+                }
+                try Task.checkCancellation()
+                guard radioRequestID == id else { throw CancellationError() }
+                let prepared = try await playbackService.prepareTrack(url: url, requestID: id)
+                handle = prepared
+                try Task.checkCancellation()
+                guard radioRequestID == id,
+                      sourceTracks(source).contains(where: { $0.id == candidateID }) else {
+                    throw CancellationError()
+                }
+                // Install ownership before schedule: the adapter may commit an
+                // already-ended dry handoff synchronously.
+                radioPending = PendingRadioTrack(
+                    handle: prepared, track: track, source: source, request: request,
+                    scopedURL: scopedURL, lease: lease
+                )
+                scopedURL = nil
+                lease = nil
+                let atEnd: Bool
+                if case .finished = request { atEnd = true } else { atEnd = false }
+                try playbackService.scheduleReplacement(prepared, atEnd: atEnd)
+                return
+            } catch {
+                if let handle { playbackService.cancelPreparedTrack(handle) }
+                if radioPending?.handle == handle, let pending = radioPending {
+                    radioPending = nil
+                    releaseRadioResources(pending)
+                }
+                scopedURL?.stopAccessingSecurityScopedResource()
+                if let lease { await folderAccess?.release(lease) }
+                guard radioRequestID == id else { return }
+                if error is CancellationError || Task.isCancelled {
+                    cancelRadioPreparation()
+                    return
+                }
+                // Output failures never label a user's music corrupted.
+                if let playbackError = error as? PlaybackError, case .audioUnavailable = playbackError {
+                    cancelRadioPreparation()
+                    importError = playbackError.localizedDescription
+                    return
+                }
+                failureMessage = L10n.format(
+                    "Не удалось воспроизвести «%@». Проверьте файл или повторите импорт.", track.title
+                )
+            }
+        }
+        guard radioRequestID == id else { return }
+        let wasPrefetch = radioIsPrefetch
+        cancelRadioPreparation()
+        // A failed speculative candidate does not disturb the playing track or
+        // show a premature alert. EOF uses the existing finite fallback search.
+        if !wasPrefetch || !playbackState.isPlaying { importError = failureMessage }
+    }
+
+    private func commitRadioTrack(_ handle: AudioPreparedTrack) {
+        guard let pending = radioPending, pending.handle == handle,
+              radioRequestID == handle.requestID else { return }
+        // onTrackStarted guarantees the previous reader has stopped. Its grants
+        // and the new track's grants are intentionally distinct until this point.
+        stopActiveScopedURLIfNeeded()
+        activeScopedURL = pending.scopedURL
+        activeLease = pending.lease
+        activeRadioHandle = handle
+        radioPending = nil
+        playbackSource = pending.source
+        selectedTrackID = pending.track.id
+        let explicit: Bool
+        if case .selection = pending.request { explicit = true } else { explicit = false }
+        if let queue = radioRequestQueue { playbackQueue = queue }
+        updatePlaybackQueue(
+            startingAt: pending.track,
+            restart: !playbackQueue.orderedIDs.contains(pending.track.id)
+        )
+        recordRadioHistory(pending.track.id, explicit: explicit)
+        currentTrackTitle = pending.track.displayName
+        nowPlayingArtwork = pending.track.artwork
+        if let sectionID = pending.track.section?.id {
+            lastPlayedSectionID = sectionID
+            defaults.set(sectionID.uuidString, forKey: "lastPlayedSectionID")
+        }
+        if pendingPlaybackRequestID == handle.requestID { pendingPlaybackRequestID = nil }
+        pendingFolderSourceID = nil
+        preparingTrackTitle = nil
+        radioRequestID = nil
+        radioTargetID = nil
+        radioRequest = nil
+        radioRequestSource = nil
+        radioRequestQueue = nil
+        radioIsPrefetch = false
+        radioPreparationTask = nil
+        importError = nil
+        synchronizePlaybackPresentation(force: true)
+        // Leave the adapter's commit callback before scheduling the next pair.
+        Task { [weak self] in self?.beginRadioPrefetch() }
+    }
+
+    private func releaseRadioTrack(_ handle: AudioPreparedTrack) {
+        if let pending = radioPending, pending.handle == handle {
+            radioPending = nil
+            releaseRadioResources(pending)
+        }
+        if activeRadioHandle == handle {
+            activeRadioHandle = nil
+            stopActiveScopedURLIfNeeded()
+        }
+    }
+
+    private func recordRadioHistory(_ id: UUID, explicit: Bool) {
+        guard playbackMode == .shuffle else {
+            radioHistory = []
+            radioHistoryPosition = 0
+            return
+        }
+        let available = Set(sourceTracks(playbackSource).map(\.id))
+        radioHistory.removeAll { !available.contains($0) }
+        if explicit || radioHistory.isEmpty {
+            radioHistory = [id]
+            radioHistoryPosition = 0
+        } else if let index = radioHistory.firstIndex(of: id) {
+            radioHistoryPosition = index
+        } else {
+            radioHistory = Array(radioHistory.prefix(radioHistoryPosition + 1))
+            radioHistory.append(id)
+            radioHistoryPosition = radioHistory.count - 1
+        }
+    }
+
+    private func releaseRadioResources(_ track: PendingRadioTrack) {
+        track.scopedURL?.stopAccessingSecurityScopedResource()
+        if let lease = track.lease, let access = folderAccess {
+            Task { await access.release(lease) }
+        }
+    }
+
+    private func cancelRadioPreparation() {
+        guard !isCancellingRadioPreparation else { return }
+        isCancellingRadioPreparation = true
+        radioControlRevision &+= 1
+        defer { isCancellingRadioPreparation = false }
+        // Deliver an already audible B before invalidating its request/grants.
+        // A UI command can precede the adapter's periodic observation tick.
+        playbackService.reconcilePlaybackState()
+        let id = radioRequestID
+        radioRequestID = nil
+        radioTargetID = nil
+        radioRequest = nil
+        radioRequestSource = nil
+        radioRequestQueue = nil
+        radioIsPrefetch = false
+        radioPreparationTask?.cancel()
+        radioPreparationTask = nil
+        playbackService.cancelReplacement()
+        if let pending = radioPending {
+            playbackService.cancelPreparedTrack(pending.handle)
+            // A conforming adapter releases synchronously after stopping its
+            // inactive node. Retain this fallback for cancelled unopened plans.
+            if radioPending?.handle == pending.handle {
+                radioPending = nil
+                releaseRadioResources(pending)
+            }
+        }
+        if let id, pendingPlaybackRequestID == id {
+            pendingPlaybackRequestID = nil
+            pendingFolderSourceID = nil
+        }
+        if id != nil { preparingTrackTitle = nil }
     }
 
     // MARK: - Remove
@@ -766,6 +1134,9 @@ public final class ATPlayerViewModel: ObservableObject {
             .sink { [weak self] _ in
                 self?.schedulePlaybackPresentationUpdate()
             }
+        radioTimeCancellable = playbackState.$advancesTrackTime
+            .removeDuplicates()
+            .sink { [weak self] _ in self?.schedulePlaybackPresentationUpdate() }
     }
 
     private func schedulePlaybackPresentationUpdate() {
@@ -808,7 +1179,9 @@ public final class ATPlayerViewModel: ObservableObject {
             currentTime: time,
             isPlaying: isPlaying ?? playbackState.isPlaying,
             canPlayPrevious: canPlayPrevious,
-            canPlayNext: canPlayNext
+            canPlayNext: canPlayNext,
+            advancesTrackTime: playbackService.supportsPreparedTransitions
+                ? playbackState.advancesTrackTime : (isPlaying ?? playbackState.isPlaying)
         )
         nowPlayingService.update(snapshot, force: force)
         activityService.synchronize(

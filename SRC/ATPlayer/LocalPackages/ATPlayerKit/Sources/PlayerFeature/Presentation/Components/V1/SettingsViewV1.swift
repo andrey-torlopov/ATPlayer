@@ -8,6 +8,7 @@ struct SettingsViewV1: View {
     @ObservedObject var viewModel: ATPlayerViewModel
     @Environment(\.playerThemeV1) private var theme
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @AppStorage(PlayerAppearance.storageKey) private var appearance = PlayerAppearance.system.rawValue
     @AppStorage(L10n.languageKey) private var language = L10n.languageCode
     @State private var exportDocument = PlaylistExportDocumentV1(data: Data())
@@ -36,6 +37,13 @@ struct SettingsViewV1: View {
                         )
                     }
                     .buttonStyle(.plain)
+                    .softPanelV1()
+
+                    RadioSettingsView(
+                        viewModel: viewModel, primary: theme.textPrimary,
+                        secondary: theme.textSecondary, accent: theme.accent
+                    )
+                    .padding(20)
                     .softPanelV1()
                 }
 
@@ -163,9 +171,12 @@ struct SettingsViewV1: View {
     }
 
     private var themeSelection: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
+            : AnyLayout(HStackLayout(spacing: 6))
+        return VStack(alignment: .leading, spacing: 10) {
             sectionLabel(L10n.text("Тема"))
-            HStack(spacing: 6) {
+            layout {
                 ForEach(PlayerAppearance.allCases, id: \.rawValue) { option in
                     preferenceButton(isSelected: appearance == option.rawValue) {
                         appearance = option.rawValue

@@ -2,6 +2,18 @@
 
 *[Русский](../ru/releases.md)*
 
+## Preparation for 1.4.0 (6) — November 14, 2026
+
+The radio effect uses supplied recording12. Its playback texture omits near-silent passages and smooths level changes and isolated peaks; the original WAV is retained. Two linked controls set maximum noise and background: raising the floor above the maximum raises both, and lowering the maximum below the floor lowers both. Background0 permits quiet intervals; equal levels hold steady noise with modest natural variation. The new maximum10 equals the former level7, including its music/noise balance.
+
+FM/AM buttons and station-search transitions are removed. Tracks change through ordinary prepared playback without tuning noise; the interference sequence continues across the boundary. Settings persist, while legacy station-search/profile preferences no longer affect playback. Processing is local, without microphone input or a network radio catalog.
+
+The standalone **RadioNoiseKit** Swift package includes the core, sampler and **RadioNoiseAssets** product. **NoiseDemo** for iOS/iPadOS18 provides recording, experimental synthesis and imported-music comparison. Current verification, audio previews and limitations are retained locally in `Artifacts/Radio-1.4.0/Reference12Sample/README.md`.
+
+App and widget remain **1.4.0 (6)**, requiring **iOS/iPadOS26.0**. The earlier signed archive and IPA do not contain this refinement. This iteration did not create a new archive, upload to App Store Connect or publish. Physical-device acceptance, extended playback and realtime timing remain separate checks. The known first200ms peak limitation when enabling processing on already-overloaded EQ input remains.
+
+## Previous local candidate — 1.3.1 (5)
+
 A local **1.3.1 (5)** candidate is prepared for **iOS / iPadOS 26.0 or later**. The changes stabilize layout when starting the first track, reconcile actual audio-output state before Play/Toggle, and immediately publish pauses to system controls. Short background tasks protect asynchronous audio startup and Live Activity updates. Resource cleanup avoids the isolated-deinit runtime path that crashes on early iOS 26 releases.
 
 Full XCTest on the iOS 26.3 simulator: **passed / total = 132 / 137**, **0** failures and **5** skipped tests requiring an unavailable optional user-supplied MP3. A local Release archive was created. Physical AirPods, incoming calls while locked, and execution on iOS 26.0 itself remain separate checks. This version has not been uploaded to App Store Connect or submitted for review.

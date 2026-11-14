@@ -26,4 +26,21 @@ final class LocalizationTests: XCTestCase {
         XCTAssertEqual(L10n.text("Добавить папку", languageCode: "invalid"), "Add folder")
         XCTAssertEqual(L10n.text("missing-key", languageCode: "en"), "missing-key")
     }
+
+    func testRadioControlsAndAvailabilityAreLocalized() {
+        let translations = [
+            "Радио": "Radio",
+            "Радио эффект": "Radio effect",
+            "Максимальный уровень помех": "Maximum interference level",
+            "Фон радио эффекта": "Radio effect background",
+            "Постоянный уровень; 0 разрешает тишину": "Background level; 0 allows silence",
+            "%d из 10": "%d of 10",
+            "Выключено": "Off",
+            "Эффект временно недоступен": "Effect temporarily unavailable"
+        ]
+        for (key, english) in translations {
+            XCTAssertEqual(L10n.text(key, languageCode: "en"), english)
+            XCTAssertEqual(L10n.text(key, languageCode: "ru"), key)
+        }
+    }
 }

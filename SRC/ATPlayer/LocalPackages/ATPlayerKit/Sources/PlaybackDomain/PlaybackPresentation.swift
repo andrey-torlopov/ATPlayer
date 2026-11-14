@@ -7,17 +7,20 @@ public struct PlaybackSnapshot: Equatable, Sendable {
     public let duration: TimeInterval
     public let currentTime: TimeInterval
     public let isPlaying: Bool
+    public let advancesTrackTime: Bool
     public let canPlayPrevious: Bool
     public let canPlayNext: Bool
 
     public init(trackID: UUID, title: String, artist: String, duration: TimeInterval,
-                currentTime: TimeInterval, isPlaying: Bool, canPlayPrevious: Bool, canPlayNext: Bool) {
+                currentTime: TimeInterval, isPlaying: Bool, canPlayPrevious: Bool, canPlayNext: Bool,
+                advancesTrackTime: Bool? = nil) {
         self.trackID = trackID
         self.title = title
         self.artist = artist
         self.duration = duration
         self.currentTime = currentTime
         self.isPlaying = isPlaying
+        self.advancesTrackTime = advancesTrackTime ?? isPlaying
         self.canPlayPrevious = canPlayPrevious
         self.canPlayNext = canPlayNext
     }

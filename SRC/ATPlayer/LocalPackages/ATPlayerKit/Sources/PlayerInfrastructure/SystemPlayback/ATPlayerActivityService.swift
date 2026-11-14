@@ -43,7 +43,8 @@ public final class ATPlayerActivityService: ActivityPresenting {
             trackID: snapshot.trackID, trackTitle: snapshot.title, artistName: snapshot.artist,
             duration: snapshot.duration, currentTime: snapshot.currentTime, isPlaying: snapshot.isPlaying,
             playbackStartDate: playbackStartDate, canPlayPrevious: snapshot.canPlayPrevious,
-            canPlayNext: snapshot.canPlayNext, languageCode: L10n.languageCode
+            canPlayNext: snapshot.canPlayNext, languageCode: L10n.languageCode,
+            advancesTrackTime: snapshot.advancesTrackTime
         )
         let now = Date.now
         if let activity = currentActivity,
@@ -61,11 +62,11 @@ public final class ATPlayerActivityService: ActivityPresenting {
         let changed = lastState.map {
             $0.trackID != state.trackID || $0.trackTitle != state.trackTitle
                 || $0.artistName != state.artistName || $0.duration != state.duration
-                || $0.isPlaying != state.isPlaying || $0.languageCode != state.languageCode
+                || $0.isPlaying != state.isPlaying || $0.advancesTrackTime != state.advancesTrackTime || $0.languageCode != state.languageCode
                 || $0.canPlayPrevious != state.canPlayPrevious || $0.canPlayNext != state.canPlayNext
         } ?? true
         let expectedTime = lastState.map {
-            $0.currentTime + ($0.isPlaying ? now.timeIntervalSince(lastUpdateDate) : 0)
+            $0.currentTime + (($0.advancesTrackTime ?? $0.isPlaying) ? now.timeIntervalSince(lastUpdateDate) : 0)
         } ?? state.currentTime
         let positionChanged = abs(state.currentTime - expectedTime) > 0.5
         guard currentActivity == nil || force || changed || positionChanged

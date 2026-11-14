@@ -28,6 +28,7 @@ DerivedData/
 *.mp3
 *.flac
 *.wav
+!SRC/ATPlayer/LocalPackages/RadioNoiseKit/Sources/RadioNoiseAssets/Resources/Uniden12.mono.wav
 *.wave
 *.aif
 *.aiff

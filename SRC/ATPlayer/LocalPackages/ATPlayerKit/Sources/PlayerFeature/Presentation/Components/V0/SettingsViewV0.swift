@@ -17,6 +17,11 @@ struct SettingsViewV0: View {
             VStack(spacing: 16) {
                 exportSection
                 equalizerSection
+                RadioSettingsView(
+                    viewModel: viewModel, primary: themeV0.textPrimary,
+                    secondary: themeV0.textSecondary, accent: themeV0.accent
+                )
+                .themedPanelV0()
             }
             .padding()
         }

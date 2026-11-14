@@ -204,3 +204,11 @@
 "Язык" = "Language";
 "из %@" = "of %@";
 "−12 … +12 дБ" = "−12 … +12 dB";
+"Радио" = "Radio";
+"%d из 10" = "%d of 10";
+"Выключено" = "Off";
+"Эффект временно недоступен" = "Effect temporarily unavailable";
+"Радио эффект" = "Radio effect";
+"Максимальный уровень помех" = "Maximum interference level";
+"Фон радио эффекта" = "Radio effect background";
+"Постоянный уровень; 0 разрешает тишину" = "Background level; 0 allows silence";

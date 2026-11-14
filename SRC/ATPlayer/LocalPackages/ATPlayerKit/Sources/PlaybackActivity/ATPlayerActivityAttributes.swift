@@ -12,6 +12,7 @@ public nonisolated struct ATPlayerActivityAttributes: ActivityAttributes, Sendab
         public let duration: TimeInterval
         public let currentTime: TimeInterval
         public let isPlaying: Bool
+        public let advancesTrackTime: Bool?
         public let playbackStartDate: Date
         public let canPlayPrevious: Bool
         public let canPlayNext: Bool
@@ -19,13 +20,15 @@ public nonisolated struct ATPlayerActivityAttributes: ActivityAttributes, Sendab
 
         public init(trackID: UUID, trackTitle: String, artistName: String, duration: TimeInterval,
                     currentTime: TimeInterval, isPlaying: Bool, playbackStartDate: Date,
-                    canPlayPrevious: Bool, canPlayNext: Bool, languageCode: String? = nil) {
+                    canPlayPrevious: Bool, canPlayNext: Bool, languageCode: String? = nil,
+                    advancesTrackTime: Bool? = nil) {
             self.trackID = trackID
             self.trackTitle = trackTitle
             self.artistName = artistName
             self.duration = duration
             self.currentTime = currentTime
             self.isPlaying = isPlaying
+            self.advancesTrackTime = advancesTrackTime
             self.playbackStartDate = playbackStartDate
             self.canPlayPrevious = canPlayPrevious
             self.canPlayNext = canPlayNext
